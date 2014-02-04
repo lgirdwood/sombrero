@@ -83,6 +83,20 @@ fi
 
 AC_SUBST(AVX_CFLAGS)
 
+# OpenMP support
+AC_ARG_ENABLE(openmp, [AS_HELP_STRING([--enable-openmp],[enable OpenMP])], have_openmp=$enableval, have_openmp=no)
+if test "$have_openmp" = "yes"; then
+        AC_DEFINE(HAVE_OPENMP,1,[Define to enable OpenMP])
+fi
+AM_CONDITIONAL(HAVE_OPENMP, test "$have_openmp" = "yes")
+
+if test "$have_openmp" = "yes" -a "x$OPENMP_CFLAGS" = x; then
+	AX_CHECK_COMPILE_FLAG(-fopenmp, [OPENMP_CFLAGS="-fopenmp"],
+		[AC_MSG_ERROR([Need a version of gcc with -fopenmp])])
+fi
+
+AC_SUBST(OPENMP_CFLAGS)
+
 AC_CONFIG_FILES([
 Makefile
 src/Makefile

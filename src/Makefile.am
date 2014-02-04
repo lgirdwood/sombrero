@@ -1,5 +1,5 @@
 
-AM_CFLAGS = -I$(top_srcdir)/include
+AM_CFLAGS = $(AVX_CFLAGS) $(OPENMP_CFLAGS) -I$(top_srcdir)/include
 
 lib_LTLIBRARIES = libsombrero.la
 
