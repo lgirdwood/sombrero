@@ -219,13 +219,8 @@ int smbrr_image_psf(struct smbrr_image *src, struct smbrr_image *dest,
 /* create Wi and Ci from C0 */
 static void atrous_conv(struct smbrr_wavelet *wavelet)
 {
-	int scale, height, width;
-	int x, y, xc, yc;
-	int scale2, offy, offx, pixel, offxy, maskxy;
-	float *c, *_c, *w;
-
-	xc = wavelet->mask.width >> 1;
-	yc = wavelet->mask.height >> 1;
+	int scale, scale2, height;
+	float *c, *_c;
 
 	/* scale loop */
 	for (scale = 1; scale < wavelet->num_scales; scale++) {
@@ -235,11 +230,20 @@ static void atrous_conv(struct smbrr_wavelet *wavelet)
 
 		c = wavelet->c[scale]->adu;
 		_c = wavelet->c[scale - 1]->adu;
-		w = wavelet->w[scale - 1]->adu;
 		scale2 = 1 << (scale - 1);
 
 		/* image height loop */
+#pragma omp parallel for \
+		firstprivate(c, _c, scale, scale2, wavelet) \
+		schedule(static, 50)
+
 		for (height = 0; height < wavelet->height; height++) {
+
+			int offy, offx, pixel, offxy, maskxy;
+			int width, x, y, xc, yc;
+
+			xc = wavelet->mask.width >> 1;
+			yc = wavelet->mask.height >> 1;
 
 			/* image width loop */
 			for (width = 0; width < wavelet->width; width++) {
@@ -264,23 +268,23 @@ static void atrous_conv(struct smbrr_wavelet *wavelet)
 						c[pixel] += _c[offxy] * wavelet->mask.data[maskxy];
 					}
 				}
-				/* create wavelet */
-				w[pixel] = _c[pixel] - c[pixel];
 			}
 		}
 	}
+
+	/* create wavelet */
+#pragma omp parallel for schedule(static, 1)
+	for (scale = 1; scale < wavelet->num_scales; scale++)
+		smbrr_image_subtract(wavelet->w[scale - 1], wavelet->c[scale - 1],
+				wavelet->c[scale]);
+
 }
 
 /* create Wi and Ci from C0 if S */
 static void atrous_conv_sig(struct smbrr_wavelet *wavelet)
 {
-	int scale, height, width;
-	int x, y, xc, yc;
-	int scale2, offy, offx, pixel =0, offxy, maskxy;
-	float *c, *_c, *w;
-
-	xc = wavelet->mask.width >> 1;
-	yc = wavelet->mask.height >> 1;
+	int scale, height, scale2;
+	float *c, *_c;
 
 	/* scale loop */
 	for (scale = 1; scale < wavelet->num_scales; scale++) {
@@ -294,11 +298,20 @@ static void atrous_conv_sig(struct smbrr_wavelet *wavelet)
 
 		c = wavelet->c[scale]->adu;
 		_c = wavelet->c[scale - 1]->adu;
-		w = wavelet->w[scale - 1]->adu;
 		scale2 = 1 << (scale - 1);
 
 		/* image height loop */
+#pragma omp parallel for \
+		firstprivate(c, _c, scale, scale2, wavelet) \
+		schedule(static, 50)
+
 		for (height = 0; height < wavelet->height; height++) {
+
+			int offy, offx, pixel, offxy, maskxy;
+			int width, x, y, xc, yc;
+
+			xc = wavelet->mask.width >> 1;
+			yc = wavelet->mask.height >> 1;
 
 			/* image width loop */
 			for (width = 0; width < wavelet->width; width++) {
@@ -328,11 +341,15 @@ static void atrous_conv_sig(struct smbrr_wavelet *wavelet)
 						c[pixel] += _c[offxy] * wavelet->mask.data[maskxy];
 					}
 				}
-				/* create wavelet */
-				w[pixel] = _c[pixel] - c[pixel];
 			}
 		}
 	}
+	/* create wavelet */
+#pragma omp parallel for schedule(static, 1)
+	for (scale = 1; scale < wavelet->num_scales; scale++)
+		smbrr_image_subtract(wavelet->w[scale - 1], wavelet->c[scale - 1],
+				wavelet->c[scale]);
+
 }
 
 /* C0 = C(scale - 1) + sum of wavelets; */
