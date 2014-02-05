@@ -26,12 +26,14 @@ stamp-h1
 install-sh
 libtool
 ltmain.sh
+*.gz
 
 examples/smbrr-atrous
 examples/smbrr-structures
 examples/smbrr-objects
 examples/output/*.bmp
 examples/debug/*.bmp
+examples/*.bmp
 
 doc/man*
 doc/html*
