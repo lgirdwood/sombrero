@@ -277,6 +277,7 @@ int smbrr_wavelet_ksigma_clip(struct smbrr_wavelet *w, enum smbrr_clip clip,
 		return -EINVAL;
 
 	coeff = &k_sigma[clip];
+#pragma omp parallel for firstprivate(w, clip, sig_delta, coeff) schedule(dynamic, 1)
 	for (i = 0; i < w->num_scales - 1; i++)
 		 clip_scale(w, i, coeff, sig_delta);
 
