@@ -23,6 +23,7 @@
 #include <string.h>
 #include <errno.h>
 #include <math.h>
+#include <sys/time.h>
 
 #include "sombrero.h"
 #include "bmp.h"
@@ -36,6 +37,7 @@ static void usage(char *argv[])
 	fprintf(stdout, "Generic options\n");
 	fprintf(stdout, " -i Input bitmap file - only greyscale supported\n");
 	fprintf(stdout, " -o Output file name\n");
+	fprintf(stdout, " -t Time execution\n");
 	fprintf(stdout, "Wavelet options\n");
 	fprintf(stdout, " -k K-Sigma clip strength. Default 1. Values 0 .. 5 (gentle -> strong)\n");
 	fprintf(stdout, " -A Gain strength. Default 0. Values 0 .. 4 (low .. high freq)\n");
@@ -49,6 +51,30 @@ static void usage(char *argv[])
 	exit(0);
 }
 
+static struct timeval start, end;
+
+inline static void start_timer(int time)
+{
+	if (time)
+		gettimeofday(&start, NULL);
+}
+
+static void print_timer(int time, const char *text)
+{
+	double secs;
+
+	if (!time)
+		return;
+
+	gettimeofday(&end, NULL);
+	secs = ((end.tv_sec * 1000000 + end.tv_usec) -
+		(start.tv_sec * 1000000 + start.tv_usec)) / 1000000.0;
+
+	fprintf(stdout, "Time for %s %3.1f msecs\n", text, secs * 1000.0);
+	start_timer(1);
+}
+
+
 int main(int argc, char *argv[])
 {
 	struct smbrr_wavelet *w;
@@ -57,13 +83,13 @@ int main(int argc, char *argv[])
 	struct bitmap *bmp;
 	const void *data;
 	int ret, width, height, stride, i, opt, anscombe = 0, k = 1,
-			a = 0, scales = 9, structures, objects;
+			a = 0, scales = 9, structures, objects, time = 0;
 	enum smbrr_adu depth;
 	float gain = 5.0, bias = 50.0, readout = 100.0, sigma_delta = 0.001;
 	char *ifile = NULL, *ofile = NULL;
 	char outfile[64];
 
-	while ((opt = getopt(argc, argv, "g:b:r:i:ak:s:A:S:o:")) != -1) {
+	while ((opt = getopt(argc, argv, "g:b:r:i:atk:s:A:S:o:")) != -1) {
 		switch (opt) {
 		case 'g':
 			gain = atof(optarg);
@@ -82,6 +108,9 @@ int main(int argc, char *argv[])
 			break;
 		case 'a':
 			anscombe = 1;
+			break;
+		case 't':
+			time = 1;
 			break;
 		case 'k':
 			k = atoi(optarg);
@@ -120,6 +149,8 @@ int main(int argc, char *argv[])
 	fprintf(stdout, "Image width %d height %d stride %d\n",
 		width, height, stride);
 
+	start_timer(time);
+
 	image = smbrr_image_new(SMBRR_IMAGE_FLOAT, width, height, stride,
 		depth, data);
 	if (image == NULL)
@@ -130,6 +161,8 @@ int main(int argc, char *argv[])
 		if (oimage == NULL)
 			return -EINVAL;
 
+	print_timer(time, "image new");
+
 	if (anscombe) {
 		/* perform Anscombe transform on input image */
 		fprintf(stdout, "Performing Anscombe transform with "
@@ -139,20 +172,30 @@ int main(int argc, char *argv[])
 		smbrr_image_anscombe(image, gain, bias, readout);
 	}
 
+	print_timer(time, "anscombe");
+
 	w = smbrr_wavelet_new(image, scales);
 	if (w == NULL)
 		return -EINVAL;
+
+	print_timer(time, "wavelet new");
 
 	ret = smbrr_wavelet_convolution(w, SMBRR_CONV_ATROUS,
 		SMBRR_WAVELET_MASK_LINEAR);
 	if (ret < 0)
 		return ret;
 
+	print_timer(time, "wavelet_convolution");
+
 	fprintf(stdout, "Using K sigma strength %d delta %f\n", k, sigma_delta);
 	smbrr_wavelet_ksigma_clip(w, k, sigma_delta);
 
+	print_timer(time, "ksigma clip");
+
 	for (i = 0; i < scales - 1; i++) {
 		structures = smbrr_wavelet_structure_find(w, i);
+		print_timer(time, "find structures");
+
 		fprintf(stdout, "Found %d structures at scale %d\n", structures, i);
 
 		/* save each structure scale for visualisation */
@@ -161,11 +204,14 @@ int main(int argc, char *argv[])
 		smbrr_image_set_value_sig(oimage, simage, 1);
 		sprintf(outfile, "%s-struct-%d", ofile, i);
 		bmp_image_save(oimage, bmp, outfile);
+
+		print_timer(time, "image save");
 	}
 
 	/* connect structures */
 	objects = smbrr_wavelet_structure_connect(w, 0, scales - 2);
 	fprintf(stdout,"Found %d objects\n", objects);
+	print_timer(time, "connect objects");
 
 	for (i = 0; i < objects; i++) {
 		object = smbrr_wavelet_object_get(w, i);
