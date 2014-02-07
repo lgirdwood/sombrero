@@ -22,7 +22,9 @@
 #include <stdio.h>
 #include <errno.h>
 #include <math.h>
+#include <immintrin.h>
 
+#include "config.h"
 #include "sombrero.h"
 #include "local.h"
 
@@ -101,7 +103,8 @@ struct smbrr_image *smbrr_image_new(enum smbrr_image_type type,
 	enum smbrr_adu adu, const void *src_image)
 {
 	struct smbrr_image *image;
-	int bytes;
+	size_t size;
+	int bytes, err;
 
 	if (width == 0 || height == 0)
 		return NULL;
@@ -121,11 +124,15 @@ struct smbrr_image *smbrr_image_new(enum smbrr_image_type type,
 	if (image == NULL)
 		return NULL;
 
-	image->adu = calloc(width * height, bytes);
-	if (image->adu == NULL) {
+	/* make ADU memory aligned on 32 bytes for SIMD */
+	size = width * height * bytes;
+	size += (size % 32);
+	err = posix_memalign((void**)&image->adu, 32, size);
+	if (err < 0) {
 		free(image);
 		return NULL;
 	}
+	bzero(image->adu, size);
 
 	image->size = width * height;
 	image->width = width;
@@ -182,7 +189,8 @@ struct smbrr_image *smbrr_image_new_from_region(struct smbrr_image *src,
 	unsigned int y_end)
 {
 	struct smbrr_image *image;
-	int bytes, width, height, i;
+	int bytes, width, height, i, err;
+	size_t size;
 
 	width = x_end - x_start;
 	height = y_end - y_start;
@@ -205,11 +213,15 @@ struct smbrr_image *smbrr_image_new_from_region(struct smbrr_image *src,
 	if (image == NULL)
 		return NULL;
 
-	image->adu = calloc(width * height, bytes);
-	if (image->adu == NULL) {
+	/* make ADU memory aligned on 32 bytes for SIMD */
+	size = width * height * bytes;
+	size += (size % 32);
+	err = posix_memalign((void**)&image->adu, 32, size);
+	if (err < 0) {
 		free(image);
 		return NULL;
 	}
+	bzero(image->adu, size);
 
 	image->size = width * height;
 	image->width = width;
@@ -382,8 +394,8 @@ void smbrr_image_find_limits(struct smbrr_image *image, float *min, float *max)
 */
 void smbrr_image_normalise(struct smbrr_image *image, float min, float max)
 {
-	float *adu = image->adu, _min, _max, _range, range, factor;
-	int offset;
+	float _min, _max, _range, range, factor;
+	size_t offset;
 
 	smbrr_image_find_limits(image, &_min, &_max);
 
@@ -391,8 +403,24 @@ void smbrr_image_normalise(struct smbrr_image *image, float min, float max)
 	range = max - min;
 	factor = range / _range;
 
+#if HAVE_AVX
+	float * __restrict__ I = __builtin_assume_aligned(image->adu, 32);
+	__m256 mi, mm, mf, mr, mim;
+
+	for (offset = 0; offset < image->size; offset += 8) {
+		mi = _mm256_load_ps(&I[offset]);
+		mf = _mm256_broadcast_ss(&factor);
+		mm = _mm256_broadcast_ss(&_min);
+		mim = _mm256_sub_ps(mi, mm);
+		mr = _mm256_mul_ps(mim, mf);
+		_mm256_store_ps(&I[offset], mr);
+	}
+#else
+	float *adu = image->adu;
+
 	for (offset = 0; offset < image->size; offset++)
 		adu[offset] = (adu[offset] - _min) * factor;
+#endif
 }
 
 /*! \fn void smbrr_image_add(struct smbrr_image *a, struct smbrr_image *b,
@@ -406,12 +434,25 @@ void smbrr_image_normalise(struct smbrr_image *image, float min, float max)
 void smbrr_image_add(struct smbrr_image *a, struct smbrr_image *b,
 	struct smbrr_image *c)
 {
-	float *A = a->adu, *B = b->adu, *C = c->adu;
-	int offset;
+	float * __restrict__ A = __builtin_assume_aligned(a->adu, 32);
+	float * __restrict__ B = __builtin_assume_aligned(b->adu, 32);
+	float * __restrict__ C = __builtin_assume_aligned(c->adu, 32);
+	size_t offset;
 
+#if HAVE_AVX
+	__m256 ma, mb, mc;
+
+	for (offset = 0; offset < a->size; offset += 8) {
+		mb = _mm256_load_ps(&B[offset]);
+		mc = _mm256_load_ps(&C[offset]);
+		ma = _mm256_add_ps(mb, mc);
+		_mm256_store_ps(&A[offset], ma);
+	}
+#else
 	/* A = B + C */
 	for (offset = 0; offset < a->size; offset++)
 		A[offset] = B[offset] + C[offset];
+#endif
 }
 
 /*! \fn void smbrr_image_add_sig(struct smbrr_image *a, struct smbrr_image *b,
@@ -450,12 +491,28 @@ void smbrr_image_add_sig(struct smbrr_image *a, struct smbrr_image *b,
 void smbrr_image_fma(struct smbrr_image *dest, struct smbrr_image *a,
 	struct smbrr_image *b, float c)
 {
-	float *D = dest->adu, *A = a->adu, *B = b->adu;
-	int offset;
+	float * __restrict__ D = __builtin_assume_aligned(dest->adu, 32);
+	float * __restrict__ A = __builtin_assume_aligned(a->adu, 32);
+	float * __restrict__ B = __builtin_assume_aligned(b->adu, 32);
+	size_t offset;
+
+#if HAVE_AVX
+	__m256 ma, mb, mv, mr, mbv;
+
+	for (offset = 0; offset < dest->size; offset += 8) {
+		ma = _mm256_load_ps(&A[offset]);
+		mb = _mm256_load_ps(&B[offset]);
+		mv = _mm256_broadcast_ss(&c);
+		mbv = _mm256_mul_ps(mb, mv);
+		mr = _mm256_add_ps(ma, mbv);
+		_mm256_store_ps(&D[offset], mr);
+	}
+#else
 
 	/* dest = a + b * c */
 	for (offset = 0; offset < dest->size; offset++)
 		D[offset] = A[offset] + B[offset] * c;
+#endif
 }
 
 /*! \fn void smbrr_image_fms(struct smbrr_image *dest, struct smbrr_image *a,
@@ -471,12 +528,27 @@ void smbrr_image_fma(struct smbrr_image *dest, struct smbrr_image *a,
 void smbrr_image_fms(struct smbrr_image *dest, struct smbrr_image *a,
 	struct smbrr_image *b, float c)
 {
-	float *D = dest->adu, *A = a->adu, *B = b->adu;
-	int offset;
+	float * __restrict__ D = __builtin_assume_aligned(dest->adu, 32);
+	float * __restrict__ A = __builtin_assume_aligned(a->adu, 32);
+	float * __restrict__ B = __builtin_assume_aligned(b->adu, 32);
+	size_t offset;
 
+#if HAVE_AVX
+	__m256 ma, mb, mv, mr, mbv;
+
+	for (offset = 0; offset < dest->size; offset += 8) {
+		ma = _mm256_load_ps(&A[offset]);
+		mb = _mm256_load_ps(&B[offset]);
+		mv = _mm256_broadcast_ss(&c);
+		mbv = _mm256_mul_ps(mb, mv);
+		mr = _mm256_sub_ps(ma, mbv);
+		_mm256_store_ps(&D[offset], mr);
+	}
+#else
 	/* dest = a - b * c */
 	for (offset = 0; offset < dest->size; offset++)
 		D[offset] = A[offset] - B[offset] * c;
+#endif
 }
 
 /*! \fn void smbrr_image_subtract(struct smbrr_image *a, struct smbrr_image *b,
@@ -490,12 +562,26 @@ void smbrr_image_fms(struct smbrr_image *dest, struct smbrr_image *a,
 void smbrr_image_subtract(struct smbrr_image *a, struct smbrr_image *b,
 	struct smbrr_image *c)
 {
-	float *A = a->adu, *B = b->adu, *C = c->adu;
-	int offset;
+	float * __restrict__ A = __builtin_assume_aligned(a->adu, 32);
+	float * __restrict__ B = __builtin_assume_aligned(b->adu, 32);
+	float * __restrict__ C = __builtin_assume_aligned(c->adu, 32);
+	size_t offset;
 
+#if HAVE_AVX
+	__m256 ma, mb, mc;
+
+	for (offset = 0; offset < a->size; offset += 8) {
+		mb = _mm256_load_ps(&B[offset]);
+		mc = _mm256_load_ps(&C[offset]);
+		ma = _mm256_sub_ps(mb, mc);
+		_mm256_store_ps(&A[offset], ma);
+	}
+#else
 	/* A = B - C */
 	for (offset = 0; offset < a->size; offset++)
-		A[offset] = B[offset] - C[offset];
+		A[offset] = B[offset] + C[offset];
+#endif
+
 }
 
 /*! \fn void smbrr_image_subtract_sig(struct smbrr_image *a, struct smbrr_image *b,
@@ -529,11 +615,24 @@ void smbrr_image_subtract_sig(struct smbrr_image *a, struct smbrr_image *b,
 */
 void smbrr_image_add_value(struct smbrr_image *image, float value)
 {
+	size_t offset;
+
+#if HAVE_AVX
+	float * __restrict__ I = __builtin_assume_aligned(image->adu, 32);
+	__m256 mi, mv, mr;
+
+	for (offset = 0; offset < image->size; offset += 8) {
+		mi = _mm256_load_ps(&I[offset]);
+		mv = _mm256_broadcast_ss(&value);
+		mr = _mm256_add_ps(mi, mv);
+		_mm256_store_ps(&I[offset], mr);
+	}
+#else
 	float *adu = image->adu;
-	int offset;
 
 	for (offset = 0; offset < image->size; offset++)
 		adu[offset] += value;
+#endif
 }
 
 /*! \fn void smbrr_image_add_value_sig(struct smbrr_image *image,
@@ -563,11 +662,24 @@ void smbrr_image_add_value_sig(struct smbrr_image *image,
 */
 void smbrr_image_subtract_value(struct smbrr_image *image, float value)
 {
+	size_t offset;
+
+#if HAVE_AVX
+	float * __restrict__ I = __builtin_assume_aligned(image->adu, 32);
+	__m256 mi, mv, mr;
+
+	for (offset = 0; offset < image->size; offset += 8) {
+		mi = _mm256_load_ps(&I[offset]);
+		mv = _mm256_broadcast_ss(&value);
+		mr = _mm256_sub_ps(mi, mv);
+		_mm256_store_ps(&I[offset], mr);
+	}
+#else
 	float *adu = image->adu;
-	int offset;
 
 	for (offset = 0; offset < image->size; offset++)
 		adu[offset] -= value;
+#endif
 }
 
 /*! \fn void smbrr_image_mult_value(struct smbrr_image *image, float value)
@@ -578,11 +690,24 @@ void smbrr_image_subtract_value(struct smbrr_image *image, float value)
 */
 void smbrr_image_mult_value(struct smbrr_image *image, float value)
 {
+	size_t offset;
+
+#if HAVE_AVX
+	float * __restrict__ I = __builtin_assume_aligned(image->adu, 32);
+	__m256 mi, mv, mr;
+
+	for (offset = 0; offset < image->size; offset += 8) {
+		mi = _mm256_load_ps(&I[offset]);
+		mv = _mm256_broadcast_ss(&value);
+		mr = _mm256_mul_ps(mi, mv);
+		_mm256_store_ps(&I[offset], mr);
+	}
+#else
 	float *adu = image->adu;
-	int offset;
 
 	for (offset = 0; offset < image->size; offset++)
 		adu[offset] *= value;
+#endif
 }
 
 /*! \fn void smbrr_image_reset_value(struct smbrr_image *image, float value)
