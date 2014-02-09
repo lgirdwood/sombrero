@@ -416,9 +416,6 @@ static void atrous_deconv_object(struct smbrr_wavelet *w,
 
 				if (simage->s[pixel] == id) {
 					ipixel = image->width * (y - iy) + (x - ix);
-					if(ipixel > image->size)
-						printf("ipxel %d size %d width %d x %d y %d ix %d iy %d\n",
-								ipixel, image->size, image->width, x,y, ix, iy);
 					image->adu[ipixel] += wimage->adu[pixel];
 				}
 			}
