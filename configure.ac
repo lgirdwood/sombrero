@@ -56,7 +56,7 @@ AC_TYPE_UINT8_T
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
-AC_CHECK_FUNCS([bzero memset qsort], , [AC_MSG_ERROR([Need bzero memset qsort])])
+AC_CHECK_FUNCS([bzero memset qsort posix_memalign], , [AC_MSG_ERROR([Need bzero memset qsort posix_memalign])])
 AC_CHECK_LIB([m], [sqrtf], , [AC_MSG_ERROR([Need sqrtf])])
 
 # Debug symbol support
@@ -77,7 +77,7 @@ fi
 AM_CONDITIONAL(HAVE_AVX, test "$have_avx" = "yes")
 
 if test "$have_avx" = "yes" -a "x$AVX_CFLAGS" = x; then
-	AX_CHECK_COMPILE_FLAG(-mavx, [AVX_CFLAGS="-mavx"],
+	AX_CHECK_COMPILE_FLAG(-mavx, [AVX_CFLAGS="-mavx -ffast-math -ftree-vectorizer-verbose=0"],
 		[AC_MSG_ERROR([Need a version of gcc with -mavx])])
 fi
 
