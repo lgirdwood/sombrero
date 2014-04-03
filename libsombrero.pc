@@ -1,5 +1,0 @@
-Name: libsombrero
-Description: Astronomical Object and Structure Detection
-Version: 0.9.0
-Libs: -L${libdir} -lsombrero
-Cflags: -I${includedir}/sombrero

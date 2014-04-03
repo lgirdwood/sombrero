@@ -1,6 +1,6 @@
 *.o
 *.so.*
-*.in
+*Makefile.in
 *.la
 *.lo
 *.bak

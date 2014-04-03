@@ -12,6 +12,5 @@ libsombrero_la_SOURCES = \
 
 libsombrero_la_LDFLAGS = \
 	-version-info $(LT_VERSION) \
-	-release $(SOMBRERO_VERSION) \
 	-no-undefined \
 	-export-dynamic

@@ -99,6 +99,7 @@ include/Makefile
 doc/Makefile
 examples/Makefile
 m4/Makefile
+libsombrero.pc
 ])
 
 AC_OUTPUT
