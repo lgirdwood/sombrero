@@ -625,7 +625,7 @@ int smbrr_wavelet_structure_find(struct smbrr_wavelet *w, unsigned int scale);
 int smbrr_wavelet_structure_connect(struct smbrr_wavelet *w,
 		unsigned int start_scale, unsigned int end_scale);
 
-/*! \fn struct smbrr_onbject *smbrr_wavelet_object_get(struct smbrr_wavelet *w,
+/*! \fn struct smbrr_object *smbrr_wavelet_object_get(struct smbrr_wavelet *w,
 	unsigned int object_id);
 * \brief Get wavelet object.
 * \ingroup wavelet
