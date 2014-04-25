@@ -28,7 +28,7 @@
 #include "sombrero.h"
 #include "local.h"
 
-void uchar_to_float(struct smbrr_image *i, const unsigned char *c)
+static void uchar_to_float(struct smbrr_image *i, const unsigned char *c)
 {
 	int x, y, foffset, coffset;
 	float *f = i->adu;
@@ -42,7 +42,35 @@ void uchar_to_float(struct smbrr_image *i, const unsigned char *c)
 	}
 }
 
-void float_to_uchar(struct smbrr_image *i, unsigned char *c)
+static void ushort_to_float(struct smbrr_image *i, const unsigned short *c)
+{
+	int x, y, foffset, coffset;
+	float *f = i->adu;
+
+	for (x = 0; x < i->width; x++) {
+		for (y = 0; y < i->height; y++) {
+			coffset = y * i->stride + x;
+			foffset = y * i->width + x;
+			f[foffset] = (float)c[coffset];
+		}
+	}
+}
+
+static void uint_to_float(struct smbrr_image *i, const unsigned int *c)
+{
+	int x, y, foffset, coffset;
+	float *f = i->adu;
+
+	for (x = 0; x < i->width; x++) {
+		for (y = 0; y < i->height; y++) {
+			coffset = y * i->stride + x;
+			foffset = y * i->width + x;
+			f[foffset] = (float)c[coffset];
+		}
+	}
+}
+
+static void float_to_uchar(struct smbrr_image *i, unsigned char *c)
 {
 	int x, y, coffset, foffset;
 	float *f = i->adu;
@@ -56,7 +84,7 @@ void float_to_uchar(struct smbrr_image *i, unsigned char *c)
 	}
 }
 
-void uchar_to_uint(struct smbrr_image *i, const unsigned char *c)
+static void uint_to_uint(struct smbrr_image *i, const unsigned int *c)
 {
 	int x, y, foffset, coffset;
 	uint32_t *f = i->s;
@@ -70,7 +98,35 @@ void uchar_to_uint(struct smbrr_image *i, const unsigned char *c)
 	}
 }
 
-void uint_to_uchar(struct smbrr_image *i, unsigned char *c)
+static void ushort_to_uint(struct smbrr_image *i, const unsigned short *c)
+{
+	int x, y, foffset, coffset;
+	uint32_t *f = i->s;
+
+	for (x = 0; x < i->width; x++) {
+		for (y = 0; y < i->height; y++) {
+			coffset = y * i->stride + x;
+			foffset = y * i->width + x;
+			f[foffset] = (uint32_t)c[coffset];
+		}
+	}
+}
+
+static void uchar_to_uint(struct smbrr_image *i, const unsigned char *c)
+{
+	int x, y, foffset, coffset;
+	uint32_t *f = i->s;
+
+	for (x = 0; x < i->width; x++) {
+		for (y = 0; y < i->height; y++) {
+			coffset = y * i->stride + x;
+			foffset = y * i->width + x;
+			f[foffset] = (uint32_t)c[coffset];
+		}
+	}
+}
+
+static void uint_to_uchar(struct smbrr_image *i, unsigned char *c)
 {
 	int x, y, coffset, foffset;
 	uint32_t *f = i->s;
@@ -159,6 +215,28 @@ struct smbrr_image *smbrr_image_new(enum smbrr_image_type type,
 			break;
 		case SMBRR_IMAGE_FLOAT:
 			uchar_to_float(image, src_image);
+			break;
+		}
+		break;
+	case SMBRR_ADU_16:
+
+		switch (type) {
+		case SMBRR_IMAGE_UINT32:
+			ushort_to_uint(image, src_image);
+			break;
+		case SMBRR_IMAGE_FLOAT:
+			ushort_to_float(image, src_image);
+			break;
+		}
+		break;
+	case SMBRR_ADU_32:
+
+		switch (type) {
+		case SMBRR_IMAGE_UINT32:
+			uint_to_uint(image, src_image);
+			break;
+		case SMBRR_IMAGE_FLOAT:
+			uint_to_float(image, src_image);
 			break;
 		}
 		break;

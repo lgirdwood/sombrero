@@ -129,10 +129,5 @@ static inline int wavelet_get_y(struct smbrr_wavelet *w, unsigned int pixel)
 	return pixel / w->width;
 }
 
-void float_to_uchar(struct smbrr_image *i, unsigned char *c);
-void uchar_to_float(struct smbrr_image *i, const unsigned char *c);
-void uchar_to_uint(struct smbrr_image *i, const unsigned char *c);
-void uint_to_uchar(struct smbrr_image *i, unsigned char *c);
-
 #endif
 #endif
