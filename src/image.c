@@ -312,7 +312,7 @@ struct smbrr_image *smbrr_image_new_from_region(struct smbrr_image *src,
 	image->type = src->type;
 
 	/* copy each row from src image to new image */
-	for (i = y_start; i <= y_end; i++) {
+	for (i = y_start; i < y_end; i++) {
 		unsigned int offset = i * image->width + x_start;
 		memcpy(image->adu + i * width, src->adu + offset,
 			width * sizeof(float));
