@@ -321,6 +321,17 @@ struct smbrr_image *smbrr_image_new_from_region(struct smbrr_image *src,
 	return image;
 }
 
+/*! \fn struct smbrr_image *smbrr_image_new_copy(struct smbrr_image *image)
+* \param image Source image.
+* \return Pointer to new image or NULL on failure
+*
+* Create a new smbrr image from source image.
+*/
+struct smbrr_image *smbrr_image_new_copy(struct smbrr_image *src)
+{
+	return smbrr_image_new_from_region(src, 0, 0, src->width, src->height);
+}
+
 /*! \fn void smbrr_image_free(struct smbrr_image *image)
 * \param image Image to be freed
 *

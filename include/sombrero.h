@@ -258,6 +258,13 @@ struct smbrr_image *smbrr_image_new_from_region(struct smbrr_image *image,
 	unsigned int x_start, unsigned int y_start, unsigned int x_end,
 	unsigned int y_end);
 
+/*! \fn struct smbrr_image *smbrr_image_new_copy(struct smbrr_image *image)
+* \param image Source image.
+* \brief Create a new smbrr image from source image.
+* \ingroup image
+*/
+struct smbrr_image *smbrr_image_new_copy(struct smbrr_image *src);
+
 /*! \fn void smbrr_image_free(struct smbrr_image *image);
  * \brief Free an image.
  * \ingroup image
