@@ -295,6 +295,24 @@ int smbrr_image_pixels(struct smbrr_image *image);
  */
 int smbrr_image_bytes(struct smbrr_image *image);
 
+/*! \fn int smbrr_image_stride(struct smbrr_image *image)
+* \brief Return the number of pixels in image stride.
+* \ingroup image
+*/
+int smbrr_image_stride(struct smbrr_image *image);
+
+/*! \fn int smbrr_image_width(struct smbrr_image *image)
+* \brief Return the number of pixels in image width.
+* \ingroup image
+*/
+int smbrr_image_width(struct smbrr_image *image);
+
+/*! \fn int smbrr_image_height(struct smbrr_image *image)
+* \brief Return the number of pixels in image height.
+* \ingroup image
+*/
+int smbrr_image_height(struct smbrr_image *image);
+
 /*! \fn void smbrr_image_find_limits(struct smbrr_image *image, float *min,
  * float *max);
  * \brief Find image limits.

@@ -892,3 +892,36 @@ int smbrr_image_bytes(struct smbrr_image *image)
 {
 	return image->stride * image->height;
 }
+
+/*! \fn int smbrr_image_stride(struct smbrr_image *image)
+* \param image Image
+* \return Image stride.
+*
+* Return the number of pixels in image stride.
+*/
+int smbrr_image_stride(struct smbrr_image *image)
+{
+	return image->stride;
+}
+
+/*! \fn int smbrr_image_width(struct smbrr_image *image)
+* \param image Image
+* \return Image stride.
+*
+* Return the number of pixels in image width.
+*/
+int smbrr_image_width(struct smbrr_image *image)
+{
+	return image->width;
+}
+
+/*! \fn int smbrr_image_height(struct smbrr_image *image)
+* \param image Image
+* \return Image height.
+*
+* Return the number of pixels in image height.
+*/
+int smbrr_image_height(struct smbrr_image *image)
+{
+	return image->height;
+}
