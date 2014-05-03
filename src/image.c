@@ -126,6 +126,34 @@ static void uchar_to_uint(struct smbrr_image *i, const unsigned char *c)
 	}
 }
 
+static void float_to_uint(struct smbrr_image *i, const float *c)
+{
+	int x, y, foffset, coffset;
+	uint32_t *f = i->s;
+
+	for (x = 0; x < i->width; x++) {
+		for (y = 0; y < i->height; y++) {
+			coffset = y * i->stride + x;
+			foffset = y * i->width + x;
+			f[foffset] = (uint32_t)c[coffset];
+		}
+	}
+}
+
+static void float_to_float(struct smbrr_image *i, const float *c)
+{
+	int x, y, foffset, coffset;
+	float *f = i->adu;
+
+	for (x = 0; x < i->width; x++) {
+		for (y = 0; y < i->height; y++) {
+			coffset = y * i->stride + x;
+			foffset = y * i->width + x;
+			f[foffset] = c[coffset];
+		}
+	}
+}
+
 static void uint_to_uchar(struct smbrr_image *i, unsigned char *c)
 {
 	int x, y, coffset, foffset;
@@ -207,8 +235,8 @@ struct smbrr_image *smbrr_image_new(enum smbrr_image_type type,
 		return image;
 
 	switch (adu) {
-	case SMBRR_ADU_8:
 
+	case SMBRR_ADU_8:
 		switch (type) {
 		case SMBRR_IMAGE_UINT32:
 			uchar_to_uint(image, src_image);
@@ -218,8 +246,8 @@ struct smbrr_image *smbrr_image_new(enum smbrr_image_type type,
 			break;
 		}
 		break;
-	case SMBRR_ADU_16:
 
+	case SMBRR_ADU_16:
 		switch (type) {
 		case SMBRR_IMAGE_UINT32:
 			ushort_to_uint(image, src_image);
@@ -229,8 +257,8 @@ struct smbrr_image *smbrr_image_new(enum smbrr_image_type type,
 			break;
 		}
 		break;
-	case SMBRR_ADU_32:
 
+	case SMBRR_ADU_32:
 		switch (type) {
 		case SMBRR_IMAGE_UINT32:
 			uint_to_uint(image, src_image);
@@ -240,6 +268,18 @@ struct smbrr_image *smbrr_image_new(enum smbrr_image_type type,
 			break;
 		}
 		break;
+
+	case SMBRR_ADU_FLOAT:
+		switch (type) {
+		case SMBRR_IMAGE_UINT32:
+			float_to_uint(image, src_image);
+			break;
+		case SMBRR_IMAGE_FLOAT:
+			float_to_float(image, src_image);
+			break;
+		}
+		break;
+
 	default:
 		free(image->adu);
 		free(image);
