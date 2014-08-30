@@ -20,7 +20,6 @@ PACKAGE=libsombrero
 AM_INIT_AUTOMAKE([foreign 1.11 -Wall -Wno-portability silent-rules tar-pax])
 
 # Specify a configuration file
-#AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_HEADERS([config.h])
 
 dnl Initialize libtool
