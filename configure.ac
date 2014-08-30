@@ -118,3 +118,4 @@ LIBS:                          ${LIBS}
 Enable AVX:                    ${ENABLE_AVX}
 Enable OpenMP:    	       ${ENABLE_OPENMP}
 "
+
