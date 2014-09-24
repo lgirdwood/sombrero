@@ -446,6 +446,7 @@ static void object_get_bounds(struct smbrr_wavelet *w,
 {
 	struct structure *structure;
 	unsigned int minX = 2147483647, minY = 2147483647, maxX = 0, maxY = 0;
+	double x, y, x1, y1, x2, y2;
 	int i;
 
 	object->o.max_adu = 0.0;
@@ -464,7 +465,8 @@ static void object_get_bounds(struct smbrr_wavelet *w,
 
 		/* get limits */
 		if (minX > structure->minXy.x) {
-			minX = structure->minXy.x;
+			x2 = minX = structure->minXy.x;
+			y2 = structure->minXy.y;
 			object->o.minXy = structure->minXy;
 		}
 
@@ -474,7 +476,8 @@ static void object_get_bounds(struct smbrr_wavelet *w,
 		}
 
 		if (maxX < structure->maxXy.x) {
-			maxX = structure->maxXy.x;
+			x1 = maxX = structure->maxXy.x;
+			y1 = structure->maxXy.y;
 			object->o.maxXy = structure->maxXy;
 		}
 
@@ -482,6 +485,11 @@ static void object_get_bounds(struct smbrr_wavelet *w,
 			maxY = structure->maxxY.y;
 			object->o.maxxY = structure->maxxY;
 		}
+
+		x = x1 - x2;
+		y = y1 - y2;
+
+		object->o.pa = atan2(y, x);
 	}
 }
 
@@ -541,6 +549,17 @@ static int object_get_area(struct smbrr_wavelet *w,
 	return 0;
 }
 
+static void object_get_type(struct smbrr_wavelet *w,
+		struct object *object)
+{
+	/* extended objects are usually detected at a higher scale with a low
+	 * sigma and higher area. TODO this can be improved */
+	if (object->o.sigma_adu < 100.0)
+		object->o.type = SMBRR_OBJECT_EXTENDED;
+	else
+		object->o.type = SMBRR_OBJECT_STAR;
+}
+
 static int object_calc_data(struct smbrr_wavelet *w)
 {
 	struct object *object;
@@ -558,6 +577,8 @@ static int object_calc_data(struct smbrr_wavelet *w)
 		object_get_position(w, object);
 
 		object_get_sigma(w, object);
+
+		object_get_type(w, object);
 	}
 
 	return 0;
