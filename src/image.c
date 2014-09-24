@@ -708,7 +708,7 @@ void smbrr_image_subtract(struct smbrr_image *a, struct smbrr_image *b,
 #else
 	/* A = B - C */
 	for (offset = 0; offset < a->size; offset++)
-		A[offset] = B[offset] + C[offset];
+		A[offset] = B[offset] - C[offset];
 #endif
 
 }
