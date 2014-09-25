@@ -446,7 +446,7 @@ static void object_get_bounds(struct smbrr_wavelet *w,
 {
 	struct structure *structure;
 	unsigned int minX = 2147483647, minY = 2147483647, maxX = 0, maxY = 0;
-	double x, y, x1, y1, x2, y2;
+	double x, y, x1 = minX, y1 = minY, x2 = maxX, y2 = maxY;
 	int i;
 
 	object->o.max_adu = 0.0;
