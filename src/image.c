@@ -536,10 +536,11 @@ void smbrr_image_normalise(struct smbrr_image *image, float min, float max)
 	float * __restrict__ I = __builtin_assume_aligned(image->adu, 32);
 	__m256 mi, mm, mf, mr, mim;
 
+	mf = _mm256_broadcast_ss(&factor);
+	mm = _mm256_broadcast_ss(&_min);
+
 	for (offset = 0; offset < image->size; offset += 8) {
 		mi = _mm256_load_ps(&I[offset]);
-		mf = _mm256_broadcast_ss(&factor);
-		mm = _mm256_broadcast_ss(&_min);
 		mim = _mm256_sub_ps(mi, mm);
 		mr = _mm256_mul_ps(mim, mf);
 		_mm256_store_ps(&I[offset], mr);
@@ -628,10 +629,11 @@ void smbrr_image_fma(struct smbrr_image *dest, struct smbrr_image *a,
 #if HAVE_AVX
 	__m256 ma, mb, mv, mr, mbv;
 
+	mv = _mm256_broadcast_ss(&c);
+
 	for (offset = 0; offset < dest->size; offset += 8) {
 		ma = _mm256_load_ps(&A[offset]);
 		mb = _mm256_load_ps(&B[offset]);
-		mv = _mm256_broadcast_ss(&c);
 		mbv = _mm256_mul_ps(mb, mv);
 		mr = _mm256_add_ps(ma, mbv);
 		_mm256_store_ps(&D[offset], mr);
@@ -665,10 +667,11 @@ void smbrr_image_fms(struct smbrr_image *dest, struct smbrr_image *a,
 #if HAVE_AVX
 	__m256 ma, mb, mv, mr, mbv;
 
+	mv = _mm256_broadcast_ss(&c);
+
 	for (offset = 0; offset < dest->size; offset += 8) {
 		ma = _mm256_load_ps(&A[offset]);
 		mb = _mm256_load_ps(&B[offset]);
-		mv = _mm256_broadcast_ss(&c);
 		mbv = _mm256_mul_ps(mb, mv);
 		mr = _mm256_sub_ps(ma, mbv);
 		_mm256_store_ps(&D[offset], mr);
@@ -750,9 +753,10 @@ void smbrr_image_add_value(struct smbrr_image *image, float value)
 	float * __restrict__ I = __builtin_assume_aligned(image->adu, 32);
 	__m256 mi, mv, mr;
 
+	mv = _mm256_broadcast_ss(&value);
+
 	for (offset = 0; offset < image->size; offset += 8) {
 		mi = _mm256_load_ps(&I[offset]);
-		mv = _mm256_broadcast_ss(&value);
 		mr = _mm256_add_ps(mi, mv);
 		_mm256_store_ps(&I[offset], mr);
 	}
@@ -797,9 +801,10 @@ void smbrr_image_subtract_value(struct smbrr_image *image, float value)
 	float * __restrict__ I = __builtin_assume_aligned(image->adu, 32);
 	__m256 mi, mv, mr;
 
+	mv = _mm256_broadcast_ss(&value);
+
 	for (offset = 0; offset < image->size; offset += 8) {
 		mi = _mm256_load_ps(&I[offset]);
-		mv = _mm256_broadcast_ss(&value);
 		mr = _mm256_sub_ps(mi, mv);
 		_mm256_store_ps(&I[offset], mr);
 	}
@@ -825,9 +830,10 @@ void smbrr_image_mult_value(struct smbrr_image *image, float value)
 	float * __restrict__ I = __builtin_assume_aligned(image->adu, 32);
 	__m256 mi, mv, mr;
 
+	mv = _mm256_broadcast_ss(&value);
+
 	for (offset = 0; offset < image->size; offset += 8) {
 		mi = _mm256_load_ps(&I[offset]);
-		mv = _mm256_broadcast_ss(&value);
 		mr = _mm256_mul_ps(mi, mv);
 		_mm256_store_ps(&I[offset], mr);
 	}
