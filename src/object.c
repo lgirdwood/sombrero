@@ -898,3 +898,20 @@ int smbrr_wavelet_object_get_image(struct smbrr_wavelet *w,
 
 	return ret;
 }
+
+/*! \fn struct smbrr_object *smbrr_wavelet_get_object_at(struct smbrr_wavelet *w,
+ * 	int x, int y)
+* \param w Wavelet.
+* \param x X position
+* \param y Y position
+* \return Object pointer or NULL if none found.
+*
+* Get object at position (x,y).
+*/
+struct smbrr_object *smbrr_wavelet_get_object_at(struct smbrr_wavelet *w,
+		int x, int y)
+{
+	int pixel = y * w->width + x;
+
+	return &w->object_map[pixel]->o;
+}

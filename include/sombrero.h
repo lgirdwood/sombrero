@@ -672,4 +672,12 @@ void smbrr_wavelet_object_free_all(struct smbrr_wavelet *w);
 int smbrr_wavelet_object_get_image(struct smbrr_wavelet *w,
 		struct smbrr_object *object, struct smbrr_image **image);
 
+/*! \fn struct smbrr_object *smbrr_wavelet_get_object_at(struct smbrr_wavelet *w,
+ * 	int x, int y)
+* \brief Get object at position (x,y).
+* \ingroup wavelet
+*/
+struct smbrr_object *smbrr_wavelet_get_object_at(struct smbrr_wavelet *w,
+		int x, int y);
+
 #endif

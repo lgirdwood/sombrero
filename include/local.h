@@ -97,6 +97,7 @@ struct smbrr_wavelet {
 	/* objects */
 	struct object *objects;
 	int num_objects;
+	struct object **object_map;
 };
 
 static inline int image_get_offset(struct smbrr_image *image, int offx, int offy)

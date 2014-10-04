@@ -417,6 +417,19 @@ static void atrous_deconv_object(struct smbrr_wavelet *w,
 				if (simage->s[pixel] == id) {
 					ipixel = image->width * (y - iy) + (x - ix);
 					image->adu[ipixel] += wimage->adu[pixel];
+
+					/* add to object map */
+					if (scale == start) {
+						/* add object if pixel is empty */
+						if (w->object_map[pixel]  == NULL)
+							w->object_map[pixel] = (struct object *)object;
+						else {
+							/* add object if current object is at higher scale */
+							struct object *o = w->object_map[pixel];
+							if (o->start_scale > scale)
+								w->object_map[pixel] = (struct object *)object;
+						}
+					}
 				}
 			}
 		}
