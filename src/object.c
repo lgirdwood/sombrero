@@ -516,6 +516,8 @@ static void object_get_sigma(struct smbrr_wavelet *w,
 
 	/* get sigma */
 	for (i = 0; i < object->image->size; i++) {
+		if (object->image->adu[i] == 0.0)
+			continue;
 		t = object->image->adu[i] - object->o.mean_adu;
 		t *= t;
 		sigma += t;
