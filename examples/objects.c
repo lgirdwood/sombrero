@@ -218,9 +218,9 @@ int main(int argc, char *argv[])
 		fprintf(stdout, "object %d ID %d\n"
 				" Total ADU %f Mean %f Sigma %f Scale %d Mag delta %f\n"
 				" Position %d:%d Area %d\n", i, object->id,
-				object->total_adu, object->mean_adu, object->sigma_adu,
+				object->object_adu, object->mean_adu, object->sigma_adu,
 				object->scale, object->mag_delta,
-				object->pos.x, object->pos.y, object->area);
+				object->pos.x, object->pos.y, object->object_area);
 
 		/* dump 10 brightest object images */
 		if (i < 10) {

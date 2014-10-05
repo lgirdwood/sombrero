@@ -205,23 +205,32 @@ struct smbrr_object {
 	unsigned int id;	/*!< Object ID. Brightest = 0 */
 	enum smbrr_object_type type;	/*!< Object classification */
 
+	/* positional bounds */
 	struct smbrr_coord pos;	/*!< Object image coordinates for max pixel */
 	struct smbrr_coord minXy;	/*!< Object image min X coordinate */
 	struct smbrr_coord minxY;	/*!< Object image min Y coordinate */
 	struct smbrr_coord maxXy;	/*!< Object image max X coordinate */
 	struct smbrr_coord maxxY;	/*!< Object image max Y coordinate */
-	float total_adu;		/*!< Sum of all object pixels values */
-	float raw_adu;
+	float pa;				/*!< Position angle  */
+
+	/* object aperture */
+	float object_adu;		/*!< Sum of all object pixels values */
+	float object_radius;	/*!< Object radius in pixels */
+	unsigned int object_area;		/*!< Object area in pixels */
+
+	/* object anullus (background) */
+	unsigned int background_area; /*!< Count of background pixels in annulus */
+	float background_adu;	/*!< Total of background pixels in annulus */
+
+	/* object raw */
+	float raw_adu;		/*!< object ADU - background ADU */
+
+	/* statistical data */
 	float max_adu;			/*!< Maximum object pixel value */
 	float mean_adu;			/*!< Mean value of pixels */
 	float sigma_adu;		/*!< Standard deviation of pixels */
 	float mag_delta;		/*!< Magnitude difference to brightest object */
-	float pa;				/*!< Position angle  */
-	unsigned int area;		/*!< Object area in pixels */
 	unsigned int scale;		/*!< Object wavelet scale */
-	unsigned int annulus_count; /*!< Count of background pixels in annulus */
-	float annulus_total;	/*!< Total of background pixels in annulus */
-	float object_radius;	/*!< Object radius in pixels */
 };
 
 /*! \struct smbrr_clip_coeff

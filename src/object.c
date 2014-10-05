@@ -523,7 +523,7 @@ static void object_get_sigma(struct smbrr_wavelet *w,
 		sigma += t;
 	}
 
-	sigma /= object->o.area;
+	sigma /= object->o.object_area;
 	object->o.sigma_adu = sqrtf(sigma);
 }
 
@@ -540,13 +540,13 @@ static int object_get_area(struct smbrr_wavelet *w,
 	/* calculate total ADU and area for object */
 	for (i = 0; i < object->image->size; i++) {
 		if (object->image->adu[i] != 0.0) {
-			object->o.total_adu += object->image->adu[i];
-			object->o.area++;
+			object->o.object_adu += object->image->adu[i];
+			object->o.object_area++;
 		}
 	}
 
 	/* TODO: calculate PA based on max/min coords */
-	object->o.mean_adu = object->o.total_adu / object->o.area;
+	object->o.mean_adu = object->o.object_adu / object->o.object_area;
 
 	return 0;
 }
@@ -654,8 +654,8 @@ static void object_get_annulus_background(struct smbrr_wavelet *w,
 		total += background[i];
 
 	free(background);
-	object->o.annulus_total = total;
-	object->o.annulus_count = bend - bstart;
+	object->o.background_adu = total;
+	object->o.background_area = bend - bstart;
 }
 
 static void object_get_real_mag(struct smbrr_wavelet *w,
@@ -668,14 +668,14 @@ static void object_get_real_mag(struct smbrr_wavelet *w,
 		return;
 
 	/* calculate annulus radius as 10 * star radius - use area to work out radius */
-	o->object_radius = sqrtf((float)object->o.area / M_PI) * 10.0;
+	o->object_radius = sqrtf((float)object->o.object_area / M_PI) * 10.0;
 
 	/* sum background from annulus -
 	 * exclude objects - use mean for backgound for object pixels */
 	object_get_annulus_background(w, object);
 
 	/* subtract background from total ADU */
-	o->raw_adu = o->total_adu - (o->area * ( o->annulus_total / o->annulus_count));
+	o->raw_adu = o->object_adu - (o->object_area * ( o->background_adu / o->background_area));
 }
 
 static int object_calc_data(struct smbrr_wavelet *w)
@@ -718,7 +718,7 @@ static void object_calc_mag_delta(struct smbrr_wavelet *w,
 		object->o.mag_delta = 0.0;
 	else
 		object->o.mag_delta = -2.5 *
-			log10(object->o.total_adu / w->objects[0].o.total_adu);
+			log10(object->o.object_adu / w->objects[0].o.object_adu);
 }
 
 static void object_calc_data2(struct smbrr_wavelet *w)
@@ -754,9 +754,9 @@ static int object_cmp(const void *o1, const void *o2)
 {
 	const struct object *object1 = o1, *object2 = o2;
 
-	if (object1->o.total_adu < object2->o.total_adu)
+	if (object1->o.object_adu < object2->o.object_adu)
 		return 1;
-	else if (object1->o.total_adu > object2->o.total_adu)
+	else if (object1->o.object_adu > object2->o.object_adu)
 		return -1;
 	else
 		return 0;
