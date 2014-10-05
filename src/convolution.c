@@ -388,6 +388,22 @@ static void atrous_deconv_sig(struct smbrr_wavelet *wavelet,
 	}
 }
 
+static void insert_object(struct smbrr_wavelet *w,
+		struct object *object, unsigned int pixel)
+{
+	/* insert object if none or current object at higher scale */
+	if (w->object_map[pixel]  == NULL || w->object_map[pixel] == object )
+		w->object_map[pixel] = object;
+	else {
+		/* other objects exists */
+		struct object *o = w->object_map[pixel];
+
+		/* add if new object starts at lower scale */
+		if (object->start_scale < o->start_scale)
+			w->object_map[pixel] = object;
+	}
+}
+
 /* C0 = C(scale - 1) + sum of wavelets; */
 static void atrous_deconv_object(struct smbrr_wavelet *w,
 	struct smbrr_object *object)
@@ -417,19 +433,7 @@ static void atrous_deconv_object(struct smbrr_wavelet *w,
 				if (simage->s[pixel] == id) {
 					ipixel = image->width * (y - iy) + (x - ix);
 					image->adu[ipixel] += wimage->adu[pixel];
-
-					/* add to object map */
-					if (scale == start) {
-						/* add object if pixel is empty */
-						if (w->object_map[pixel]  == NULL)
-							w->object_map[pixel] = (struct object *)object;
-						else {
-							/* add object if current object is at higher scale */
-							struct object *o = w->object_map[pixel];
-							if (o->start_scale > scale)
-								w->object_map[pixel] = (struct object *)object;
-						}
-					}
+					insert_object(w, o, pixel);
 				}
 			}
 		}
