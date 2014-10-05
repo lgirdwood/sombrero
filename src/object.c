@@ -562,11 +562,128 @@ static void object_get_type(struct smbrr_wavelet *w,
 		object->o.type = SMBRR_OBJECT_STAR;
 }
 
+static inline int pixel_is_stellar_object(struct smbrr_wavelet *w,
+		unsigned int pixel)
+{
+	struct object *object = w->object_map[pixel];
+
+	if (!object )
+		return 0;
+
+	if (object->o.type == SMBRR_OBJECT_EXTENDED)
+		return 0;
+	return 1;
+}
+
+static inline int pixel_is_object(struct smbrr_wavelet *w,
+		unsigned int pixel, struct object *object)
+{
+	struct object *o = w->object_map[pixel];
+
+	if (object == o)
+		return 1;
+	else
+		return 0;
+}
+
+static int background_cmp(const void *o1, const void *o2)
+{
+	const float b1 = *(float*)o1, b2 = *(float*)o2;
+
+	if (b1 < b2)
+		return 1;
+	else if (b1 > b2)
+		return -1;
+	else
+		return 0;
+}
+
+static void object_get_annulus_background(struct smbrr_wavelet *w,
+		struct object *object)
+{
+	int count = 0, x, y, xstart, ystart, xend, yend, pixel, size, i, bstart, bend;
+	float total = 0.0, *background;
+
+	/* size of background checking area */
+	ystart = object->o.pos.y - object->o.object_radius;
+	if (ystart < 0)
+		ystart = 0;
+	yend = object->o.pos.y + object->o.object_radius;
+	if (yend >= w->height)
+		yend = w->height - 1;
+	xstart =  object->o.pos.x - object->o.object_radius;
+	if (xstart < 0)
+		xstart = 0;
+	xend =  object->o.pos.x + object->o.object_radius;
+	if (xend > w->width)
+		xend = w->width - 1;
+
+	/* allocate buffer to store valid background values */
+	size = ((xend - xstart) + 1) * ((yend - ystart) + 1);
+	background = calloc(size, sizeof(float));
+	if (background == NULL)
+		return;
+
+	/* get background pixels line by line */
+	for (y = ystart; y <= yend; y++) {
+		for (x = xstart; x <= xend; x++) {
+			pixel = y * w->width + x;
+
+			/* ignore this object */
+			if (pixel_is_object(w, pixel, object))
+				continue;
+
+			/* ignore any stars */
+			if (pixel_is_stellar_object(w, pixel))
+				continue;
+
+			/* add background pixel */
+			background[count]= w->c[0]->adu[pixel];
+			count++;
+		}
+	}
+
+	/* sort background pixels and dispose top and bottom 20% */
+	qsort(background, count, sizeof(float), background_cmp);
+
+	bstart = 0.2 * count;
+	bend = 0.8 * count;
+
+	/* only count mid pixels i.e. 20% - 80% */
+	for (i = bstart; i < bend; i++)
+		total += background[i];
+
+	free(background);
+	object->o.annulus_total = total;
+	object->o.annulus_count = bend - bstart;
+}
+
+static void object_get_real_mag(struct smbrr_wavelet *w,
+		struct object *object)
+{
+	struct smbrr_object *o = &object->o;
+
+	/* dont compute background for extended objects */
+	if (object->o.type == SMBRR_OBJECT_EXTENDED)
+		return;
+
+	/* calculate annulus radius as 10 * star radius - use area to work out radius */
+	o->object_radius = sqrtf((float)object->o.area / M_PI) * 10.0;
+
+	/* sum background from annulus -
+	 * exclude objects - use mean for backgound for object pixels */
+	object_get_annulus_background(w, object);
+
+	/* subtract background from total ADU */
+	o->raw_adu = o->total_adu - (o->area * ( o->annulus_total / o->annulus_count));
+}
+
 static int object_calc_data(struct smbrr_wavelet *w)
 {
 	struct object *object;
 	int err, i;
 
+	/* 1st pass data */
 	for (i = 0; i < w->num_objects; i++) {
 		object = &w->objects[i];
 
@@ -581,6 +698,13 @@ static int object_calc_data(struct smbrr_wavelet *w)
 		object_get_sigma(w, object);
 
 		object_get_type(w, object);
+	}
+
+	/* 2nd pass - these calues depend on completed 1st pass values */
+	for (i = 0; i < w->num_objects; i++) {
+		object = &w->objects[i];
+
+		object_get_real_mag(w, object);
 	}
 
 	return 0;

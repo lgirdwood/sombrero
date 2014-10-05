@@ -211,13 +211,17 @@ struct smbrr_object {
 	struct smbrr_coord maxXy;	/*!< Object image max X coordinate */
 	struct smbrr_coord maxxY;	/*!< Object image max Y coordinate */
 	float total_adu;		/*!< Sum of all object pixels values */
+	float raw_adu;
 	float max_adu;			/*!< Maximum object pixel value */
 	float mean_adu;			/*!< Mean value of pixels */
 	float sigma_adu;		/*!< Standard deviation of pixels */
 	float mag_delta;		/*!< Magnitude difference to brightest object */
-	float pa;				/*!< Position angle - To be implemented */
+	float pa;				/*!< Position angle  */
 	unsigned int area;		/*!< Object area in pixels */
 	unsigned int scale;		/*!< Object wavelet scale */
+	unsigned int annulus_count; /*!< Count of background pixels in annulus */
+	float annulus_total;	/*!< Total of background pixels in annulus */
+	float object_radius;	/*!< Object radius in pixels */
 };
 
 /*! \struct smbrr_clip_coeff
