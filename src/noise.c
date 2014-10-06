@@ -338,3 +338,17 @@ int smbrr_wavelet_new_significance(struct smbrr_wavelet *w,
 
 	return 0;
 }
+
+/*! \fn int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet *w,
+ * 	float dark);
+* \param w wavelet.
+* \param dark Mean dark ADU
+*
+* Set the mean dark ADU level.
+*/
+int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet *w,
+		float dark)
+{
+	w->dark = dark;
+	return 0;
+}

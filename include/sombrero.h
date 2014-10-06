@@ -693,4 +693,12 @@ int smbrr_wavelet_object_get_image(struct smbrr_wavelet *w,
 struct smbrr_object *smbrr_wavelet_get_object_at(struct smbrr_wavelet *w,
 		int x, int y);
 
+/*! \fn int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet *w,
+ * 	float dark);
+* \brief Set average background value.
+* \ingroup wavelet
+*/
+int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet *w,
+		float dark);
+
 #endif
