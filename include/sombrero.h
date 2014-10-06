@@ -701,4 +701,12 @@ struct smbrr_object *smbrr_wavelet_get_object_at(struct smbrr_wavelet *w,
 int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet *w,
 		float dark);
 
+/*! \fnvoid smbrr_wavelet_set_ccd(struct smbrr_wavelet *w, float gain, float bias,
+	float readout)
+* \brief Set CCD configuration
+* \ingroup wavelet
+*/
+void smbrr_wavelet_set_ccd(struct smbrr_wavelet *w, float gain, float bias,
+	float readout);
+
 #endif

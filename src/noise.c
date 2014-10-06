@@ -352,3 +352,23 @@ int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet *w,
 	w->dark = dark;
 	return 0;
 }
+
+/*! \fn void smbrr_wavelet_set_ccd(struct smbrr_wavelet *w, float gain, float bias,
+	float readout)
+* \param w wavelet.
+* \param gain CCD amplifier gain in photo-electrons per ADU
+* \param bias Image bias in ADUs
+* \param readout Readout noise in RMS electrons.
+*
+* Set the CCD device configuration for noise calculations.
+*/
+void smbrr_wavelet_set_ccd(struct smbrr_wavelet *w, float gain, float bias,
+	float readout)
+{
+	w->gain = gain;
+	w->gain2 = gain * gain;
+	w->bias = bias;
+	w->bias = bias * bias;
+	w->readout = readout;
+	w->readout2 = readout * readout;
+}
