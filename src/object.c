@@ -675,7 +675,35 @@ static void object_get_real_mag(struct smbrr_wavelet *w,
 	object_get_annulus_background(w, object);
 
 	/* subtract background from total ADU */
-	o->raw_adu = o->object_adu - (o->object_area * ( o->background_adu / o->background_area));
+	o->raw_adu = o->object_adu -
+			(o->object_area * ( o->background_adu / o->background_area));
+}
+
+static void object_calc_snr(struct smbrr_wavelet *w, struct object *object)
+{
+	struct smbrr_object *o = &object->o;
+	float sstar, gback, gdark, snr;
+
+	/* dont compute background for extended objects */
+	if (object->o.type == SMBRR_OBJECT_EXTENDED)
+			return;
+
+	gback = w->gain * o->background_adu;
+
+	/* TODO: use dark frame if it exists or use mean dark*/
+	gdark = w->dark * o->background_area;
+
+	sstar = o->raw_adu * w->gain;
+	snr = sstar + o->object_area * (1.0 + o->object_area / o->background_area)  *
+			(gback + gdark + w->readout2 + w->gain2 * w->bias2);
+	o->snr = sstar / sqrtf(snr);
+}
+
+static void object_calc_mag_error(struct smbrr_wavelet *w, struct object *object)
+{
+	struct smbrr_object *o = &object->o;
+
+	o->error = 1.0857 / o->snr;
 }
 
 static int object_calc_data(struct smbrr_wavelet *w)
@@ -705,6 +733,10 @@ static int object_calc_data(struct smbrr_wavelet *w)
 		object = &w->objects[i];
 
 		object_get_real_mag(w, object);
+
+		object_calc_snr(w, object);
+
+		object_calc_mag_error(w, object);
 	}
 
 	return 0;

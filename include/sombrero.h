@@ -224,6 +224,8 @@ struct smbrr_object {
 
 	/* object raw */
 	float raw_adu;		/*!< object ADU - background ADU */
+	float snr;
+	float error;
 
 	/* statistical data */
 	float max_adu;			/*!< Maximum object pixel value */
