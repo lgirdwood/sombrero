@@ -556,7 +556,7 @@ static void object_get_type(struct smbrr_wavelet *w,
 {
 	/* extended objects are usually detected at a higher scale with a low
 	 * sigma and higher area. TODO this can be improved */
-	if (object->o.sigma_adu < 100.0)
+	if (object->o.sigma_adu < 100.0 && object->o.object_area > 4)
 		object->o.type = SMBRR_OBJECT_EXTENDED;
 	else
 		object->o.type = SMBRR_OBJECT_STAR;
