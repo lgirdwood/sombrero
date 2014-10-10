@@ -217,15 +217,12 @@ struct smbrr_object {
 	float object_adu;		/*!< Sum of all object pixels values */
 	float object_radius;	/*!< Object radius in pixels */
 	unsigned int object_area;		/*!< Object area in pixels */
+	float snr;
+	float error;
 
 	/* object anullus (background) */
 	unsigned int background_area; /*!< Count of background pixels in annulus */
 	float background_adu;	/*!< Total of background pixels in annulus */
-
-	/* object raw */
-	float raw_adu;		/*!< object ADU - background ADU */
-	float snr;
-	float error;
 
 	/* statistical data */
 	float max_adu;			/*!< Maximum object pixel value */

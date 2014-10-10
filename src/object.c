@@ -638,7 +638,7 @@ static void object_get_annulus_background(struct smbrr_wavelet *w,
 				continue;
 
 			/* add background pixel */
-			background[count]= w->c[0]->adu[pixel];
+			background[count] = w->c[0]->adu[pixel];
 			count++;
 		}
 	}
@@ -658,7 +658,7 @@ static void object_get_annulus_background(struct smbrr_wavelet *w,
 	object->o.background_area = bend - bstart;
 }
 
-static void object_get_real_mag(struct smbrr_wavelet *w,
+static void object_get_background(struct smbrr_wavelet *w,
 		struct object *object)
 {
 	struct smbrr_object *o = &object->o;
@@ -673,10 +673,6 @@ static void object_get_real_mag(struct smbrr_wavelet *w,
 	/* sum background from annulus -
 	 * exclude objects - use mean for backgound for object pixels */
 	object_get_annulus_background(w, object);
-
-	/* subtract background from total ADU */
-	o->raw_adu = o->object_adu -
-			(o->object_area * ( o->background_adu / o->background_area));
 }
 
 static void object_calc_snr(struct smbrr_wavelet *w, struct object *object)
@@ -693,7 +689,7 @@ static void object_calc_snr(struct smbrr_wavelet *w, struct object *object)
 	/* TODO: use dark frame if it exists or use mean dark*/
 	gdark = w->dark * o->background_area;
 
-	sstar = o->raw_adu * w->gain;
+	sstar = o->object_adu * w->gain;
 	snr = sstar + o->object_area * (1.0 + o->object_area / o->background_area)  *
 			(gback + gdark + w->readout2 + w->gain2 * w->bias2);
 	o->snr = sstar / sqrtf(snr);
@@ -732,7 +728,7 @@ static int object_calc_data(struct smbrr_wavelet *w)
 	for (i = 0; i < w->num_objects; i++) {
 		object = &w->objects[i];
 
-		object_get_real_mag(w, object);
+		object_get_background(w, object);
 
 		object_calc_snr(w, object);
 
