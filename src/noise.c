@@ -298,6 +298,7 @@ int smbrr_wavelet_ksigma_clip_custom(struct smbrr_wavelet *w,
 {
 	int i;
 
+#pragma omp parallel for firstprivate(w, sig_delta, coeff) schedule(dynamic, 1)
 	for (i = 0; i < w->num_scales - 1; i++)
 		 clip_scale(w, i, coeff, sig_delta);
 
