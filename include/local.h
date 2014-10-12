@@ -104,9 +104,9 @@ struct smbrr_wavelet {
 	struct smbrr_image *dark_image;
 
 	/* ccd */
-	float gain, gain2;
-	float bias, bias2;
-	float readout, readout2;
+	float gain;
+	float bias;
+	float readout;
 };
 
 static inline int image_get_offset(struct smbrr_image *image, int offx, int offy)

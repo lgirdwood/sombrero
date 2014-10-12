@@ -367,9 +367,6 @@ void smbrr_wavelet_set_ccd(struct smbrr_wavelet *w, float gain, float bias,
 	float readout)
 {
 	w->gain = gain;
-	w->gain2 = gain * gain;
 	w->bias = bias;
-	w->bias = bias * bias;
 	w->readout = readout;
-	w->readout2 = readout * readout;
 }
