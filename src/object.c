@@ -729,6 +729,7 @@ static int object_calc_data(struct smbrr_wavelet *w)
 	}
 
 	/* 2nd pass - these calues depend on completed 1st pass values */
+#pragma omp parallel for private(object) schedule(dynamic, 10)
 	for (i = 0; i < w->num_objects; i++) {
 		object = &w->objects[i];
 
