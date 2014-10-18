@@ -687,23 +687,17 @@ static void object_calc_snr(struct smbrr_wavelet *w, struct object *object)
 	/* compute background of over star area with CCD gain */
 	background = w->gain * o->background_adu / o->background_area;
 
-	/* TODO: use dark frame if it exists or use mean dark*/
-	dark = w->dark;
+	/* TODO: use dark frame if it exists or use mean dark * CCD gain */
+	dark = w->dark * w->gain;
 
 	/* object ADU * CCD gain */
 	star = o->object_adu * w->gain;
 
 	/* noise over star area */
-	noise = o->object_area * (background + dark + w->readout + w->gain * w->bias);
+	noise = o->object_area * (background + dark + w->readout + w->bias);
 
-	o->snr = star / noise;
-}
-
-static void object_calc_mag_error(struct smbrr_wavelet *w, struct object *object)
-{
-	struct smbrr_object *o = &object->o;
-
-	o->error = 1.0857 / o->snr;
+	o->error = 1.0857 / (star / noise);
+	o->snr = 10.0 * log10(star / noise);
 }
 
 static int object_calc_data(struct smbrr_wavelet *w)
@@ -736,8 +730,6 @@ static int object_calc_data(struct smbrr_wavelet *w)
 		object_get_background(w, object);
 
 		object_calc_snr(w, object);
-
-		object_calc_mag_error(w, object);
 	}
 
 	return 0;
