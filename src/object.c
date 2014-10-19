@@ -678,26 +678,32 @@ static void object_get_background(struct smbrr_wavelet *w,
 static void object_calc_snr(struct smbrr_wavelet *w, struct object *object)
 {
 	struct smbrr_object *o = &object->o;
-	float star, background, dark, noise;
+	float star, background, dark, star_noise, sky_noise, ro2;
 
 	/* dont compute background for extended objects */
 	if (object->o.type == SMBRR_OBJECT_EXTENDED)
 			return;
 
-	/* compute background of over star area with CCD gain */
+	/* readout noise */
+	ro2 = w->readout * w->readout;
+
+	/* compute mean background of over star area with CCD gain */
 	background = w->gain * o->background_adu / o->background_area;
 
 	/* TODO: use dark frame if it exists or use mean dark * CCD gain */
 	dark = w->dark * w->gain;
 
-	/* object ADU * CCD gain */
-	star = o->object_adu * w->gain;
-
 	/* noise over star area */
-	noise = o->object_area * (background + dark + w->readout + w->bias);
+	star_noise = o->object_area * (background + dark + ro2);
 
-	o->error = 1.0857 / (star / noise);
-	o->snr = 10.0 * log10(star / noise);
+	/* noise over background area */
+	sky_noise = star_noise / o->background_area;
+
+	/* object ADU * CCD gain */
+	star = (o->object_adu * w->gain) - star_noise;
+
+	o->snr = 10.0 * log10(star / sqrtf(star + star_noise + sky_noise));
+	o->error  = -2.5 * log10(1.0 - 1.0 / o->snr);
 }
 
 static int object_calc_data(struct smbrr_wavelet *w)
