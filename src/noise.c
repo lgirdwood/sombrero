@@ -110,9 +110,9 @@ float smbrr_image_get_norm(struct smbrr_image *image)
 	int i;
 
 	for (i = 0; i < image->size;  i++)
-		norm += image->adu[i];
+		norm += image->adu[i] * image->adu[i];
 
-	return sqrtf(fabsf(norm));
+	return sqrtf(norm);
 }
 
 /*! \fn float smbrr_image_get_sigma_sig(struct smbrr_image *image,
