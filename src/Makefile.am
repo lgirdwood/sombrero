@@ -8,7 +8,8 @@ libsombrero_la_SOURCES = \
 	image.c \
 	wavelet.c \
 	noise.c \
-	object.c
+	object.c \
+	reconstruct.c
 
 libsombrero_la_LDFLAGS = \
 	-version-info $(LT_VERSION) \
