@@ -1068,7 +1068,14 @@ int smbrr_wavelet_object_get_image(struct smbrr_wavelet *w,
 struct smbrr_object *smbrr_wavelet_get_object_at(struct smbrr_wavelet *w,
 		int x, int y)
 {
-	int pixel = y * w->width + x;
+	int pixel;
+
+	if (x < 0 || x > w->width - 1)
+		return NULL;
+	if (y < 0 || y > w->height - 1)
+		return NULL;
+
+	pixel= y * w->width + x;
 
 	return &w->object_map[pixel]->o;
 }
