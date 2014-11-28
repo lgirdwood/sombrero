@@ -96,6 +96,7 @@ struct smbrr_wavelet {
 
 	/* objects */
 	struct object *objects;
+	struct object **objects_sorted;
 	int num_objects;
 	struct object **object_map;
 

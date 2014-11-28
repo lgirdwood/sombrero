@@ -772,6 +772,10 @@ static struct object *new_object(struct smbrr_wavelet *w,
 	w->objects = realloc(w->objects, sizeof(*object) * ++w->num_objects);
 	if (w->objects == NULL)
 		return NULL;
+	w->objects_sorted = realloc(w->objects_sorted,
+			sizeof(object) * w->num_objects);
+	if (w->objects_sorted == NULL)
+		return NULL;
 
 	object = &w->objects[w->num_objects - 1];
 	memset(object, 0, sizeof(*object));
@@ -783,11 +787,11 @@ static struct object *new_object(struct smbrr_wavelet *w,
 
 static int object_cmp(const void *o1, const void *o2)
 {
-	const struct object *object1 = o1, *object2 = o2;
+	struct object * const *object1 = o1, * const *object2 = o2;
 
-	if (object1->o.object_adu < object2->o.object_adu)
+	if ((*object1)->o.object_adu < (*object2)->o.object_adu)
 		return 1;
-	else if (object1->o.object_adu > object2->o.object_adu)
+	else if ((*object1)->o.object_adu > (*object2)->o.object_adu)
 		return -1;
 	else
 		return 0;
@@ -973,8 +977,11 @@ int smbrr_wavelet_structure_connect(struct smbrr_wavelet *w,
 		return ret;
 
 	/* sort objects into ascending order of total adu */
-	qsort(w->objects, w->num_objects,
-			sizeof(struct object), object_cmp);
+	for (i = 0; i < w->num_objects; i++)
+		w->objects_sorted[i] = &w->objects[i];
+
+	qsort(w->objects_sorted, w->num_objects,
+			sizeof(struct object *), object_cmp);
 
 	/* calculate total adu for each object */
 	object_calc_data2(w);
@@ -996,7 +1003,7 @@ struct smbrr_object *smbrr_wavelet_object_get(struct smbrr_wavelet *w,
 	if (object_id >= w->num_objects)
 		return NULL;
 
-	return &w->objects[object_id].o;
+	return &w->objects_sorted[object_id]->o;
 }
 
 /*! \fn void smbrr_wavelet_object_free_all(struct smbrr_wavelet *w)
@@ -1015,6 +1022,7 @@ void smbrr_wavelet_object_free_all(struct smbrr_wavelet *w)
 		smbrr_image_free(object->image);
 	}
 	free(&w->objects[0]);
+	free(&w->objects_sorted[0]);
 
 	for (i = 0; i < w->num_scales - 1; i++) {
 		for (j = 0; j < w->num_structures[i]; j++) {
