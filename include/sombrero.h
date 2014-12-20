@@ -514,6 +514,12 @@ void smbrr_image_new_significance(struct smbrr_image *a,
 int smbrr_image_psf(struct smbrr_image *src, struct smbrr_image *dest,
 	enum smbrr_wavelet_mask mask);
 
+/*! \fn float smbrr_image_get_adu_at(struct smbrr_image *image, int x, int y);
+ * \brief Get image ADU value at (x,y)
+ * \ingroup image
+ */
+float smbrr_image_get_adu_at(struct smbrr_image *image, int x, int y);
+
 /*! \defgroup wavelet Wavelet
 *
 * Wavelet manipulation and management.

@@ -971,3 +971,24 @@ int smbrr_image_height(struct smbrr_image *image)
 {
 	return image->height;
 }
+
+/*! \fn float smbrr_image_get_adu_at(struct smbrr_image *image, int x, int y);
+ * \param image Image
+ * \param x X coordinate
+ * \param y Y coordinate
+ * \return Image ADU
+ *
+ * Get image ADU value at (x,y)
+ */
+float smbrr_image_get_adu_at(struct smbrr_image *image, int x, int y)
+{
+	int pixel;
+
+	if (x < 0 || x >= image->width)
+		return -1.0;
+	if (y < 0 || y >= image->height)
+		return -1.0;
+
+	pixel = y * image->width + x;
+	return image->adu[pixel];
+}
