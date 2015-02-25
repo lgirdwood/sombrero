@@ -520,6 +520,16 @@ int smbrr_image_psf(struct smbrr_image *src, struct smbrr_image *dest,
  */
 float smbrr_image_get_adu_at(struct smbrr_image *image, int x, int y);
 
+/*! \fn int smbrr_image_reconstruct(struct smbrr_image *O,
+	enum smbrr_wavelet_mask mask, float threshold, int scales,
+	enum smbrr_clip sigma_clip);
+ * \brief Reconstruct an image without noise.
+ * \ingroup image
+ */
+int smbrr_image_reconstruct(struct smbrr_image *O,
+	enum smbrr_wavelet_mask mask, float threshold, int scales,
+	enum smbrr_clip sigma_clip);
+
 /*! \defgroup wavelet Wavelet
 *
 * Wavelet manipulation and management.
