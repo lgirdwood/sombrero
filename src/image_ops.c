@@ -567,6 +567,63 @@ static void image_new_significance(struct smbrr_image *image,
 	}
 }
 
+static int image_psf(struct smbrr_image *src, struct smbrr_image *dest,
+	enum smbrr_wavelet_mask mask)
+{
+	const float *data;
+	int height, width;
+	int x, y, xc, yc;
+	int offy, offx, pixel, offxy, maskxy;
+	float *s, *d;
+
+	switch (mask) {
+	case SMBRR_WAVELET_MASK_LINEAR:
+		data = (float*)linear_mask_inverse;
+		xc = 3;
+		yc = 3;
+		break;
+	case SMBRR_WAVELET_MASK_BICUBIC:
+		data = (float*)bicubic_mask_inverse;
+		yc = 5;
+		yc = 5;
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	s = src->adu;
+	d = dest->adu;
+
+	/* clear each scale */
+	smbrr_image_reset_value(dest, 0.0);
+
+	/* image height loop */
+	for (height = 0; height < src->height; height++) {
+
+		/* image width loop */
+		for (width = 0; width < src->width; width++) {
+
+			pixel = height * src->width + width;
+
+			/* mask y loop */
+			for (y = 0; y < yc; y++) {
+				offy = y_boundary(height, height + (y - yc));
+
+				/* mask x loop */
+				for (x = 0; x < xc; x++) {
+					offx = x_boundary(width, width + (x - xc));
+					offxy = image_get_offset(src, offx, offy);
+					maskxy = mask_get_offset(xc, x, y);
+					d[pixel] += s[offxy] * data[maskxy];
+				}
+			}
+		}
+	}
+
+	return 0;
+}
+
+
 const struct image_ops OPS(image_ops) = {
 	.find_limits =image_find_limits,
 	.get_mean = image_get_mean,
@@ -593,7 +650,7 @@ const struct image_ops OPS(image_ops) = {
 	.anscombe = image_anscombe,
 	.new_significance = image_new_significance,
 	.get = image_get,
-//	.psf = image_psf,
+	.psf = image_psf,
 
 	.uchar_to_float = uchar_to_float,
 	.ushort_to_float = ushort_to_float,

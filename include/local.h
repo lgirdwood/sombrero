@@ -20,6 +20,7 @@
 #define _LOCAL_H
 
 #include <stdint.h>
+#include <errno.h>
 #include <sombrero.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -37,6 +38,12 @@ extern const struct image_ops image_ops_sse42;
 extern const struct image_ops image_ops_avx;
 extern const struct image_ops image_ops_avx2;
 extern const struct image_ops image_ops_fma;
+
+extern const struct convolution2d_ops conv2d_ops;
+extern const struct convolution2d_ops conv2d_sse42;
+extern const struct convolution2d_ops conv2d_avx;
+extern const struct convolution2d_ops conv2d_avx2;
+extern const struct convolution2d_ops conv2d_fma;
 
 struct structure {
 	unsigned int object_id;
@@ -96,6 +103,7 @@ struct smbrr_wavelet {
 
 	unsigned int width;
 	unsigned int height;
+	const struct convolution2d_ops *ops;
 
 	/* convolution wavelet mask */
 	struct wavelet_mask mask;
@@ -196,11 +204,11 @@ struct image_ops {
 		float readout);
 	void (*new_significance)(struct smbrr_image *a,
 		struct smbrr_image *s, float sigma);
-	int (*psf)(struct smbrr_image *src, struct smbrr_image *dest,
-		enum smbrr_wavelet_mask mask);
 	void (*find_limits)(struct smbrr_image *image, float *min, float *max);
 	int (*get)(struct smbrr_image *image, enum smbrr_adu adu,
 		void **buf);
+	int (*psf)(struct smbrr_image *src, struct smbrr_image *dest,
+		enum smbrr_wavelet_mask mask);
 
 	/* conversion */
 	void (*uchar_to_float)(struct smbrr_image *i, const unsigned char *c);
@@ -214,6 +222,139 @@ struct image_ops {
 	void (*float_to_float)(struct smbrr_image *i, const float *c);
 	void (*uint_to_uchar)(struct smbrr_image *i, unsigned char *c);
 };
+
+struct convolution2d_ops {
+	void (*atrous_conv)(struct smbrr_wavelet *wavelet);
+	void (*atrous_conv_sig)(struct smbrr_wavelet *wavelet);
+	void (*atrous_deconv_object)(struct smbrr_wavelet *w,
+		struct smbrr_object *object);
+};
+
+#define M_1_16		(1.0 / 16.0)
+#define M_1_8		(1.0 / 8.0)
+#define M_1_4		(1.0 / 4.0)
+#define M_1_256		(1.0 / 256.0)
+#define M_1_64		(1.0 / 64.0)
+#define M_3_128		(3.0 / 128.0)
+#define M_3_32		(3.0 / 32.0)
+#define M_9_64		(9.0 / 64.0)
+
+#define IM_1_16		(16.0)
+#define IM_1_8		(8.0)
+#define IM_1_4		(4.0)
+#define IM_1_256	(256.0)
+#define IM_1_64		(64.0)
+#define IM_3_128	(1.0 / (3.0 / 128.0))
+#define IM_3_32		(1.0 / (3.0 / 32.0))
+#define IM_9_64		(1.0 / (9.0 / 64.0))
+
+
+/* linear interpolation mask */
+static const float linear_mask[3][3] = {
+	{M_1_16, M_1_8, M_1_16},
+	{M_1_8, M_1_4, M_1_8},
+	{M_1_16, M_1_8, M_1_16},
+};
+
+static const float linear_mask_inverse[3][3] = {
+	{IM_1_16, IM_1_8, IM_1_16},
+	{IM_1_8, IM_1_4, IM_1_8},
+	{IM_1_16, IM_1_8, IM_1_16},
+};
+
+/* bicubic spline */
+static const float bicubic_mask[5][5] = {
+	{M_1_256, M_1_64, M_3_128, M_1_64, M_1_256},
+	{M_1_64, M_1_16, M_3_32, M_1_16, M_1_64},
+	{M_3_128, M_3_32, M_9_64, M_3_32, M_3_128},
+	{M_1_64, M_1_16, M_3_32, M_1_16, M_1_64},
+	{M_1_256, M_1_64, M_3_128, M_1_64, M_1_256},
+};
+
+static const float bicubic_mask_inverse[5][5] = {
+	{IM_1_256, IM_1_64, IM_3_128, IM_1_64, IM_1_256},
+	{IM_1_64, IM_1_16, IM_3_32, IM_1_16, IM_1_64},
+	{IM_3_128, IM_3_32, IM_9_64, IM_3_32, IM_3_128},
+	{IM_1_64, IM_1_16, IM_3_32, IM_1_16, IM_1_64},
+	{IM_1_256, IM_1_64, IM_3_128, IM_1_64, IM_1_256},
+};
+
+/* K amplification for each wavelet scale */
+static const float k_amp[5][8] = {
+	{1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0},	/* none */
+	{1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 4.0, 8.0},	/* low pass */
+	{1.0, 1.0, 2.0, 4.0, 2.0, 1.0, 1.0, 1.0},	/* mid pass */
+	{4.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0},	/* high pass */
+	{1.0, 1.0, 1.5, 2.0, 4.0, 4.0, 4.0, 8.0},	/* low-mid pass */
+};
+
+static inline int y_boundary(unsigned int height, int offy)
+{
+	/* handle boundaries by mirror */
+	if (offy < 0)
+		offy = 0 - offy;
+	else if (offy >= height)
+		offy = height - (offy - height) - 1;
+
+	return offy;
+}
+
+static inline int x_boundary(unsigned int width, int offx)
+{
+	/* handle boundaries by mirror */
+	if (offx < 0)
+		offx = 0 - offx;
+	else if (offx >= width)
+		offx = width - (offx - width) - 1;
+
+	return offx;
+}
+
+static inline int conv_mask_set(struct smbrr_wavelet *w,
+	enum smbrr_wavelet_mask mask)
+{
+	switch (mask) {
+	case SMBRR_WAVELET_MASK_LINEAR:
+		w->mask.data = (float*)linear_mask;
+		w->mask.width = 3;
+		w->mask.height = 3;
+		w->mask_type = mask;
+		break;
+	case SMBRR_WAVELET_MASK_BICUBIC:
+		w->mask.data = (float*)bicubic_mask;
+		w->mask.width = 5;
+		w->mask.height = 5;
+		w->mask_type = mask;
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+static inline int deconv_mask_set(struct smbrr_wavelet *w,
+	enum smbrr_wavelet_mask mask)
+{
+	switch (mask) {
+	case SMBRR_WAVELET_MASK_LINEAR:
+		w->mask.data = (float*)linear_mask_inverse;
+		w->mask.width = 3;
+		w->mask.height = 3;
+		w->mask_type = mask;
+		break;
+	case SMBRR_WAVELET_MASK_BICUBIC:
+		w->mask.data = (float*)bicubic_mask_inverse;
+		w->mask.width = 5;
+		w->mask.height = 5;
+		w->mask_type = mask;
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	return 0;
+}
 
 #endif
 #endif

@@ -26,6 +26,39 @@
 #include "sombrero.h"
 #include "local.h"
 
+static void set_conv_ops(struct smbrr_wavelet *w)
+{
+	unsigned int cpu_flags = cpu_get_flags();
+
+#if defined HAVE_FMA
+	if (cpu_flags & CPU_X86_FMA) {
+		w->ops = &conv2d_ops_fma;
+		return;
+	}
+#endif
+#if defined HAVE_AVX2
+	if (cpu_flags & CPU_X86_AVX2) {
+		w->ops = &conv2d_ops_avx2;
+		return;
+	}
+#endif
+#if defined HAVE_AVX
+	if (cpu_flags & CPU_X86_AVX) {
+		w->ops = &conv2d_ops_avx;
+		return;
+	}
+#endif
+#if defined HAVE_SSE42
+	if (cpu_flags & CPU_X86_SSE4_2) {
+		w->ops = &conv2d_ops_sse42;
+		return;
+	}
+#endif
+
+	/* default C implementation */
+	w->ops = &conv2d_ops;
+}
+
 /*! \fn struct smbrr_wavelet *smbrr_wavelet_new(struct smbrr_image *image,
 	unsigned int num_scales)
 * \param image Image
@@ -51,6 +84,7 @@ struct smbrr_wavelet *smbrr_wavelet_new(struct smbrr_image *image,
 	w->width = image->width;
 	w->num_scales = num_scales;
 	w->c[0] = image;
+	set_conv_ops(w);
 
 	w->object_map = calloc(w->height * w->width, sizeof(struct object*));
 	if (w->object_map == NULL)

@@ -1,24 +1,24 @@
 
 if HAVE_SSE42
-SSE4_2 = libimage_ops_sse42.la
+SSE4_2 = libops_sse42.la
 else
 SSE4_2 =
 endif
 
 if HAVE_AVX
-AVX = libimage_ops_avx.la
+AVX = libops_avx.la
 else
 AVX =
 endif
 
 if HAVE_AVX2
-AVX2 = libimage_ops_avx2.la
+AVX2 = libops_avx2.la
 else
 AVX2 =
 endif
 
 if HAVE_FMA
-FMA = libimage_ops_fma.la
+FMA = libops_fma.la
 else
 FMA =
 endif
@@ -28,25 +28,56 @@ noinst_LTLIBRARIES = \
 	$(AVX) \
 	$(AVX2) \
 	$(FMA) \
-	libimage_ops.la
+	libops.la
 
-libimage_ops_la_SOURCES = image_ops.c
-libimage_ops_la_CFLAGS = -I$(top_srcdir)/include
+libops_la_SOURCES = \
+	image_ops.c \
+	convolution_2d_ops.c
 
-libimage_ops_sse42_la_SOURCES = image_ops.c
-libimage_ops_sse42_la_CFLAGS = $(SSE42_CFLAGS) -I$(top_srcdir)/include
+libops_la_CFLAGS = \
+	$(OPENMP_CFLAGS) \
+	-I$(top_srcdir)/include
 
-libimage_ops_avx_la_SOURCES = image_ops.c
-libimage_ops_avx_la_CFLAGS = $(AVX_CFLAGS) -I$(top_srcdir)/include
+libops_sse42_la_SOURCES = \
+	image_ops.c \
+	convolution_2d_ops.c
 
-libimage_ops_avx2_la_SOURCES = image_ops.c
-libimage_ops_avx2_la_CFLAGS = $(AVX2_CFLAGS) -I$(top_srcdir)/include
+libops_sse42_la_CFLAGS = \
+	 $(OPENMP_CFLAGS) \
+	 $(SSE42_CFLAGS) \
+	 -I$(top_srcdir)/include
 
-libimage_ops_fma_la_SOURCES = image_ops.c
-libimage_ops_fma_la_CFLAGS = $(FMA_CFLAGS) -I$(top_srcdir)/include
+libops_avx_la_SOURCES = \
+	image_ops.c \
+	convolution_2d_ops.c
+
+libops_avx_la_CFLAGS = \
+	$(OPENMP_CFLAGS) \
+	$(AVX_CFLAGS) \
+	-I$(top_srcdir)/include
+
+libops_avx2_la_SOURCES = \
+	image_ops.c \
+	convolution_2d_ops.c
+	
+libops_avx2_la_CFLAGS = \
+	$(OPENMP_CFLAGS) \
+	$(AVX2_CFLAGS) \
+	-I$(top_srcdir)/include
+
+libops_fma_la_SOURCES = \
+	image_ops.c \
+	convolution_2d_ops.c
+	
+libops_fma_la_CFLAGS = \
+	$(OPENMP_CFLAGS) \
+	$(FMA_CFLAGS) \
+	-I$(top_srcdir)/include
 
 lib_LTLIBRARIES = libsombrero.la
-libsombrero_la_CFLAGS = $(OPENMP_CFLAGS) -I$(top_srcdir)/include
+libsombrero_la_CFLAGS = \
+	$(OPENMP_CFLAGS) \
+	-I$(top_srcdir)/include
 
 libsombrero_la_SOURCES = \
 	convolution.c \
@@ -59,7 +90,7 @@ libsombrero_la_SOURCES = \
 
 libsombrero_la_LIBADD = \
 	-L.libs/ \
-	libimage_ops.la \
+	libops.la \
 	$(SSE4_2) \
 	$(AVX) \
 	$(AVX2) \

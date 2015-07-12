@@ -537,6 +537,22 @@ void smbrr_image_clear_negative(struct smbrr_image *image)
 	image->ops->clear_negative(image);
 }
 
+/*! \fn int smbrr_image_psf(struct smbrr_image *src, struct smbrr_image *dest,
+	enum smbrr_wavelet_mask mask)
+* \param src Source image
+* \param dest Destination Image
+* \param mask PSF convolution mask
+* \return 0 for success.
+*
+* Perform Point Spread Function on source image and store in destination image
+* using wavelet masks to blur image.
+*/
+int smbrr_image_psf(struct smbrr_image *src, struct smbrr_image *dest,
+	enum smbrr_wavelet_mask mask)
+{
+	return src->ops->psf(src, dest, mask);
+}
+
 /*! \fn int smbrr_image_pixels(struct smbrr_image *image)
 * \param image Image
 * \return Number of image pixels.
