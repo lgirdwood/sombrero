@@ -120,7 +120,7 @@ fi
 AC_SUBST(FMA_CFLAGS)
 
 # OpenMP support
-AC_ARG_ENABLE(openmp, [AS_HELP_STRING([--enable-openmp],[enable OpenMP])], have_openmp=$enableval, have_openmp=no)
+AC_ARG_ENABLE(openmp, [AS_HELP_STRING([--enable-openmp],[enable OpenMP])], have_openmp=$enableval, have_openmp=yes)
 if test "$have_openmp" = "yes"; then
         AC_DEFINE(HAVE_OPENMP,1,[Define to enable OpenMP])
 fi
