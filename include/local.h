@@ -20,8 +20,23 @@
 #define _LOCAL_H
 
 #include <stdint.h>
+#include <sombrero.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+/* SIMD optimisation flags */
+#define CPU_X86_SSE4_2		1
+#define CPU_X86_AVX			2
+#define CPU_X86_AVX2			4
+#define CPU_X86_FMA			8
+
+int cpu_get_flags(void);
+
+extern const struct image_ops image_ops;
+extern const struct image_ops image_ops_sse42;
+extern const struct image_ops image_ops_avx;
+extern const struct image_ops image_ops_avx2;
+extern const struct image_ops image_ops_fma;
 
 struct structure {
 	unsigned int object_id;
@@ -60,6 +75,8 @@ struct wavelet_mask {
 	const float *data;
 };
 
+struct image_ops;
+
 struct smbrr_image {
 	union {
 		float *adu;
@@ -71,6 +88,7 @@ struct smbrr_image {
 	unsigned int height;
 	unsigned int size;
 	unsigned int stride;
+	const struct image_ops *ops;
 };
 
 struct smbrr_wavelet {
@@ -139,6 +157,63 @@ static inline int wavelet_get_y(struct smbrr_wavelet *w, unsigned int pixel)
 {
 	return pixel / w->width;
 }
+
+struct image_ops {
+
+	float (*get_mean)(struct smbrr_image *image);
+	float (*get_sigma)(struct smbrr_image *image, float mean);
+	float (*get_mean_sig)(struct smbrr_image *image,
+		struct smbrr_image *simage);
+	float (*get_sigma_sig)(struct smbrr_image *image,
+		struct smbrr_image *simage, float mean);
+	float (*get_norm)(struct smbrr_image *image);
+	void (*normalise)(struct smbrr_image *image, float min, float max);
+	void (*add)(struct smbrr_image *a, struct smbrr_image *b,
+		struct smbrr_image *c);
+	void (*add_value_sig)(struct smbrr_image *image,
+		struct smbrr_image *simage, float value);
+	void (*add_sig)(struct smbrr_image *a, struct smbrr_image *b,
+		struct smbrr_image *c, struct smbrr_image *s);
+	void (*subtract)(struct smbrr_image *a, struct smbrr_image *b,
+		struct smbrr_image *c);
+	void (*subtract_sig)(struct smbrr_image *a, struct smbrr_image *b,
+		struct smbrr_image *c, struct smbrr_image *s);
+	void (*add_value)(struct smbrr_image *a, float value);
+	void (*subtract_value)(struct smbrr_image *a, float value);
+	void (*mult_value)(struct smbrr_image *a, float value);
+	void (*reset_value)(struct smbrr_image *a, float value);
+	void (*set_value_sig)(struct smbrr_image *a,
+		struct smbrr_image *s, float value);
+	int (*convert)(struct smbrr_image *a, enum smbrr_image_type type);
+	void (*set_sig_value)(struct smbrr_image *a, uint32_t value);
+	void (*clear_negative)(struct smbrr_image *a);
+	int (*copy)(struct smbrr_image *dest, struct smbrr_image *src);
+	void (*fma)(struct smbrr_image *dest, struct smbrr_image *a,
+		struct smbrr_image *b, float c);
+	void (*fms)(struct smbrr_image *dest, struct smbrr_image *a,
+		struct smbrr_image *b, float c);
+	void (*anscombe)(struct smbrr_image *image, float gain, float bias,
+		float readout);
+	void (*new_significance)(struct smbrr_image *a,
+		struct smbrr_image *s, float sigma);
+	int (*psf)(struct smbrr_image *src, struct smbrr_image *dest,
+		enum smbrr_wavelet_mask mask);
+	void (*find_limits)(struct smbrr_image *image, float *min, float *max);
+	int (*get)(struct smbrr_image *image, enum smbrr_adu adu,
+		void **buf);
+
+	/* conversion */
+	void (*uchar_to_float)(struct smbrr_image *i, const unsigned char *c);
+	void (*ushort_to_float)(struct smbrr_image *i, const unsigned short *c);
+	void (*uint_to_float)(struct smbrr_image *i, const unsigned int *c);
+	void (*float_to_uchar)(struct smbrr_image *i, unsigned char *c);
+	void (*uint_to_uint)(struct smbrr_image *i, const unsigned int *c);
+	void (*ushort_to_uint)(struct smbrr_image *i, const unsigned short *c);
+	void (*uchar_to_uint)(struct smbrr_image *i, const unsigned char *c);
+	void (*float_to_uint)(struct smbrr_image *i, const float *c);
+	void (*float_to_float)(struct smbrr_image *i, const float *c);
+	void (*uint_to_uchar)(struct smbrr_image *i, unsigned char *c);
+};
 
 #endif
 #endif

@@ -3,4 +3,4 @@ libtoolize -c --force
 aclocal -I m4 --install
 autoconf -Wall
 autoheader
-automake --copy --foreign --add-missing
+automake -a --copy --foreign --add-missing

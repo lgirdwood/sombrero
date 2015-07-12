@@ -34,14 +34,7 @@
 */
 float smbrr_image_get_mean(struct smbrr_image *image)
 {
-	float mean = 0.0;
-	int i;
-
-	for (i = 0; i < image->size; i++)
-		mean += image->adu[i];
-
-	mean /= (float)image->size;
-	return mean;
+	return image->ops->get_mean(image);
 }
 
 /*! \fn float smbrr_image_get_mean_sig(struct smbrr_image *image)
@@ -55,24 +48,7 @@ float smbrr_image_get_mean(struct smbrr_image *image)
 float smbrr_image_get_mean_sig(struct smbrr_image *image,
 	struct smbrr_image *simage)
 {
-	float mean_sig = 0.0;
-	int i, ssize = 0;
-
-	if (image->height != simage->height ||
-		image->width != simage->width)
-		return 0.0;
-
-	for (i = 0; i < image->size; i++) {
-
-		if (!simage->s[i])
-			continue;
-
-		mean_sig += image->adu[i];
-		ssize++;
-	}
-
-	mean_sig /= (float)ssize;
-	return mean_sig;
+	return image->ops->get_mean_sig(image, simage);
 }
 
 /*! \fn float smbrr_image_get_sigma(struct smbrr_image *image, float mean)
@@ -84,18 +60,7 @@ float smbrr_image_get_mean_sig(struct smbrr_image *image,
 */
 float smbrr_image_get_sigma(struct smbrr_image *image, float mean)
 {
-	float t, sigma = 0.0;
-	int i;
-
-	for (i = 0; i < image->size;  i++) {
-		t = image->adu[i] - mean;
-		t *= t;
-		sigma += t;
-	}
-
-	sigma /= (float) image->size;
-	sigma = sqrtf(sigma);
-	return sigma;
+	return image->ops->get_sigma(image, mean);
 }
 
 /*! \fn float smbrr_image_get_norm(struct smbrr_image *image)
@@ -106,13 +71,7 @@ float smbrr_image_get_sigma(struct smbrr_image *image, float mean)
 */
 float smbrr_image_get_norm(struct smbrr_image *image)
 {
-	float norm = 0.0;
-	int i;
-
-	for (i = 0; i < image->size;  i++)
-		norm += image->adu[i] * image->adu[i];
-
-	return sqrtf(norm);
+	return image->ops->get_norm(image);
 }
 
 /*! \fn float smbrr_image_get_sigma_sig(struct smbrr_image *image,
@@ -128,23 +87,7 @@ float smbrr_image_get_norm(struct smbrr_image *image)
 float smbrr_image_get_sigma_sig(struct smbrr_image *image,
 	struct smbrr_image *simage, float mean_sig)
 {
-	float t, sigma_sig = 0.0;
-	int i, ssize = 0;
-
-	for (i = 0; i < image->size;  i++) {
-
-		if (!simage->s[i])
-			continue;
-
-		t = image->adu[i] - mean_sig;
-		t *= t;
-		sigma_sig += t;
-		ssize++;
-	}
-
-	sigma_sig /= (float) ssize;
-	sigma_sig = sqrtf(sigma_sig);
-	return sigma_sig;
+	return image->ops->get_sigma_sig(image, simage, mean_sig);
 }
 
 /*! \fn void smbrr_image_anscombe(struct smbrr_image *image, float gain,
@@ -160,17 +103,7 @@ float smbrr_image_get_sigma_sig(struct smbrr_image *image,
 void smbrr_image_anscombe(struct smbrr_image *image, float gain, float bias,
 	float readout)
 {
-	float hgain, cgain, r;
-	int i;
-
-	/* HAIP Equ 18.9 */
-	hgain = gain / 2.0;
-	cgain = (gain * gain) * 0.375;
-	r = readout * readout;
-	r += cgain;
-
-	for (i = 0; i < image->size;  i++)
-		 image->adu[i] = hgain * sqrtf(gain * (image->adu[i] - bias) + r);
+	image->ops->anscombe(image, gain, bias, readout);
 }
 
 /*! \fn void smbrr_image_new_significance(struct smbrr_image *image,
@@ -184,22 +117,7 @@ void smbrr_image_anscombe(struct smbrr_image *image, float gain, float bias,
 void smbrr_image_new_significance(struct smbrr_image *image,
 	struct smbrr_image *simage, float sigma)
 {
-	int i;
-
-	if (image->height != simage->height ||
-		image->width != simage->width)
-		return;
-
-	/* clear the old significance data */
-	bzero(simage->s, sizeof(uint32_t) * simage->size);
-	simage->sig_pixels = 0;
-
-	for (i = 0; i < image->size; i++) {
-		if (image->adu[i] >= sigma) {
-			simage->s[i] = 1;
-			simage->sig_pixels++;
-		}
-	}
+	image->ops->new_significance(image, simage, sigma);
 }
 
 #define D1(x)	(1.0 / x)

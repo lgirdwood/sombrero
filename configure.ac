@@ -63,19 +63,61 @@ else
 	CFLAGS+=" -O3"
 fi
 
+# SSE4_2 support
+AC_ARG_ENABLE(sse42, [AS_HELP_STRING([--enable-sse42],[enable SSE42 optimizations])], have_sse42=$enableval, have_sse42=yes)
+if test "$have_sse42" = "yes"; then
+        AC_DEFINE(HAVE_SSE42,1,[Define to enable SSE42 optimizations.])
+fi
+AM_CONDITIONAL(HAVE_SSE42, test "$have_sse42" = "yes")
+
+if test "$have_sse42" = "yes" -a "x$SSE42_CFLAGS" = x; then
+	AX_CHECK_COMPILE_FLAG(-msse4.2, [SSE42_CFLAGS="-DOPS_SSE42 -msse4.2 -ffast-math -ftree-vectorizer-verbose=0"],
+		[AC_MSG_ERROR([Need a version of gcc with -msse42])])
+fi
+
+AC_SUBST(SSE42_CFLAGS)
+
 # AVX support
-AC_ARG_ENABLE(avx, [AS_HELP_STRING([--enable-avx],[enable AVX optimizations])], have_avx=$enableval, have_avx=no)
+AC_ARG_ENABLE(avx, [AS_HELP_STRING([--enable-avx],[enable AVX optimizations])], have_avx=$enableval, have_avx=yes)
 if test "$have_avx" = "yes"; then
         AC_DEFINE(HAVE_AVX,1,[Define to enable AVX optimizations.])
 fi
 AM_CONDITIONAL(HAVE_AVX, test "$have_avx" = "yes")
 
 if test "$have_avx" = "yes" -a "x$AVX_CFLAGS" = x; then
-	AX_CHECK_COMPILE_FLAG(-mavx, [AVX_CFLAGS="-mavx -ffast-math -ftree-vectorizer-verbose=0"],
+	AX_CHECK_COMPILE_FLAG(-mavx, [AVX_CFLAGS="-DOPS_AVX -mavx -ffast-math -ftree-vectorizer-verbose=0"],
 		[AC_MSG_ERROR([Need a version of gcc with -mavx])])
 fi
 
 AC_SUBST(AVX_CFLAGS)
+
+# AVX2 support
+AC_ARG_ENABLE(avx2, [AS_HELP_STRING([--enable-avx2],[enable AVX2 optimizations])], have_avx2=$enableval, have_avx2=yes)
+if test "$have_avx2" = "yes"; then
+        AC_DEFINE(HAVE_AVX2,1,[Define to enable AVX2 optimizations.])
+fi
+AM_CONDITIONAL(HAVE_AVX2, test "$have_avx2" = "yes")
+
+if test "$have_avx2" = "yes" -a "x$AVX2_CFLAGS" = x; then
+	AX_CHECK_COMPILE_FLAG(-mavx2, [AVX2_CFLAGS="-DOPS_AVX2 -mavx2 -ffast-math -ftree-vectorizer-verbose=0"],
+		[AC_MSG_ERROR([Need a version of gcc with -mavx2])])
+fi
+
+AC_SUBST(AVX2_CFLAGS)
+
+# FMA support
+AC_ARG_ENABLE(fma, [AS_HELP_STRING([--enable-fma],[enable FMA optimizations])], have_fma=$enableval, have_fma=yes)
+if test "$have_fma" = "yes"; then
+        AC_DEFINE(HAVE_FMA,1,[Define to enable FMA optimizations.])
+fi
+AM_CONDITIONAL(HAVE_FMA, test "$have_fma" = "yes")
+
+if test "$have_fma" = "yes" -a "x$FMA_CFLAGS" = x; then
+	AX_CHECK_COMPILE_FLAG(-mfma, [FMA_CFLAGS="-DOPS_FMA -mfma -ffast-math -ftree-vectorizer-verbose=0"],
+		[AC_MSG_ERROR([Need a version of gcc with -mfma])])
+fi
+
+AC_SUBST(FMA_CFLAGS)
 
 # OpenMP support
 AC_ARG_ENABLE(openmp, [AS_HELP_STRING([--enable-openmp],[enable OpenMP])], have_openmp=$enableval, have_openmp=no)
@@ -103,7 +145,10 @@ libsombrero.pc
 
 AC_OUTPUT
 
+AS_IF([test "$have_sse42" = "yes"], ENABLE_SSE42=yes, ENABLE_SSE42=no)
 AS_IF([test "$have_avx" = "yes"], ENABLE_AVX=yes, ENABLE_AVX=no)
+AS_IF([test "$have_avx2" = "yes"], ENABLE_AVX2=yes, ENABLE_AVX2=no)
+AS_IF([test "$have_fma" = "yes"], ENABLE_FMA=yes, ENABLE_FMA=no)
 AS_IF([test "$have_openmp" = "yes"], ENABLE_OPENMP=yes, ENABLE_OPENMP=no)
 
 
@@ -115,7 +160,10 @@ Compiler:                      ${CC}
 CFLAGS:                        ${CFLAGS}
 LIBS:                          ${LIBS}
 
+Enable SSE42:                  ${ENABLE_SSE42}
 Enable AVX:                    ${ENABLE_AVX}
+Enable AVX2:                   ${ENABLE_AVX2}
+Enable FMA:                    ${ENABLE_FMA}
 Enable OpenMP:    	       ${ENABLE_OPENMP}
 "
 

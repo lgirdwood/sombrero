@@ -22,150 +22,42 @@
 #include <stdio.h>
 #include <errno.h>
 #include <math.h>
-#include <immintrin.h>
 
 #include "config.h"
 #include "sombrero.h"
 #include "local.h"
 
-static void uchar_to_float(struct smbrr_image *i, const unsigned char *c)
+static void set_image_ops(struct smbrr_image *image)
 {
-	int x, y, foffset, coffset;
-	float *f = i->adu;
+	unsigned int cpu_flags = cpu_get_flags();
 
-	for (x = 0; x < i->width; x++) {
-		for (y = 0; y < i->height; y++) {
-			coffset = y * i->stride + x;
-			foffset = y * i->width + x;
-			f[foffset] = (float)c[coffset];
-		}
+#if defined HAVE_FMA
+	if (cpu_flags & CPU_X86_FMA) {
+		image->ops = &image_ops_fma;
+		return;
 	}
-}
-
-static void ushort_to_float(struct smbrr_image *i, const unsigned short *c)
-{
-	int x, y, foffset, coffset;
-	float *f = i->adu;
-
-	for (x = 0; x < i->width; x++) {
-		for (y = 0; y < i->height; y++) {
-			coffset = y * i->stride + x;
-			foffset = y * i->width + x;
-			f[foffset] = (float)c[coffset];
-		}
+#endif
+#if defined HAVE_AVX2
+	if (cpu_flags & CPU_X86_AVX2) {
+		image->ops = &image_ops_avx2;
+		return;
 	}
-}
-
-static void uint_to_float(struct smbrr_image *i, const unsigned int *c)
-{
-	int x, y, foffset, coffset;
-	float *f = i->adu;
-
-	for (x = 0; x < i->width; x++) {
-		for (y = 0; y < i->height; y++) {
-			coffset = y * i->stride + x;
-			foffset = y * i->width + x;
-			f[foffset] = (float)c[coffset];
-		}
+#endif
+#if defined HAVE_AVX
+	if (cpu_flags & CPU_X86_AVX) {
+		image->ops = &image_ops_avx;
+		return;
 	}
-}
-
-static void float_to_uchar(struct smbrr_image *i, unsigned char *c)
-{
-	int x, y, coffset, foffset;
-	float *f = i->adu;
-
-	for (x = 0; x < i->width; x++) {
-		for (y = 0; y < i->height; y++) {
-			coffset = y * i->stride + x;
-			foffset = y * i->width + x;
-			c[coffset] = (unsigned char)f[foffset];
-		}
+#endif
+#if defined HAVE_SSE42
+	if (cpu_flags & CPU_X86_SSE4_2) {
+		image->ops = &image_ops_sse42;
+		return;
 	}
-}
+#endif
 
-static void uint_to_uint(struct smbrr_image *i, const unsigned int *c)
-{
-	int x, y, foffset, coffset;
-	uint32_t *f = i->s;
-
-	for (x = 0; x < i->width; x++) {
-		for (y = 0; y < i->height; y++) {
-			coffset = y * i->stride + x;
-			foffset = y * i->width + x;
-			f[foffset] = (uint32_t)c[coffset];
-		}
-	}
-}
-
-static void ushort_to_uint(struct smbrr_image *i, const unsigned short *c)
-{
-	int x, y, foffset, coffset;
-	uint32_t *f = i->s;
-
-	for (x = 0; x < i->width; x++) {
-		for (y = 0; y < i->height; y++) {
-			coffset = y * i->stride + x;
-			foffset = y * i->width + x;
-			f[foffset] = (uint32_t)c[coffset];
-		}
-	}
-}
-
-static void uchar_to_uint(struct smbrr_image *i, const unsigned char *c)
-{
-	int x, y, foffset, coffset;
-	uint32_t *f = i->s;
-
-	for (x = 0; x < i->width; x++) {
-		for (y = 0; y < i->height; y++) {
-			coffset = y * i->stride + x;
-			foffset = y * i->width + x;
-			f[foffset] = (uint32_t)c[coffset];
-		}
-	}
-}
-
-static void float_to_uint(struct smbrr_image *i, const float *c)
-{
-	int x, y, foffset, coffset;
-	uint32_t *f = i->s;
-
-	for (x = 0; x < i->width; x++) {
-		for (y = 0; y < i->height; y++) {
-			coffset = y * i->stride + x;
-			foffset = y * i->width + x;
-			f[foffset] = (uint32_t)c[coffset];
-		}
-	}
-}
-
-static void float_to_float(struct smbrr_image *i, const float *c)
-{
-	int x, y, foffset, coffset;
-	float *f = i->adu;
-
-	for (x = 0; x < i->width; x++) {
-		for (y = 0; y < i->height; y++) {
-			coffset = y * i->stride + x;
-			foffset = y * i->width + x;
-			f[foffset] = c[coffset];
-		}
-	}
-}
-
-static void uint_to_uchar(struct smbrr_image *i, unsigned char *c)
-{
-	int x, y, coffset, foffset;
-	uint32_t *f = i->s;
-
-	for (x = 0; x < i->width; x++) {
-		for (y = 0; y < i->height; y++) {
-			coffset = y * i->stride + x;
-			foffset = y * i->width + x;
-			c[coffset] = (unsigned char)f[foffset];
-		}
-	}
+	/* default C implementation */
+	image->ops = &image_ops;
 }
 
 /*! \fn struct smbrr_image *smbrr_image_new(enum smbrr_image_type type,
@@ -217,6 +109,7 @@ struct smbrr_image *smbrr_image_new(enum smbrr_image_type type,
 		return NULL;
 	}
 	bzero(image->adu, size);
+	set_image_ops(image);
 
 	image->size = width * height;
 	image->width = width;
@@ -239,10 +132,10 @@ struct smbrr_image *smbrr_image_new(enum smbrr_image_type type,
 	case SMBRR_ADU_8:
 		switch (type) {
 		case SMBRR_IMAGE_UINT32:
-			uchar_to_uint(image, src_image);
+			image->ops->uchar_to_uint(image, src_image);
 			break;
 		case SMBRR_IMAGE_FLOAT:
-			uchar_to_float(image, src_image);
+			image->ops->uchar_to_float(image, src_image);
 			break;
 		}
 		break;
@@ -250,10 +143,10 @@ struct smbrr_image *smbrr_image_new(enum smbrr_image_type type,
 	case SMBRR_ADU_16:
 		switch (type) {
 		case SMBRR_IMAGE_UINT32:
-			ushort_to_uint(image, src_image);
+			image->ops->ushort_to_uint(image, src_image);
 			break;
 		case SMBRR_IMAGE_FLOAT:
-			ushort_to_float(image, src_image);
+			image->ops->ushort_to_float(image, src_image);
 			break;
 		}
 		break;
@@ -261,10 +154,10 @@ struct smbrr_image *smbrr_image_new(enum smbrr_image_type type,
 	case SMBRR_ADU_32:
 		switch (type) {
 		case SMBRR_IMAGE_UINT32:
-			uint_to_uint(image, src_image);
+			image->ops->uint_to_uint(image, src_image);
 			break;
 		case SMBRR_IMAGE_FLOAT:
-			uint_to_float(image, src_image);
+			image->ops->uint_to_float(image, src_image);
 			break;
 		}
 		break;
@@ -272,10 +165,10 @@ struct smbrr_image *smbrr_image_new(enum smbrr_image_type type,
 	case SMBRR_ADU_FLOAT:
 		switch (type) {
 		case SMBRR_IMAGE_UINT32:
-			float_to_uint(image, src_image);
+			image->ops->float_to_uint(image, src_image);
 			break;
 		case SMBRR_IMAGE_FLOAT:
-			float_to_float(image, src_image);
+			image->ops->float_to_float(image, src_image);
 			break;
 		}
 		break;
@@ -340,6 +233,7 @@ struct smbrr_image *smbrr_image_new_from_region(struct smbrr_image *src,
 		return NULL;
 	}
 	bzero(image->adu, size);
+	set_image_ops(image);
 
 	image->size = width * height;
 	image->width = width;
@@ -398,26 +292,7 @@ void smbrr_image_free(struct smbrr_image *image)
 int smbrr_image_get(struct smbrr_image *image, enum smbrr_adu adu,
 	void **buf)
 {
-	if (buf == NULL)
-		return -EINVAL;
-
-	switch (adu) {
-	case SMBRR_ADU_8:
-
-		switch (image->type) {
-		case SMBRR_IMAGE_UINT32:
-			uint_to_uchar(image, *buf);
-			break;
-		case SMBRR_IMAGE_FLOAT:
-			float_to_uchar(image, *buf);
-			break;
-		}
-		break;
-	default:
-		return -EINVAL;
-	}
-
-	return 0;
+	return image->ops->get(image, adu, buf);
 }
 
 /*! \fn int smbrr_image_copy(struct smbrr_image *dest, struct smbrr_image *src)
@@ -449,38 +324,7 @@ int smbrr_image_copy(struct smbrr_image *dest, struct smbrr_image *src)
 int smbrr_image_convert(struct smbrr_image *image,
 	enum smbrr_image_type type)
 {
-	int offset;
-
-	if (type == image->type)
-		return 0;
-
-	switch (type) {
-	case SMBRR_IMAGE_UINT32:
-		switch (image->type) {
-		case SMBRR_IMAGE_FLOAT:
-			for (offset = 0; offset < image->size; offset++)
-				image->s[offset] = (uint32_t)image->adu[offset];
-			break;
-		case SMBRR_IMAGE_UINT32:
-			break;
-		}
-		break;
-	case SMBRR_IMAGE_FLOAT:
-		switch (image->type) {
-		case SMBRR_IMAGE_UINT32:
-			for (offset = 0; offset < image->size; offset++)
-				image->adu[offset] = (float)image->s[offset];
-			break;
-		case SMBRR_IMAGE_FLOAT:
-			break;
-		}
-		break;
-	default:
-		return -EINVAL;
-	}
-
-	image->type = type;
-	return 0;
+	return image->ops->convert(image, type);
 }
 
 /*! \fn void smbrr_image_find_limits(struct smbrr_image *image,
@@ -493,23 +337,7 @@ int smbrr_image_convert(struct smbrr_image *image,
 */
 void smbrr_image_find_limits(struct smbrr_image *image, float *min, float *max)
 {
-	float *adu = image->adu, _min, _max;
-	int offset;
-
-	_min = 1.0e6;
-	_max = -1.0e6;
-
-	for (offset = 0; offset < image->size; offset++) {
-
-		if (adu[offset] > _max)
-			_max = adu[offset];
-
-		if (adu[offset] < _min)
-			_min = adu[offset];
-	}
-
-	*max = _max;
-	*min = _min;
+	image->ops->find_limits(image, min, max);
 }
 
 /*! \fn void smbrr_image_normalise(struct smbrr_image *image, float min,
@@ -523,34 +351,7 @@ void smbrr_image_find_limits(struct smbrr_image *image, float *min, float *max)
 */
 void smbrr_image_normalise(struct smbrr_image *image, float min, float max)
 {
-	float _min, _max, _range, range, factor;
-	size_t offset;
-
-	smbrr_image_find_limits(image, &_min, &_max);
-
-	_range = _max - _min;
-	range = max - min;
-	factor = range / _range;
-
-#if HAVE_AVX
-	float * __restrict__ I = __builtin_assume_aligned(image->adu, 32);
-	__m256 mi, mm, mf, mr, mim;
-
-	mf = _mm256_broadcast_ss(&factor);
-	mm = _mm256_broadcast_ss(&_min);
-
-	for (offset = 0; offset < image->size; offset += 8) {
-		mi = _mm256_load_ps(&I[offset]);
-		mim = _mm256_sub_ps(mi, mm);
-		mr = _mm256_mul_ps(mim, mf);
-		_mm256_store_ps(&I[offset], mr);
-	}
-#else
-	float *adu = image->adu;
-
-	for (offset = 0; offset < image->size; offset++)
-		adu[offset] = (adu[offset] - _min) * factor;
-#endif
+	image->ops->normalise(image, min, max);
 }
 
 /*! \fn void smbrr_image_add(struct smbrr_image *a, struct smbrr_image *b,
@@ -564,25 +365,7 @@ void smbrr_image_normalise(struct smbrr_image *image, float min, float max)
 void smbrr_image_add(struct smbrr_image *a, struct smbrr_image *b,
 	struct smbrr_image *c)
 {
-	float * __restrict__ A = __builtin_assume_aligned(a->adu, 32);
-	float * __restrict__ B = __builtin_assume_aligned(b->adu, 32);
-	float * __restrict__ C = __builtin_assume_aligned(c->adu, 32);
-	size_t offset;
-
-#if HAVE_AVX
-	__m256 ma, mb, mc;
-
-	for (offset = 0; offset < a->size; offset += 8) {
-		mb = _mm256_load_ps(&B[offset]);
-		mc = _mm256_load_ps(&C[offset]);
-		ma = _mm256_add_ps(mb, mc);
-		_mm256_store_ps(&A[offset], ma);
-	}
-#else
-	/* A = B + C */
-	for (offset = 0; offset < a->size; offset++)
-		A[offset] = B[offset] + C[offset];
-#endif
+	a->ops->add(a, b, c);
 }
 
 /*! \fn void smbrr_image_add_sig(struct smbrr_image *a, struct smbrr_image *b,
@@ -597,15 +380,7 @@ void smbrr_image_add(struct smbrr_image *a, struct smbrr_image *b,
 void smbrr_image_add_sig(struct smbrr_image *a, struct smbrr_image *b,
 	struct smbrr_image *c, struct smbrr_image *s)
 {
-	float *A = a->adu, *B = b->adu, *C = c->adu;
-	uint32_t *S = s->s;
-	int offset;
-
-	/* iff S then A = B + C */
-	for (offset = 0; offset < a->size; offset++) {
-		if (S[offset])
-			A[offset] = B[offset] + C[offset];
-	}
+	a->ops->add_sig(a, b, c, s);
 }
 
 /*! \fn void smbrr_image_fma(struct smbrr_image *dest, struct smbrr_image *a,
@@ -621,29 +396,7 @@ void smbrr_image_add_sig(struct smbrr_image *a, struct smbrr_image *b,
 void smbrr_image_fma(struct smbrr_image *dest, struct smbrr_image *a,
 	struct smbrr_image *b, float c)
 {
-	float * __restrict__ D = __builtin_assume_aligned(dest->adu, 32);
-	float * __restrict__ A = __builtin_assume_aligned(a->adu, 32);
-	float * __restrict__ B = __builtin_assume_aligned(b->adu, 32);
-	size_t offset;
-
-#if HAVE_AVX
-	__m256 ma, mb, mv, mr, mbv;
-
-	mv = _mm256_broadcast_ss(&c);
-
-	for (offset = 0; offset < dest->size; offset += 8) {
-		ma = _mm256_load_ps(&A[offset]);
-		mb = _mm256_load_ps(&B[offset]);
-		mbv = _mm256_mul_ps(mb, mv);
-		mr = _mm256_add_ps(ma, mbv);
-		_mm256_store_ps(&D[offset], mr);
-	}
-#else
-
-	/* dest = a + b * c */
-	for (offset = 0; offset < dest->size; offset++)
-		D[offset] = A[offset] + B[offset] * c;
-#endif
+	a->ops->fma(dest, a, b, c);
 }
 
 /*! \fn void smbrr_image_fms(struct smbrr_image *dest, struct smbrr_image *a,
@@ -659,28 +412,7 @@ void smbrr_image_fma(struct smbrr_image *dest, struct smbrr_image *a,
 void smbrr_image_fms(struct smbrr_image *dest, struct smbrr_image *a,
 	struct smbrr_image *b, float c)
 {
-	float * __restrict__ D = __builtin_assume_aligned(dest->adu, 32);
-	float * __restrict__ A = __builtin_assume_aligned(a->adu, 32);
-	float * __restrict__ B = __builtin_assume_aligned(b->adu, 32);
-	size_t offset;
-
-#if HAVE_AVX
-	__m256 ma, mb, mv, mr, mbv;
-
-	mv = _mm256_broadcast_ss(&c);
-
-	for (offset = 0; offset < dest->size; offset += 8) {
-		ma = _mm256_load_ps(&A[offset]);
-		mb = _mm256_load_ps(&B[offset]);
-		mbv = _mm256_mul_ps(mb, mv);
-		mr = _mm256_sub_ps(ma, mbv);
-		_mm256_store_ps(&D[offset], mr);
-	}
-#else
-	/* dest = a - b * c */
-	for (offset = 0; offset < dest->size; offset++)
-		D[offset] = A[offset] - B[offset] * c;
-#endif
+	dest->ops->fms(dest, a, b, c);
 }
 
 /*! \fn void smbrr_image_subtract(struct smbrr_image *a, struct smbrr_image *b,
@@ -694,26 +426,7 @@ void smbrr_image_fms(struct smbrr_image *dest, struct smbrr_image *a,
 void smbrr_image_subtract(struct smbrr_image *a, struct smbrr_image *b,
 	struct smbrr_image *c)
 {
-	float * __restrict__ A = __builtin_assume_aligned(a->adu, 32);
-	float * __restrict__ B = __builtin_assume_aligned(b->adu, 32);
-	float * __restrict__ C = __builtin_assume_aligned(c->adu, 32);
-	size_t offset;
-
-#if HAVE_AVX
-	__m256 ma, mb, mc;
-
-	for (offset = 0; offset < a->size; offset += 8) {
-		mb = _mm256_load_ps(&B[offset]);
-		mc = _mm256_load_ps(&C[offset]);
-		ma = _mm256_sub_ps(mb, mc);
-		_mm256_store_ps(&A[offset], ma);
-	}
-#else
-	/* A = B - C */
-	for (offset = 0; offset < a->size; offset++)
-		A[offset] = B[offset] - C[offset];
-#endif
-
+	a->ops->subtract(a, b, c);
 }
 
 /*! \fn void smbrr_image_subtract_sig(struct smbrr_image *a, struct smbrr_image *b,
@@ -728,15 +441,7 @@ void smbrr_image_subtract(struct smbrr_image *a, struct smbrr_image *b,
 void smbrr_image_subtract_sig(struct smbrr_image *a, struct smbrr_image *b,
 	struct smbrr_image *c, struct smbrr_image *s)
 {
-	float *A = a->adu, *B = b->adu, *C = c->adu;
-	uint32_t *S = s->s;
-	int offset;
-
-	/* iff S then A = B - C */
-	for (offset = 0; offset < a->size; offset++) {
-		if (S[offset])
-			A[offset] = B[offset] - C[offset];
-	}
+	a->ops->subtract_sig(a, b, c, s);
 }
 
 /*! \fn void smbrr_image_add_value(struct smbrr_image *image, float value)
@@ -747,25 +452,7 @@ void smbrr_image_subtract_sig(struct smbrr_image *a, struct smbrr_image *b,
 */
 void smbrr_image_add_value(struct smbrr_image *image, float value)
 {
-	size_t offset;
-
-#if HAVE_AVX
-	float * __restrict__ I = __builtin_assume_aligned(image->adu, 32);
-	__m256 mi, mv, mr;
-
-	mv = _mm256_broadcast_ss(&value);
-
-	for (offset = 0; offset < image->size; offset += 8) {
-		mi = _mm256_load_ps(&I[offset]);
-		mr = _mm256_add_ps(mi, mv);
-		_mm256_store_ps(&I[offset], mr);
-	}
-#else
-	float *adu = image->adu;
-
-	for (offset = 0; offset < image->size; offset++)
-		adu[offset] += value;
-#endif
+	image->ops->add_value(image, value);
 }
 
 /*! \fn void smbrr_image_add_value_sig(struct smbrr_image *image,
@@ -778,13 +465,7 @@ void smbrr_image_add_value(struct smbrr_image *image, float value)
 void smbrr_image_add_value_sig(struct smbrr_image *image,
 	struct smbrr_image *simage, float value)
 {
-	float *adu = image->adu;
-	int offset;
-
-	for (offset = 0; offset < image->size; offset++) {
-		if (simage->s[offset])
-			adu[offset] += value;
-	}
+	image->ops->add_value_sig(image, simage, value);
 }
 
 /*! \fn void smbrr_image_subtract_value(struct smbrr_image *image, float value)
@@ -795,25 +476,7 @@ void smbrr_image_add_value_sig(struct smbrr_image *image,
 */
 void smbrr_image_subtract_value(struct smbrr_image *image, float value)
 {
-	size_t offset;
-
-#if HAVE_AVX
-	float * __restrict__ I = __builtin_assume_aligned(image->adu, 32);
-	__m256 mi, mv, mr;
-
-	mv = _mm256_broadcast_ss(&value);
-
-	for (offset = 0; offset < image->size; offset += 8) {
-		mi = _mm256_load_ps(&I[offset]);
-		mr = _mm256_sub_ps(mi, mv);
-		_mm256_store_ps(&I[offset], mr);
-	}
-#else
-	float *adu = image->adu;
-
-	for (offset = 0; offset < image->size; offset++)
-		adu[offset] -= value;
-#endif
+	image->ops->subtract_value(image, value);
 }
 
 /*! \fn void smbrr_image_mult_value(struct smbrr_image *image, float value)
@@ -824,25 +487,7 @@ void smbrr_image_subtract_value(struct smbrr_image *image, float value)
 */
 void smbrr_image_mult_value(struct smbrr_image *image, float value)
 {
-	size_t offset;
-
-#if HAVE_AVX
-	float * __restrict__ I = __builtin_assume_aligned(image->adu, 32);
-	__m256 mi, mv, mr;
-
-	mv = _mm256_broadcast_ss(&value);
-
-	for (offset = 0; offset < image->size; offset += 8) {
-		mi = _mm256_load_ps(&I[offset]);
-		mr = _mm256_mul_ps(mi, mv);
-		_mm256_store_ps(&I[offset], mr);
-	}
-#else
-	float *adu = image->adu;
-
-	for (offset = 0; offset < image->size; offset++)
-		adu[offset] *= value;
-#endif
+	image->ops->mult_value(image, value);
 }
 
 /*! \fn void smbrr_image_reset_value(struct smbrr_image *image, float value)
@@ -853,11 +498,7 @@ void smbrr_image_mult_value(struct smbrr_image *image, float value)
 */
 void smbrr_image_reset_value(struct smbrr_image *image, float value)
 {
-	float *adu = image->adu;
-	int offset;
-
-	for (offset = 0; offset < image->size; offset++)
-		adu[offset] = value;
+	image->ops->reset_value(image, value);
 }
 
 /*! \fn void smbrr_image_set_sig_value(struct smbrr_image *image,
@@ -869,16 +510,7 @@ void smbrr_image_reset_value(struct smbrr_image *image, float value)
 */
 void smbrr_image_set_sig_value(struct smbrr_image *image, uint32_t value)
 {
-	uint32_t *adu = image->s;
-	int offset;
-
-	for (offset = 0; offset < image->size; offset++)
-		adu[offset] = value;
-
-	if (value == 0)
-		image->sig_pixels = 0;
-	else
-		image->sig_pixels = image->size;
+	image->ops->set_sig_value(image, value);
 }
 
 /*! \fn void smbrr_image_set_value_sig(struct smbrr_image *image,
@@ -892,14 +524,7 @@ void smbrr_image_set_sig_value(struct smbrr_image *image, uint32_t value)
 void smbrr_image_set_value_sig(struct smbrr_image *image,
 	struct smbrr_image *simage, float sig_value)
 {
-	float *adu = image->adu;
-	uint32_t *sig = simage->s;
-	int offset;
-
-	for (offset = 0; offset < image->size; offset++) {
-		if (sig[offset])
-			adu[offset] = sig_value;
-	}
+	image->ops->set_value_sig(image, simage, sig_value);
 }
 
 /*! \fn void smbrr_image_clear_negative(struct smbrr_image *image)
@@ -909,12 +534,7 @@ void smbrr_image_set_value_sig(struct smbrr_image *image,
 */
 void smbrr_image_clear_negative(struct smbrr_image *image)
 {
-	float *i = image->adu;
-	int offset;
-
-	for (offset = 0; offset < image->size; offset++)
-		if (i[offset] < 0.0)
-			i[offset] = 0.0;
+	image->ops->clear_negative(image);
 }
 
 /*! \fn int smbrr_image_pixels(struct smbrr_image *image)
