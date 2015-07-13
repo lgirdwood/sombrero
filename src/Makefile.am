@@ -32,7 +32,8 @@ noinst_LTLIBRARIES = \
 
 libops_la_SOURCES = \
 	image_ops.c \
-	convolution_2d_ops.c
+	convolution_2d_ops.c \
+	signal_ops.c
 
 libops_la_CFLAGS = \
 	$(OPENMP_CFLAGS) \
@@ -40,7 +41,8 @@ libops_la_CFLAGS = \
 
 libops_sse42_la_SOURCES = \
 	image_ops.c \
-	convolution_2d_ops.c
+	convolution_2d_ops.c \
+	signal_ops.c
 
 libops_sse42_la_CFLAGS = \
 	 $(OPENMP_CFLAGS) \
@@ -49,7 +51,8 @@ libops_sse42_la_CFLAGS = \
 
 libops_avx_la_SOURCES = \
 	image_ops.c \
-	convolution_2d_ops.c
+	convolution_2d_ops.c \
+	signal_ops.c
 
 libops_avx_la_CFLAGS = \
 	$(OPENMP_CFLAGS) \
@@ -58,7 +61,8 @@ libops_avx_la_CFLAGS = \
 
 libops_avx2_la_SOURCES = \
 	image_ops.c \
-	convolution_2d_ops.c
+	convolution_2d_ops.c \
+	signal_ops.c
 	
 libops_avx2_la_CFLAGS = \
 	$(OPENMP_CFLAGS) \
@@ -67,7 +71,8 @@ libops_avx2_la_CFLAGS = \
 
 libops_fma_la_SOURCES = \
 	image_ops.c \
-	convolution_2d_ops.c
+	convolution_2d_ops.c \
+	signal_ops.c
 	
 libops_fma_la_CFLAGS = \
 	$(OPENMP_CFLAGS) \
@@ -86,7 +91,8 @@ libsombrero_la_SOURCES = \
 	noise.c \
 	object.c \
 	reconstruct.c \
-	cpu.c
+	cpu.c \
+	signal.c
 
 libsombrero_la_LIBADD = \
 	-L.libs/ \
