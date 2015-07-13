@@ -25,6 +25,7 @@
 
 #include "sombrero.h"
 #include "local.h"
+#include "config.h"
 
 static void set_conv_ops(struct smbrr_wavelet *w)
 {
