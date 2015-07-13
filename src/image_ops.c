@@ -584,7 +584,7 @@ static int image_psf(struct smbrr_image *src, struct smbrr_image *dest,
 		break;
 	case SMBRR_WAVELET_MASK_BICUBIC:
 		data = (float*)bicubic_mask_inverse;
-		yc = 5;
+		xc = 5;
 		yc = 5;
 		break;
 	default:
@@ -595,7 +595,7 @@ static int image_psf(struct smbrr_image *src, struct smbrr_image *dest,
 	d = dest->adu;
 
 	/* clear each scale */
-	smbrr_image_reset_value(dest, 0.0);
+	image_reset_value(dest, 0.0);
 
 	/* image height loop */
 	for (height = 0; height < src->height; height++) {
