@@ -4,4 +4,6 @@ include_HEADERS = \
 	sombrero.h
 
 noinst_HEADERS = \
-	local.h
+	local.h \
+	mask.h \
+	ops.h

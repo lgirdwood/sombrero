@@ -25,6 +25,9 @@
 
 #include "sombrero.h"
 #include "local.h"
+#include "ops.h"
+#include "mask.h"
+#include "config.h"
 
 /*! \fn float smbrr_image_get_mean(struct smbrr_image *image)
 * \param image Image

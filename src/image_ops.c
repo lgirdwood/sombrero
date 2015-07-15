@@ -23,9 +23,11 @@
 #include <errno.h>
 #include <math.h>
 
-#include "config.h"
 #include "sombrero.h"
 #include "local.h"
+#include "ops.h"
+#include "mask.h"
+#include "config.h"
 
 /* function suffixes for SIMD ops */
 #ifdef OPS_SSE42

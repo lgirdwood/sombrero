@@ -25,6 +25,9 @@
 
 #include "sombrero.h"
 #include "local.h"
+#include "ops.h"
+#include "mask.h"
+#include "config.h"
 
 static void atrous_deconv(struct smbrr_wavelet *wavelet)
 {
