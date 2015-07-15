@@ -580,12 +580,12 @@ static int image_psf(struct smbrr_image *src, struct smbrr_image *dest,
 
 	switch (mask) {
 	case SMBRR_WAVELET_MASK_LINEAR:
-		data = (float*)linear_mask_inverse;
+		data = (float*)linear_mask_inverse_2d;
 		xc = 3;
 		yc = 3;
 		break;
 	case SMBRR_WAVELET_MASK_BICUBIC:
-		data = (float*)bicubic_mask_inverse;
+		data = (float*)bicubic_mask_inverse_2d;
 		xc = 5;
 		yc = 5;
 		break;

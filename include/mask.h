@@ -41,20 +41,20 @@
 
 
 /* linear interpolation mask */
-static const float linear_mask[3][3] = {
+static const float linear_mask_2d[3][3] = {
 	{M_1_16, M_1_8, M_1_16},
 	{M_1_8, M_1_4, M_1_8},
 	{M_1_16, M_1_8, M_1_16},
 };
 
-static const float linear_mask_inverse[3][3] = {
+static const float linear_mask_inverse_2d[3][3] = {
 	{IM_1_16, IM_1_8, IM_1_16},
 	{IM_1_8, IM_1_4, IM_1_8},
 	{IM_1_16, IM_1_8, IM_1_16},
 };
 
 /* bicubic spline */
-static const float bicubic_mask[5][5] = {
+static const float bicubic_mask_2d[5][5] = {
 	{M_1_256, M_1_64, M_3_128, M_1_64, M_1_256},
 	{M_1_64, M_1_16, M_3_32, M_1_16, M_1_64},
 	{M_3_128, M_3_32, M_9_64, M_3_32, M_3_128},
@@ -62,7 +62,7 @@ static const float bicubic_mask[5][5] = {
 	{M_1_256, M_1_64, M_3_128, M_1_64, M_1_256},
 };
 
-static const float bicubic_mask_inverse[5][5] = {
+static const float bicubic_mask_inverse_2d[5][5] = {
 	{IM_1_256, IM_1_64, IM_3_128, IM_1_64, IM_1_256},
 	{IM_1_64, IM_1_16, IM_3_32, IM_1_16, IM_1_64},
 	{IM_3_128, IM_3_32, IM_9_64, IM_3_32, IM_3_128},
@@ -97,18 +97,18 @@ static const float k_amp[5][8] = {
 	{1.0, 1.0, 1.5, 2.0, 4.0, 4.0, 4.0, 8.0},	/* low-mid pass */
 };
 
-static inline int conv_mask_set(struct smbrr_wavelet *w,
+static inline int conv_mask_set_2d(struct smbrr_wavelet *w,
 	enum smbrr_wavelet_mask mask)
 {
 	switch (mask) {
 	case SMBRR_WAVELET_MASK_LINEAR:
-		w->mask.data = (float*)linear_mask;
+		w->mask.data = (float*)linear_mask_2d;
 		w->mask.width = 3;
 		w->mask.height = 3;
 		w->mask_type = mask;
 		break;
 	case SMBRR_WAVELET_MASK_BICUBIC:
-		w->mask.data = (float*)bicubic_mask;
+		w->mask.data = (float*)bicubic_mask_2d;
 		w->mask.width = 5;
 		w->mask.height = 5;
 		w->mask_type = mask;
@@ -125,13 +125,13 @@ static inline int deconv_mask_set(struct smbrr_wavelet *w,
 {
 	switch (mask) {
 	case SMBRR_WAVELET_MASK_LINEAR:
-		w->mask.data = (float*)linear_mask_inverse;
+		w->mask.data = (float*)linear_mask_inverse_2d;
 		w->mask.width = 3;
 		w->mask.height = 3;
 		w->mask_type = mask;
 		break;
 	case SMBRR_WAVELET_MASK_BICUBIC:
-		w->mask.data = (float*)bicubic_mask_inverse;
+		w->mask.data = (float*)bicubic_mask_inverse_2d;
 		w->mask.width = 5;
 		w->mask.height = 5;
 		w->mask_type = mask;

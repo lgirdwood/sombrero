@@ -78,7 +78,7 @@ int smbrr_wavelet_convolution(struct smbrr_wavelet *w, enum smbrr_conv conv,
 {
 	int ret;
 
-	ret = conv_mask_set(w, mask);
+	ret = conv_mask_set_2d(w, mask);
 	if (ret < 0)
 		return ret;
 
@@ -108,7 +108,7 @@ int smbrr_wavelet_convolution_sig(struct smbrr_wavelet *w, enum smbrr_conv conv,
 {
 	int ret;
 
-	ret = conv_mask_set(w, mask);
+	ret = conv_mask_set_2d(w, mask);
 	if (ret < 0)
 		return ret;
 
