@@ -23,7 +23,7 @@
 
 struct smbrr_image;
 struct smbrr_signal;
-struct smbrr_wavelet;
+struct smbrr_wavelet_2d;
 
 struct image_ops {
 
@@ -140,16 +140,16 @@ struct signal_ops {
 };
 
 struct convolution2d_ops {
-	void (*atrous_conv)(struct smbrr_wavelet *wavelet);
-	void (*atrous_conv_sig)(struct smbrr_wavelet *wavelet);
-	void (*atrous_deconv_object)(struct smbrr_wavelet *w,
+	void (*atrous_conv)(struct smbrr_wavelet_2d *wavelet);
+	void (*atrous_conv_sig)(struct smbrr_wavelet_2d *wavelet);
+	void (*atrous_deconv_object)(struct smbrr_wavelet_2d *w,
 		struct smbrr_object *object);
 };
 
 struct convolution1d_ops {
-	void (*atrous_conv)(struct smbrr_wavelet *wavelet);
-	void (*atrous_conv_sig)(struct smbrr_wavelet *wavelet);
-	void (*atrous_deconv_object)(struct smbrr_wavelet *w,
+	void (*atrous_conv)(struct smbrr_wavelet_1d *wavelet);
+	void (*atrous_conv_sig)(struct smbrr_wavelet_1d *wavelet);
+	void (*atrous_deconv_object)(struct smbrr_wavelet_1d *w,
 		struct smbrr_object *object);
 };
 

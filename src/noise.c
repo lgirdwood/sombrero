@@ -148,7 +148,7 @@ static const struct smbrr_clip_coeff k_sigma[6] = {
 		M1(1.0), D1(2.0), D1(4.0), D1(8.0), D1(16.0)},},
 };
 
-static void clip_scale(struct smbrr_wavelet *w, int scale,
+static void clip_scale(struct smbrr_wavelet_2d *w, int scale,
 		const struct smbrr_clip_coeff *c, float sig_delta)
 {
 	struct smbrr_image *image, *simage;
@@ -179,7 +179,7 @@ static void clip_scale(struct smbrr_wavelet *w, int scale,
 	} while (fabsf(sigma_sig - sigma_sig_old) > sig_delta);
 }
 
-/*! \fn int smbrr_wavelet_ksigma_clip(struct smbrr_wavelet *w,
+/*! \fn int smbrr_wavelet_ksigma_clip(struct smbrr_wavelet_2d *w,
 	enum smbrr_clip clip, float sig_delta)
 * \param w wavelet
 * \param clip clipping strength
@@ -188,7 +188,7 @@ static void clip_scale(struct smbrr_wavelet *w, int scale,
 * Clip each wavelet scale based on strength until sigma for each scale is less
 * than sig_delta.
 */
-int smbrr_wavelet_ksigma_clip(struct smbrr_wavelet *w, enum smbrr_clip clip,
+int smbrr_wavelet_ksigma_clip(struct smbrr_wavelet_2d *w, enum smbrr_clip clip,
 	float sig_delta)
 {
 	const struct smbrr_clip_coeff *coeff;
@@ -205,7 +205,7 @@ int smbrr_wavelet_ksigma_clip(struct smbrr_wavelet *w, enum smbrr_clip clip,
 	return 0;
 }
 
-/*! \fn int smbrr_wavelet_ksigma_clip(struct smbrr_wavelet *w,
+/*! \fn int smbrr_wavelet_ksigma_clip(struct smbrr_wavelet_2d *w,
 	enum smbrr_clip clip, float sig_delta)
 * \param w wavelet
 * \param clip clipping strength
@@ -214,7 +214,7 @@ int smbrr_wavelet_ksigma_clip(struct smbrr_wavelet *w, enum smbrr_clip clip,
 * Clip each wavelet scale based on strength until sigma for each scale is less
 * than sig_delta.
 */
-int smbrr_wavelet_ksigma_clip_custom(struct smbrr_wavelet *w,
+int smbrr_wavelet_ksigma_clip_custom(struct smbrr_wavelet_2d *w,
 	struct smbrr_clip_coeff *coeff, float sig_delta)
 {
 	int i;
@@ -226,7 +226,7 @@ int smbrr_wavelet_ksigma_clip_custom(struct smbrr_wavelet *w,
 	return 0;
 }
 
-/*! \fn int smbrr_wavelet_new_significance(struct smbrr_wavelet *w,
+/*! \fn int smbrr_wavelet_new_significance(struct smbrr_wavelet_2d *w,
 	enum smbrr_clip sigma_clip)
 * \param w wavelet
 * \param sigma_clip clipping strength
@@ -234,7 +234,7 @@ int smbrr_wavelet_ksigma_clip_custom(struct smbrr_wavelet *w,
 * Create new significance images at each scale for wavelet using clip strength
 * sigma_clip.
 */
-int smbrr_wavelet_new_significance(struct smbrr_wavelet *w,
+int smbrr_wavelet_new_significance(struct smbrr_wavelet_2d *w,
 	enum smbrr_clip sigma_clip)
 {
 	struct smbrr_image *W, *S;
@@ -261,21 +261,21 @@ int smbrr_wavelet_new_significance(struct smbrr_wavelet *w,
 	return 0;
 }
 
-/*! \fn int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet *w,
+/*! \fn int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet_2d *w,
  * 	float dark);
 * \param w wavelet.
 * \param dark Mean dark ADU
 *
 * Set the mean dark ADU level.
 */
-int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet *w,
+int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet_2d *w,
 		float dark)
 {
 	w->dark = dark;
 	return 0;
 }
 
-/*! \fn void smbrr_wavelet_set_ccd(struct smbrr_wavelet *w, float gain, float bias,
+/*! \fn void smbrr_wavelet_set_ccd(struct smbrr_wavelet_2d *w, float gain, float bias,
 	float readout)
 * \param w wavelet.
 * \param gain CCD amplifier gain in photo-electrons per ADU
@@ -284,7 +284,7 @@ int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet *w,
 *
 * Set the CCD device configuration for noise calculations.
 */
-void smbrr_wavelet_set_ccd(struct smbrr_wavelet *w, float gain, float bias,
+void smbrr_wavelet_set_ccd(struct smbrr_wavelet_2d *w, float gain, float bias,
 	float readout)
 {
 	w->gain = gain;

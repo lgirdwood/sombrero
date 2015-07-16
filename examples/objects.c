@@ -77,7 +77,7 @@ static void print_timer(int time, const char *text)
 
 int main(int argc, char *argv[])
 {
-	struct smbrr_wavelet *w;
+	struct smbrr_wavelet_2d *w;
 	struct smbrr_object *object;
 	struct smbrr_image *image, *simage, *oimage;
 	struct bitmap *bmp;

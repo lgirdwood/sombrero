@@ -43,7 +43,7 @@
 #endif
 
 /* create Wi and Ci from C0 */
-static void atrous_conv(struct smbrr_wavelet *wavelet)
+static void atrous_conv(struct smbrr_wavelet_2d *wavelet)
 {
 	int scale, scale2, height;
 	float *c, *_c;
@@ -107,7 +107,7 @@ static void atrous_conv(struct smbrr_wavelet *wavelet)
 }
 
 /* create Wi and Ci from C0 if S */
-static void atrous_conv_sig(struct smbrr_wavelet *wavelet)
+static void atrous_conv_sig(struct smbrr_wavelet_2d *wavelet)
 {
 	int scale, height, scale2;
 	float *c, *_c;
@@ -178,7 +178,7 @@ static void atrous_conv_sig(struct smbrr_wavelet *wavelet)
 
 }
 
-static void insert_object(struct smbrr_wavelet *w,
+static void insert_object(struct smbrr_wavelet_2d *w,
 		struct object *object, unsigned int pixel)
 {
 	/* insert object if none or current object at higher scale */
@@ -195,7 +195,7 @@ static void insert_object(struct smbrr_wavelet *w,
 }
 
 /* C0 = C(scale - 1) + sum of wavelets; */
-static void atrous_deconv_object(struct smbrr_wavelet *w,
+static void atrous_deconv_object(struct smbrr_wavelet_2d *w,
 	struct smbrr_object *object)
 {
 	struct structure *s;

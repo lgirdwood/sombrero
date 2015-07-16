@@ -28,7 +28,7 @@
 #include "local.h"
 
 /* A tilda = deconvolve image where wavelet is significant except at scale 0 */
-static struct smbrr_image *image_get_A_tilda(struct smbrr_wavelet *w,
+static struct smbrr_image *image_get_A_tilda(struct smbrr_wavelet_2d *w,
 	enum smbrr_wavelet_mask mask, enum smbrr_clip sigma_clip)
 {
 	struct smbrr_image *simage;
@@ -50,7 +50,7 @@ static struct smbrr_image *image_get_A_tilda(struct smbrr_wavelet *w,
 static struct smbrr_image *image_get_A(struct smbrr_image *image,
 	enum smbrr_wavelet_mask mask, int scales, enum smbrr_clip sigma_clip)
 {
-	struct smbrr_wavelet *w;
+	struct smbrr_wavelet_2d *w;
 	struct smbrr_image *i;
 
 	w = smbrr_wavelet_new(image, scales);
@@ -72,7 +72,7 @@ static struct smbrr_image *image_get_A(struct smbrr_image *image,
 }
 
 /* alpha = sqr(norm (atilda(wr))) / sqr(norm(A(R)) */
-static float calc_alpha(struct smbrr_image *R, struct smbrr_wavelet *w,
+static float calc_alpha(struct smbrr_image *R, struct smbrr_wavelet_2d *w,
 	enum smbrr_wavelet_mask mask, int scales, enum smbrr_clip sigma_clip)
 {
 	struct smbrr_image *Aw, *Ar;
@@ -93,7 +93,7 @@ static float calc_alpha(struct smbrr_image *R, struct smbrr_wavelet *w,
 }
 
 /* beta = sqr(norm(atilda(wr(n+1)))) / sqr(norm(atilda(wr(n))) */
-static float calc_beta(struct smbrr_wavelet *w, struct smbrr_wavelet *w1,
+static float calc_beta(struct smbrr_wavelet_2d *w, struct smbrr_wavelet_2d *w1,
 	enum smbrr_wavelet_mask mask, enum smbrr_clip sigma_clip)
 {
 	struct smbrr_image *Aw, *Aw1;
@@ -113,7 +113,7 @@ static float calc_beta(struct smbrr_wavelet *w, struct smbrr_wavelet *w1,
 	return nAw1 / nAw;
 }
 
-static float calc_residual_thres(struct smbrr_wavelet *w)
+static float calc_residual_thres(struct smbrr_wavelet_2d *w)
 {
 	float res = 0.0;
 	int i;
@@ -132,7 +132,7 @@ int smbrr_image_reconstruct(struct smbrr_image *O,
 	enum smbrr_clip sigma_clip)
 {
 	struct smbrr_image *R = NULL, *O0 = NULL, *O1 = NULL, *tmpI;
-	struct smbrr_wavelet *Wi = NULL, *wr0 = NULL, *wr1 = NULL, *tmpW;
+	struct smbrr_wavelet_2d *Wi = NULL, *wr0 = NULL, *wr1 = NULL, *tmpW;
 	float alpha, beta;
 	int tries = 2, ret = -ENOMEM;
 

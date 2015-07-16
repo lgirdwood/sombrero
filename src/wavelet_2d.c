@@ -29,7 +29,7 @@
 #include "mask.h"
 #include "config.h"
 
-static void set_conv_ops(struct smbrr_wavelet *w)
+static void set_conv_ops(struct smbrr_wavelet_2d *w)
 {
 	unsigned int cpu_flags = cpu_get_flags();
 
@@ -62,7 +62,7 @@ static void set_conv_ops(struct smbrr_wavelet *w)
 	w->ops = &conv2d_ops;
 }
 
-/*! \fn struct smbrr_wavelet *smbrr_wavelet_new(struct smbrr_image *image,
+/*! \fn struct smbrr_wavelet_2d *smbrr_wavelet_new(struct smbrr_image *image,
 	unsigned int num_scales)
 * \param image Image
 * \param num_scales Number of wavelet scales.
@@ -70,10 +70,10 @@ static void set_conv_ops(struct smbrr_wavelet *w)
 *
 * Create a wavelet with num_scales based on image.
 */
-struct smbrr_wavelet *smbrr_wavelet_new(struct smbrr_image *image,
+struct smbrr_wavelet_2d *smbrr_wavelet_new(struct smbrr_image *image,
 	unsigned int num_scales)
 {
-	struct smbrr_wavelet *w = NULL;
+	struct smbrr_wavelet_2d *w = NULL;
 	int i;
 
 	if (num_scales > SMBRR_MAX_SCALES || num_scales == 0)
@@ -135,19 +135,19 @@ m_err:
 	return NULL;
 }
 
-struct smbrr_wavelet *smbrr_wavelet_new_from_object(struct smbrr_object *object)
+struct smbrr_wavelet_2d *smbrr_wavelet_new_from_object(struct smbrr_object *object)
 {
-	struct smbrr_wavelet *w = NULL;
+	struct smbrr_wavelet_2d *w = NULL;
 
 	return w;
 }
 
-/*! \fn void smbrr_wavelet_free(struct smbrr_wavelet *w)
+/*! \fn void smbrr_wavelet_free(struct smbrr_wavelet_2d *w)
 * \param w Wavelet
 *
 * Free wavelet and it's images.
 */
-void smbrr_wavelet_free(struct smbrr_wavelet *w)
+void smbrr_wavelet_free(struct smbrr_wavelet_2d *w)
 {
 	int i;
 
@@ -170,14 +170,14 @@ void smbrr_wavelet_free(struct smbrr_wavelet *w)
 }
 
 /*! \fn void struct smbrr_image *smbrr_wavelet_image_get_scale(
-	struct smbrr_wavelet *w, unsigned int scale)
+	struct smbrr_wavelet_2d *w, unsigned int scale)
 * \param w Wavelet
 * \param scale Wavelet scale.
 * \return Wavelet image
 *
 * Returns wavelet scale image at scale.
 */
-struct smbrr_image *smbrr_wavelet_image_get_scale(struct smbrr_wavelet *w,
+struct smbrr_image *smbrr_wavelet_image_get_scale(struct smbrr_wavelet_2d *w,
 	unsigned int scale)
 {
 	if (scale > w->num_scales - 1)
@@ -187,14 +187,14 @@ struct smbrr_image *smbrr_wavelet_image_get_scale(struct smbrr_wavelet *w,
 }
 
 /*! \fn struct smbrr_image *smbrr_wavelet_image_get_wavelet(
-	struct smbrr_wavelet *w, unsigned int scale)
+	struct smbrr_wavelet_2d *w, unsigned int scale)
 * \param w Wavelet
 * \param scale Wavelet scale.
 * \return Wavelet image
 *
 * Returns wavelet image at scale.
 */
-struct smbrr_image *smbrr_wavelet_image_get_wavelet(struct smbrr_wavelet *w,
+struct smbrr_image *smbrr_wavelet_image_get_wavelet(struct smbrr_wavelet_2d *w,
 	unsigned int scale)
 {
 	if (scale > w->num_scales - 2)
@@ -204,14 +204,14 @@ struct smbrr_image *smbrr_wavelet_image_get_wavelet(struct smbrr_wavelet *w,
 }
 
 /*! \fn struct smbrr_image *smbrr_wavelet_image_get_significant(
-	struct smbrr_wavelet *w, unsigned int scale)
+	struct smbrr_wavelet_2d *w, unsigned int scale)
 * \param w Wavelet
 * \param scale Wavelet scale.
 * \return Wavelet image
 *
 * Returns wavelet significant image at scale.
 */
-struct smbrr_image *smbrr_wavelet_image_get_significant(struct smbrr_wavelet *w,
+struct smbrr_image *smbrr_wavelet_image_get_significant(struct smbrr_wavelet_2d *w,
 	unsigned int scale)
 {
 	if (scale > w->num_scales - 2)
@@ -220,16 +220,16 @@ struct smbrr_image *smbrr_wavelet_image_get_significant(struct smbrr_wavelet *w,
 	return w->s[scale];
 }
 
-/*! \fn void smbrr_wavelet_add(struct smbrr_wavelet *a,
-	 struct smbrr_wavelet *b, struct smbrr_wavelet *c)
+/*! \fn void smbrr_wavelet_add(struct smbrr_wavelet_2d *a,
+	 struct smbrr_wavelet_2d *b, struct smbrr_wavelet_2d *c)
 * \param a Wavelet A
 * \param b Wavelet B
 * \param c Wavelet C
 *
 * Wavelet A = B + C.
 */
-void smbrr_wavelet_add(struct smbrr_wavelet *a, struct smbrr_wavelet *b,
-	struct smbrr_wavelet *c)
+void smbrr_wavelet_add(struct smbrr_wavelet_2d *a, struct smbrr_wavelet_2d *b,
+	struct smbrr_wavelet_2d *c)
 {
 	struct smbrr_image *A, *B, *C;
 	int i;
@@ -242,16 +242,16 @@ void smbrr_wavelet_add(struct smbrr_wavelet *a, struct smbrr_wavelet *b,
 	}
 }
 
-/*! \fn void smbrr_wavelet_subtract(struct smbrr_wavelet *a,
-	 struct smbrr_wavelet *b, struct smbrr_wavelet *c)
+/*! \fn void smbrr_wavelet_subtract(struct smbrr_wavelet_2d *a,
+	 struct smbrr_wavelet_2d *b, struct smbrr_wavelet_2d *c)
 * \param a Wavelet A
 * \param b Wavelet B
 * \param c Wavelet C
 *
 * Wavelet A = B - C.
 */
-void smbrr_wavelet_subtract(struct smbrr_wavelet *a, struct smbrr_wavelet *b,
-	struct smbrr_wavelet *c)
+void smbrr_wavelet_subtract(struct smbrr_wavelet_2d *a, struct smbrr_wavelet_2d *b,
+	struct smbrr_wavelet_2d *c)
 {
 	struct smbrr_image *A, *B, *C;
 	int i;

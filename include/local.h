@@ -65,8 +65,11 @@ struct object {
 };
 
 struct wavelet_mask {
-	unsigned int width;
-	unsigned int height;
+	union {
+		unsigned int width;
+		unsigned int length;
+	};
+	unsigned int height; /* not used on 1d */
 	const float *data;
 };
 
@@ -100,7 +103,7 @@ struct smbrr_signal {
 	const struct signal_ops *ops;
 };
 
-struct smbrr_wavelet {
+struct smbrr_wavelet_2d {
 	struct smbrr *smbrr;
 
 	unsigned int width;
@@ -138,6 +141,43 @@ struct smbrr_wavelet {
 	float readout;
 };
 
+struct smbrr_wavelet_1d {
+	struct smbrr *smbrr;
+
+	unsigned int length;
+	const struct convolution1d_ops *ops;
+
+	/* convolution wavelet mask */
+	struct wavelet_mask mask;
+	enum smbrr_conv conv_type;
+	enum smbrr_wavelet_mask mask_type;
+
+	/* image scales */
+	int num_scales;
+	struct smbrr_signal *c[SMBRR_MAX_SCALES];	/* image scales - original is c[0] */
+	struct smbrr_signal *w[SMBRR_MAX_SCALES - 1];	/* wavelet coefficients scales */
+	struct smbrr_signal *s[SMBRR_MAX_SCALES - 1];	/* significance images */
+
+	/* structures */
+	unsigned int num_structures[SMBRR_MAX_SCALES - 1];
+	struct structure *structure[SMBRR_MAX_SCALES - 1];
+
+	/* objects */
+	struct object *objects;
+	struct object **objects_sorted;
+	int num_objects;
+	struct object **object_map;
+
+	/* dark */
+	float dark;
+	struct smbrr_image *dark_image;
+
+	/* receiver */
+	float gain;
+	float bias;
+	float readout;
+};
+
 static inline int image_get_offset(struct smbrr_image *image, int offx, int offy)
 {
 	return offy * image->width + offx;
@@ -158,12 +198,12 @@ static inline int image_get_y(struct smbrr_image *image, unsigned int pixel)
 	return pixel / image->width;
 }
 
-static inline int wavelet_get_x(struct smbrr_wavelet *w, unsigned int pixel)
+static inline int wavelet_get_x(struct smbrr_wavelet_2d *w, unsigned int pixel)
 {
 	return pixel % w->width;
 }
 
-static inline int wavelet_get_y(struct smbrr_wavelet *w, unsigned int pixel)
+static inline int wavelet_get_y(struct smbrr_wavelet_2d *w, unsigned int pixel)
 {
 	return pixel / w->width;
 }

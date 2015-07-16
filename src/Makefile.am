@@ -87,7 +87,7 @@ libsombrero_la_CFLAGS = \
 libsombrero_la_SOURCES = \
 	convolution.c \
 	image.c \
-	wavelet.c \
+	wavelet_2d.c \
 	noise.c \
 	object.c \
 	reconstruct.c \

@@ -178,13 +178,13 @@ enum smbrr_object_type {
 */
 struct smbrr_image;
 
-/*! \struct smbrr_wavelet
+/*! \struct smbrr_wavelet_2d
  * \brief Wavelet
  *
  * Wavelet structure containing wavelet, scale and significant image
  * representations and runtime data.
  */
-struct smbrr_wavelet;
+struct smbrr_wavelet_2d;
 
 /*! \struct smbrr_coord
 * \brief Coordinates.
@@ -536,192 +536,192 @@ int smbrr_image_reconstruct(struct smbrr_image *O,
 */
 
 
-/*! \fn struct smbrr_wavelet *smbrr_wavelet_new(struct smbrr_image *image,
+/*! \fn struct smbrr_wavelet_2d *smbrr_wavelet_new(struct smbrr_image *image,
 	unsigned int num_scales);
  * \brief Create new wavelet from image.
  * \ingroup wavelet
  */
-struct smbrr_wavelet *smbrr_wavelet_new(struct smbrr_image *image,
+struct smbrr_wavelet_2d *smbrr_wavelet_new(struct smbrr_image *image,
 	unsigned int num_scales);
 
-/*! \fn struct smbrr_wavelet *smbrr_wavelet_new_from_object(
+/*! \fn struct smbrr_wavelet_2d *smbrr_wavelet_new_from_object(
 	 struct smbrr_object *object);
  * \brief Create new wavelet from object.
  * \ingroup wavelet
  */
-struct smbrr_wavelet *smbrr_wavelet_new_from_object(struct smbrr_object *object);
+struct smbrr_wavelet_2d *smbrr_wavelet_new_from_object(struct smbrr_object *object);
 
-/*! \fn void smbrr_wavelet_free(struct smbrr_wavelet *w);
+/*! \fn void smbrr_wavelet_free(struct smbrr_wavelet_2d *w);
  * \brief Free wavelet.
  * \ingroup wavelet
  */
-void smbrr_wavelet_free(struct smbrr_wavelet *w);
+void smbrr_wavelet_free(struct smbrr_wavelet_2d *w);
 
-/*! \fn int smbrr_wavelet_convolution(struct smbrr_wavelet *w,
+/*! \fn int smbrr_wavelet_convolution(struct smbrr_wavelet_2d *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask);
  * \brief Convolve wavelet.
  * \ingroup wavelet
  */
-int smbrr_wavelet_convolution(struct smbrr_wavelet *w, enum smbrr_conv conv,
+int smbrr_wavelet_convolution(struct smbrr_wavelet_2d *w, enum smbrr_conv conv,
 	enum smbrr_wavelet_mask mask);
 
-/*! \fn int smbrr_wavelet_convolution_sig(struct smbrr_wavelet *w,
+/*! \fn int smbrr_wavelet_convolution_sig(struct smbrr_wavelet_2d *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask);
  * \brief Convolve wavelet using significant pixels only
  * \ingroup wavelet
  */
-int smbrr_wavelet_convolution_sig(struct smbrr_wavelet *w, enum smbrr_conv conv,
+int smbrr_wavelet_convolution_sig(struct smbrr_wavelet_2d *w, enum smbrr_conv conv,
 	enum smbrr_wavelet_mask mask);
 
-/*! \fn int smbrr_wavelet_deconvolution(struct smbrr_wavelet *w,
+/*! \fn int smbrr_wavelet_deconvolution(struct smbrr_wavelet_2d *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask);
  * \brief Deconvolve wavelet.
  * \ingroup wavelet
  */
-int smbrr_wavelet_deconvolution(struct smbrr_wavelet *w,
+int smbrr_wavelet_deconvolution(struct smbrr_wavelet_2d *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask);
 
-/*! \fn int smbrr_wavelet_deconvolution_sig(struct smbrr_wavelet *w,
+/*! \fn int smbrr_wavelet_deconvolution_sig(struct smbrr_wavelet_2d *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask, enum smbrr_gain gain);
  * \brief Deconvolve wavelet using significant pixels.
  * \ingroup wavelet
  */
-int smbrr_wavelet_deconvolution_sig(struct smbrr_wavelet *w,
+int smbrr_wavelet_deconvolution_sig(struct smbrr_wavelet_2d *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask, enum smbrr_gain gain);
 
-/*! \fn int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet *w,
+/*! \fn int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet_2d *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask,
 	struct smbrr_object *object);
  * \brief Deconvolve wavelet object using significant pixels.
  * \ingroup wavelet
  */
-int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet *w,
+int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet_2d *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask,
 	struct smbrr_object *object);
 
 /*! \fn struct smbrr_image *smbrr_wavelet_image_get_scale(
-	struct smbrr_wavelet *w, unsigned int scale);
+	struct smbrr_wavelet_2d *w, unsigned int scale);
  * \brief Get scale image from wavelet at scale.
  * \ingroup wavelet
  */
-struct smbrr_image *smbrr_wavelet_image_get_scale(struct smbrr_wavelet *w,
+struct smbrr_image *smbrr_wavelet_image_get_scale(struct smbrr_wavelet_2d *w,
 	unsigned int scale);
 
 /*! \fn struct smbrr_image *smbrr_wavelet_image_get_wavelet(
-	struct smbrr_wavelet *w, unsigned int scale);
+	struct smbrr_wavelet_2d *w, unsigned int scale);
  * \brief Get wavelet image from wavelet at scale.
  * \ingroup wavelet
  */
-struct smbrr_image *smbrr_wavelet_image_get_wavelet(struct smbrr_wavelet *w,
+struct smbrr_image *smbrr_wavelet_image_get_wavelet(struct smbrr_wavelet_2d *w,
 	unsigned int scale);
 
 /*! \fn struct smbrr_image *smbrr_wavelet_image_get_significant(
-	struct smbrr_wavelet *w, unsigned int scale);
+	struct smbrr_wavelet_2d *w, unsigned int scale);
  * \brief Get significant image from wavelet at scale.
  * \ingroup wavelet
  */
-struct smbrr_image *smbrr_wavelet_image_get_significant(struct smbrr_wavelet *w,
+struct smbrr_image *smbrr_wavelet_image_get_significant(struct smbrr_wavelet_2d *w,
 	unsigned int scale);
 
-/*! \fn void smbrr_wavelet_add(struct smbrr_wavelet *a,
-    struct smbrr_wavelet *b, struct smbrr_wavelet *c);
+/*! \fn void smbrr_wavelet_add(struct smbrr_wavelet_2d *a,
+    struct smbrr_wavelet_2d *b, struct smbrr_wavelet_2d *c);
  * \brief Wavelet A = B + C.
  * \ingroup wavelet
  */
-void smbrr_wavelet_add(struct smbrr_wavelet *a, struct smbrr_wavelet *b,
-	struct smbrr_wavelet *c);
+void smbrr_wavelet_add(struct smbrr_wavelet_2d *a, struct smbrr_wavelet_2d *b,
+	struct smbrr_wavelet_2d *c);
 
-/*! \fn void smbrr_wavelet_subtract(struct smbrr_wavelet *a,
-	struct smbrr_wavelet *b, struct smbrr_wavelet *c);
+/*! \fn void smbrr_wavelet_subtract(struct smbrr_wavelet_2d *a,
+	struct smbrr_wavelet_2d *b, struct smbrr_wavelet_2d *c);
  * \brief Wavelet A = B - C.
  * \ingroup wavelet
  */
-void smbrr_wavelet_subtract(struct smbrr_wavelet *a, struct smbrr_wavelet *b,
-	struct smbrr_wavelet *c);
+void smbrr_wavelet_subtract(struct smbrr_wavelet_2d *a, struct smbrr_wavelet_2d *b,
+	struct smbrr_wavelet_2d *c);
 
-/*! \fn int smbrr_wavelet_new_significance(struct smbrr_wavelet *w,
+/*! \fn int smbrr_wavelet_new_significance(struct smbrr_wavelet_2d *w,
 	enum smbrr_clip sigma_clip);
  * \brief Create new significance scales for wavlet.
  * \ingroup wavelet
  */
-int smbrr_wavelet_new_significance(struct smbrr_wavelet *w,
+int smbrr_wavelet_new_significance(struct smbrr_wavelet_2d *w,
 	enum smbrr_clip sigma_clip);
 
-/*! \fn int smbrr_wavelet_ksigma_clip(struct smbrr_wavelet *w,
+/*! \fn int smbrr_wavelet_ksigma_clip(struct smbrr_wavelet_2d *w,
     enum smbrr_clip clip, float sig_delta);
  * \brief K sigma clip each wavelet scale.
  * \ingroup wavelet
  */
-int smbrr_wavelet_ksigma_clip(struct smbrr_wavelet *w, enum smbrr_clip clip,
+int smbrr_wavelet_ksigma_clip(struct smbrr_wavelet_2d *w, enum smbrr_clip clip,
 	float sig_delta);
 
-/*! \fn int smbrr_wavelet_ksigma_clip_custom(struct smbrr_wavelet *w,
+/*! \fn int smbrr_wavelet_ksigma_clip_custom(struct smbrr_wavelet_2d *w,
 	struct smbrr_clip_coeff *coeff, float sig_delta);
  * \brief K sigma clip each wavelet scale with custom coefficients.
  * \ingroup wavelet
  */
-int smbrr_wavelet_ksigma_clip_custom(struct smbrr_wavelet *w,
+int smbrr_wavelet_ksigma_clip_custom(struct smbrr_wavelet_2d *w,
 	struct smbrr_clip_coeff *coeff, float sig_delta);
 
-/*! \fn int smbrr_wavelet_structure_find(struct smbrr_wavelet *w,
+/*! \fn int smbrr_wavelet_structure_find(struct smbrr_wavelet_2d *w,
 	unsigned int scale);
  * \brief Find structures in wavelet scale.
  * \ingroup wavelet
  */
-int smbrr_wavelet_structure_find(struct smbrr_wavelet *w, unsigned int scale);
+int smbrr_wavelet_structure_find(struct smbrr_wavelet_2d *w, unsigned int scale);
 
-/*! \fn int smbrr_wavelet_structure_connect(struct smbrr_wavelet *w,
+/*! \fn int smbrr_wavelet_structure_connect(struct smbrr_wavelet_2d *w,
 		unsigned int start_scale, unsigned int end_scale);
  * \brief Connect structures between wavelet scales.
  * \ingroup wavelet
  */
-int smbrr_wavelet_structure_connect(struct smbrr_wavelet *w,
+int smbrr_wavelet_structure_connect(struct smbrr_wavelet_2d *w,
 		unsigned int start_scale, unsigned int end_scale);
 
-/*! \fn struct smbrr_object *smbrr_wavelet_object_get(struct smbrr_wavelet *w,
+/*! \fn struct smbrr_object *smbrr_wavelet_object_get(struct smbrr_wavelet_2d *w,
 	unsigned int object_id);
 * \brief Get wavelet object.
 * \ingroup wavelet
 */
-struct smbrr_object *smbrr_wavelet_object_get(struct smbrr_wavelet *w,
+struct smbrr_object *smbrr_wavelet_object_get(struct smbrr_wavelet_2d *w,
 	unsigned int object_id);
 
-/*! \fn void smbrr_wavelet_object_free_all(struct smbrr_wavelet *w)
+/*! \fn void smbrr_wavelet_object_free_all(struct smbrr_wavelet_2d *w)
 * \brief Free all wavelet structures and objects.
 * \ingroup wavelet
 */
-void smbrr_wavelet_object_free_all(struct smbrr_wavelet *w);
+void smbrr_wavelet_object_free_all(struct smbrr_wavelet_2d *w);
 
-/*! \fn int smbrr_wavelet_object_get_image(struct smbrr_wavelet *w,
+/*! \fn int smbrr_wavelet_object_get_image(struct smbrr_wavelet_2d *w,
 		struct smbrr_object *object, struct smbrr_image **image);
 * \brief Get wavelet object image.
 * \ingroup wavelet
 */
-int smbrr_wavelet_object_get_image(struct smbrr_wavelet *w,
+int smbrr_wavelet_object_get_image(struct smbrr_wavelet_2d *w,
 		struct smbrr_object *object, struct smbrr_image **image);
 
-/*! \fn struct smbrr_object *smbrr_wavelet_get_object_at(struct smbrr_wavelet *w,
+/*! \fn struct smbrr_object *smbrr_wavelet_get_object_at(struct smbrr_wavelet_2d *w,
  * 	int x, int y)
 * \brief Get object at position (x,y).
 * \ingroup wavelet
 */
-struct smbrr_object *smbrr_wavelet_get_object_at(struct smbrr_wavelet *w,
+struct smbrr_object *smbrr_wavelet_get_object_at(struct smbrr_wavelet_2d *w,
 		int x, int y);
 
-/*! \fn int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet *w,
+/*! \fn int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet_2d *w,
  * 	float dark);
 * \brief Set average background value.
 * \ingroup wavelet
 */
-int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet *w,
+int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet_2d *w,
 		float dark);
 
-/*! \fnvoid smbrr_wavelet_set_ccd(struct smbrr_wavelet *w, float gain, float bias,
+/*! \fnvoid smbrr_wavelet_set_ccd(struct smbrr_wavelet_2d *w, float gain, float bias,
 	float readout)
 * \brief Set CCD configuration
 * \ingroup wavelet
 */
-void smbrr_wavelet_set_ccd(struct smbrr_wavelet *w, float gain, float bias,
+void smbrr_wavelet_set_ccd(struct smbrr_wavelet_2d *w, float gain, float bias,
 	float readout);
 
 #endif

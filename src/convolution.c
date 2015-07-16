@@ -29,7 +29,7 @@
 #include "mask.h"
 #include "config.h"
 
-static void atrous_deconv(struct smbrr_wavelet *wavelet)
+static void atrous_deconv(struct smbrr_wavelet_2d *wavelet)
 {
 	int scale;
 
@@ -42,7 +42,7 @@ static void atrous_deconv(struct smbrr_wavelet *wavelet)
 }
 
 /* C0 = C(scale - 1) + sum of wavelets if W(pixel) is significant; */
-static void atrous_deconv_sig(struct smbrr_wavelet *wavelet,
+static void atrous_deconv_sig(struct smbrr_wavelet_2d *wavelet,
 	enum smbrr_gain gain)
 {
 	int scale;
@@ -64,7 +64,7 @@ static void atrous_deconv_sig(struct smbrr_wavelet *wavelet,
 	}
 }
 
-/*! \fn int smbrr_wavelet_convolution(struct smbrr_wavelet *w,
+/*! \fn int smbrr_wavelet_convolution(struct smbrr_wavelet_2d *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask)
 * \param w wavelet
 * \param conv wavelet convolution type
@@ -73,7 +73,7 @@ static void atrous_deconv_sig(struct smbrr_wavelet *wavelet,
 *
 * Convolve image into wavelets using all pixels.
 */
-int smbrr_wavelet_convolution(struct smbrr_wavelet *w, enum smbrr_conv conv,
+int smbrr_wavelet_convolution(struct smbrr_wavelet_2d *w, enum smbrr_conv conv,
 	enum smbrr_wavelet_mask mask)
 {
 	int ret;
@@ -94,7 +94,7 @@ int smbrr_wavelet_convolution(struct smbrr_wavelet *w, enum smbrr_conv conv,
 	return 0;
 }
 
-/*! \fn int smbrr_wavelet_convolution_sig(struct smbrr_wavelet *w,
+/*! \fn int smbrr_wavelet_convolution_sig(struct smbrr_wavelet_2d *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask)
 * \param w wavelet
 * \param conv wavelet convolution type
@@ -103,7 +103,7 @@ int smbrr_wavelet_convolution(struct smbrr_wavelet *w, enum smbrr_conv conv,
 *
 * Convolve image into wavelets using significant pixels only.
 */
-int smbrr_wavelet_convolution_sig(struct smbrr_wavelet *w, enum smbrr_conv conv,
+int smbrr_wavelet_convolution_sig(struct smbrr_wavelet_2d *w, enum smbrr_conv conv,
 	enum smbrr_wavelet_mask mask)
 {
 	int ret;
@@ -124,7 +124,7 @@ int smbrr_wavelet_convolution_sig(struct smbrr_wavelet *w, enum smbrr_conv conv,
 	return 0;
 }
 
-/*! \fn int smbrr_wavelet_deconvolution(struct smbrr_wavelet *w,
+/*! \fn int smbrr_wavelet_deconvolution(struct smbrr_wavelet_2d *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask)
 * \param w wavelet
 * \param conv wavelet convolution type
@@ -133,7 +133,7 @@ int smbrr_wavelet_convolution_sig(struct smbrr_wavelet *w, enum smbrr_conv conv,
 *
 * De-convolve wavelet scales into image using all pixels.
 */
-int smbrr_wavelet_deconvolution(struct smbrr_wavelet *w, enum smbrr_conv conv,
+int smbrr_wavelet_deconvolution(struct smbrr_wavelet_2d *w, enum smbrr_conv conv,
 	enum smbrr_wavelet_mask mask)
 {
 	int ret;
@@ -154,7 +154,7 @@ int smbrr_wavelet_deconvolution(struct smbrr_wavelet *w, enum smbrr_conv conv,
 	return 0;
 }
 
-/*! \fn int smbrr_wavelet_deconvolution_sig(struct smbrr_wavelet *w,
+/*! \fn int smbrr_wavelet_deconvolution_sig(struct smbrr_wavelet_2d *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask)
 * \param w wavelet
 * \param conv wavelet convolution type
@@ -163,7 +163,7 @@ int smbrr_wavelet_deconvolution(struct smbrr_wavelet *w, enum smbrr_conv conv,
 *
 * De-convolve wavelet scales into image using significant pixels only.
 */
-int smbrr_wavelet_deconvolution_sig(struct smbrr_wavelet *w,
+int smbrr_wavelet_deconvolution_sig(struct smbrr_wavelet_2d *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask, enum smbrr_gain gain)
 {
 	int ret;
@@ -184,7 +184,7 @@ int smbrr_wavelet_deconvolution_sig(struct smbrr_wavelet *w,
 	return 0;
 }
 
-/*! \fn int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet *w,
+/*! \fn int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet_2d *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask,
 	struct smbrr_object *object)
 * \param w wavelet
@@ -195,7 +195,7 @@ int smbrr_wavelet_deconvolution_sig(struct smbrr_wavelet *w,
 *
 * De-convolve wavelet scales into object image using significant pixels only.
 */
-int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet *w,
+int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet_2d *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask,
 	struct smbrr_object *object)
 {

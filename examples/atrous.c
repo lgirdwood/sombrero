@@ -45,7 +45,7 @@ static void usage(char *argv[])
 int main(int argc, char *argv[])
 {
 	struct smbrr_image *image, *simage, *wimage;
-	struct smbrr_wavelet *w;
+	struct smbrr_wavelet_2d *w;
 	struct bitmap *bmp;
 	const void *data;
 	int ret, width, height, stride, i, opt, k = 1,

@@ -97,7 +97,7 @@ static const float k_amp[5][8] = {
 	{1.0, 1.0, 1.5, 2.0, 4.0, 4.0, 4.0, 8.0},	/* low-mid pass */
 };
 
-static inline int conv_mask_set_2d(struct smbrr_wavelet *w,
+static inline int conv_mask_set_2d(struct smbrr_wavelet_2d *w,
 	enum smbrr_wavelet_mask mask)
 {
 	switch (mask) {
@@ -120,7 +120,7 @@ static inline int conv_mask_set_2d(struct smbrr_wavelet *w,
 	return 0;
 }
 
-static inline int deconv_mask_set(struct smbrr_wavelet *w,
+static inline int deconv_mask_set(struct smbrr_wavelet_2d *w,
 	enum smbrr_wavelet_mask mask)
 {
 	switch (mask) {
