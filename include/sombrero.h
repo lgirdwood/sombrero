@@ -241,6 +241,282 @@ struct smbrr_clip_coeff {
 	float coeff[SMBRR_MAX_SCALES - 1];	/*!< clipping coefficient for scale */
 };
 
+
+/*! \defgroup signal Signals
+*
+* Signal manipulation and management.
+*/
+
+/*
+ * Signal Construction and destruction.
+ */
+
+/*! \fn struct smbrr_signal *smbrr_signal_new(enum smbrr_image_type type,
+	unsigned int length, enum smbrr_adu adu, const void *sig);
+* \brief Create a new signal.
+* \ingroup signal
+*/
+struct smbrr_signal *smbrr_signal_new(enum smbrr_image_type type,
+	unsigned int length, enum smbrr_adu adu, const void *sig);
+
+/*! \fn struct smbrr_signal *smbrr_signal_new_from_region(struct smbrr_signal *signal,
+	unsigned int start, unsigned int end)
+* \brief Create a new signal from another signal region.
+* \ingroup signal
+*/
+struct smbrr_signal *smbrr_signal_new_from_region(struct smbrr_signal *signal,
+	unsigned int start, unsigned int end);
+
+/*! \fn struct smbrr_signal *smbrr_signal_new_copy(struct smbrr_signal *signal)
+* \param signal Source signal.
+* \brief Create a new smbrr signal from source signal.
+* \ingroup signal
+*/
+struct smbrr_signal *smbrr_signal_new_copy(struct smbrr_signal *src);
+
+/*! \fn void smbrr_signal_free(struct smbrr_signal *signal);
+ * \brief Free an signal.
+ * \ingroup signal
+ */
+void smbrr_signal_free(struct smbrr_signal *signal);
+
+/*
+ * Signal information.
+ */
+
+/*! \fn int smbrr_signal_get(struct smbrr_signal *signal, enum smbrr_adu adu,
+	void **img);
+ * \brief Get raw data from an signal.
+ * \ingroup signal
+ */
+int smbrr_signal_get(struct smbrr_signal *signal, enum smbrr_adu adu,
+	void **img);
+
+/*! \fn int smbrr_signal_pixels(struct smbrr_signal *signal);
+ * \brief Get number of pixels in signal.
+ * \ingroup signal
+ */
+int smbrr_signal_pixels(struct smbrr_signal *signal);
+
+/*! \fn int smbrr_signal_bytes(struct smbrr_signal *signal);
+ * \brief Get number of bytes for raw signal.
+ * \ingroup signal
+ */
+int smbrr_signal_bytes(struct smbrr_signal *signal);
+
+/*! \fn int smbrr_signal_stride(struct smbrr_signal *signal)
+* \brief Return the number of pixels in signal stride.
+* \ingroup signal
+*/
+int smbrr_signal_stride(struct smbrr_signal *signal);
+
+/*! \fn int smbrr_signal_width(struct smbrr_signal *signal)
+* \brief Return the number of pixels in signal width.
+* \ingroup signal
+*/
+int smbrr_signal_width(struct smbrr_signal *signal);
+
+/*! \fn int smbrr_signal_height(struct smbrr_signal *signal)
+* \brief Return the number of pixels in signal height.
+* \ingroup signal
+*/
+int smbrr_signal_height(struct smbrr_signal *signal);
+
+/*! \fn void smbrr_signal_find_limits(struct smbrr_signal *signal, float *min,
+ * float *max);
+ * \brief Find signal limits.
+ * \ingroup signal
+ */
+void smbrr_signal_find_limits(struct smbrr_signal *signal, float *min, float *max);
+
+/*! \fn float smbrr_signal_get_mean(struct smbrr_signal *signal);
+ * \brief Get mean pixel value of signal.
+ * \ingroup signal
+ */
+float smbrr_signal_get_mean(struct smbrr_signal *signal);
+
+/*! \fn float smbrr_signal_get_sigma(struct smbrr_signal *signal, float mean);
+ * \brief Get pixel standard deviation of signal.
+ * \ingroup signal
+ */
+float smbrr_signal_get_sigma(struct smbrr_signal *signal, float mean);
+
+/*! \fn float smbrr_signal_get_mean_sig(struct smbrr_signal *signal,
+	struct smbrr_signal *ssignal);
+ * \brief Get signal mean for significant pixels.
+ * \ingroup signal
+ */
+float smbrr_signal_get_mean_sig(struct smbrr_signal *signal,
+	struct smbrr_signal *ssignal);
+
+/*! \fn float smbrr_signal_get_sigma_sig(struct smbrr_signal *signal,
+	struct smbrr_signal *ssignal, float mean);
+ * \brief Get signal standard deviation for significant pixels.
+ * \ingroup signal
+ */
+float smbrr_signal_get_sigma_sig(struct smbrr_signal *signal,
+	struct smbrr_signal *ssignal, float mean);
+
+/*! \fn float smbrr_signal_get_norm(struct smbrr_signal *signal);
+ * \brief Get signal norm.
+ * \ingroup signal
+ */
+float smbrr_signal_get_norm(struct smbrr_signal *signal);
+
+/*
+ * Signal Transformations
+ */
+
+/*! \fn float void smbrr_signal_normalise(struct smbrr_signal *signal,
+ * float min, float max);
+ * \brief Normalise signal pixels between new min and max values.
+ * \ingroup signal
+ */
+void smbrr_signal_normalise(struct smbrr_signal *signal, float min, float max);
+
+/*! \fn void smbrr_signal_add(struct smbrr_signal *a, struct smbrr_signal *b,
+	struct smbrr_signal *c);
+ * \brief Image A = B + C
+ * \ingroup signal
+ */
+void smbrr_signal_add(struct smbrr_signal *a, struct smbrr_signal *b,
+	struct smbrr_signal *c);
+
+/*! \fn void smbrr_signal_add_value_sig(struct smbrr_signal *signal,
+	struct smbrr_signal *signal, float value)
+* \brief If pixel significant then Image A += value
+* \ingroup signal
+*/
+void smbrr_signal_add_value_sig(struct smbrr_signal *signal,
+	struct smbrr_signal *ssignal, float value);
+
+/*! \fn void smbrr_signal_add_sig(struct smbrr_signal *a, struct smbrr_signal *b,
+	struct smbrr_signal *c, struct smbrr_signal *s);
+ * \brief Image A = B + (significant) C
+ * \ingroup signal
+ */
+void smbrr_signal_add_sig(struct smbrr_signal *a, struct smbrr_signal *b,
+	struct smbrr_signal *c, struct smbrr_signal *s);
+
+/*! \fn void smbrr_signal_subtract(struct smbrr_signal *a, struct smbrr_signal *b,
+	struct smbrr_signal *c);
+ * \brief Image A = B - C
+ * \ingroup signal
+ */
+void smbrr_signal_subtract(struct smbrr_signal *a, struct smbrr_signal *b,
+	struct smbrr_signal *c);
+
+/*! \fn void smbrr_signal_subtract_sig(struct smbrr_signal *a,
+ *  struct smbrr_signal *b, struct smbrr_signal *c, struct smbrr_signal *s);
+ * \brief Image A = B - (significant) C
+ * \ingroup signal
+ */
+void smbrr_signal_subtract_sig(struct smbrr_signal *a, struct smbrr_signal *b,
+	struct smbrr_signal *c, struct smbrr_signal *s);
+
+/*! \fn void smbrr_signal_add_value(struct smbrr_signal *a, float value);
+ * \brief Image A = A + real value
+ * \ingroup signal
+ */
+void smbrr_signal_add_value(struct smbrr_signal *a, float value);
+
+/*! \fn void smbrr_signal_subtract_value(struct smbrr_signal *a, float value);
+ * \brief Image A = A - real value
+ * \ingroup signal
+ */
+void smbrr_signal_subtract_value(struct smbrr_signal *a, float value);
+
+/*! \fn void smbrr_signal_mult_value(struct smbrr_signal *a, float value);
+ * \brief Image A = A * real value
+ * \ingroup signal
+ */
+void smbrr_signal_mult_value(struct smbrr_signal *a, float value);
+
+/*! \fn void smbrr_signal_reset_value(struct smbrr_signal *a, float value);
+ * \brief Image A = real value
+ * \ingroup signal
+ */
+void smbrr_signal_reset_value(struct smbrr_signal *a, float value);
+
+/*! \fn void smbrr_signal_set_value_sig(struct smbrr_signal *a,
+	struct smbrr_signal *s, float sig_value);
+ * \brief Image (significant) A = value
+ * \ingroup signal
+ */
+void smbrr_signal_set_value_sig(struct smbrr_signal *a,
+	struct smbrr_signal *s, float value);
+
+/*! \fn int smbrr_signal_convert(struct smbrr_signal *a,
+ * enum smbrr_signal_type type);
+ * \brief Convert signal A to new type.
+ * \ingroup signal
+ */
+int smbrr_signal_convert(struct smbrr_signal *a, enum smbrr_image_type type);
+
+/*! \fn void smbrr_signal_set_sig_value(struct smbrr_signal *a, uint32_t value);
+ * \brief Image (significant) A = value
+ * \ingroup signal
+ */
+void smbrr_signal_set_sig_value(struct smbrr_signal *a, uint32_t value);
+
+/*! \fn void smbrr_signal_clear_negative(struct smbrr_signal *a);
+ * \brief Set Image A negative pixels to zero.
+ * \ingroup signal
+ */
+void smbrr_signal_clear_negative(struct smbrr_signal *a);
+
+/*! \fn int smbrr_signal_copy(struct smbrr_signal *dest, struct smbrr_signal *src);
+ * \brief Image dest = src.
+ * \ingroup signal
+ */
+int smbrr_signal_copy(struct smbrr_signal *dest, struct smbrr_signal *src);
+
+/*! \fn void smbrr_signal_fma(struct smbrr_signal *dest, struct smbrr_signal *a,
+	struct smbrr_signal *b, float c);
+ * \brief Image A = A + B * value C
+ * \ingroup signal
+ */
+void smbrr_signal_fma(struct smbrr_signal *dest, struct smbrr_signal *a,
+	struct smbrr_signal *b, float c);
+
+/*! \fn void smbrr_signal_fms(struct smbrr_signal *dest, struct smbrr_signal *a,
+	struct smbrr_signal *b, float c);
+ * \brief Image A = A - B * value C
+ * \ingroup signal
+ */
+void smbrr_signal_fms(struct smbrr_signal *dest, struct smbrr_signal *a,
+	struct smbrr_signal *b, float c);
+
+/*! \fn void smbrr_signal_anscombe(struct smbrr_signal *signal, float gain,
+ * float bias, float readout);
+ * \brief Perform Anscombe noise reduction on Image.
+ * \ingroup signal
+ */
+void smbrr_signal_anscombe(struct smbrr_signal *signal, float gain, float bias,
+	float readout);
+
+/*! \fn void smbrr_signal_new_significance(struct smbrr_signal *a,
+	struct smbrr_signal *s, float sigma);
+ * \brief Set S(pixel) if A(pixel) > sigma
+ * \ingroup signal
+ */
+void smbrr_signal_new_significance(struct smbrr_signal *a,
+	struct smbrr_signal *s, float sigma);
+
+/*! \fn int smbrr_signal_psf(struct smbrr_signal *src, struct smbrr_signal *dest,
+	enum smbrr_wavelet_mask mask);
+ * \brief Perform PSF on source signal
+ * \ingroup signal
+ */
+int smbrr_signal_psf(struct smbrr_signal *src, struct smbrr_signal *dest,
+	enum smbrr_wavelet_mask mask);
+
+/*! \fn float smbrr_signal_get_adu_at(struct smbrr_signal *signal, int x);
+ * \brief Get signal ADU value at (x,y)
+ * \ingroup signal
+ */
+float smbrr_signal_get_adu_at(struct smbrr_signal *signal, int x);
+
 /*! \defgroup image Images
 *
 * Image manipulation and management.

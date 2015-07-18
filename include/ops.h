@@ -171,5 +171,11 @@ extern const struct convolution2d_ops conv2d_ops_avx;
 extern const struct convolution2d_ops conv2d_ops_avx2;
 extern const struct convolution2d_ops conv2d_ops_fma;
 
+extern const struct convolution1d_ops conv1d_ops;
+extern const struct convolution1d_ops conv1d_ops_sse42;
+extern const struct convolution1d_ops conv1d_ops_avx;
+extern const struct convolution1d_ops conv1d_ops_avx2;
+extern const struct convolution1d_ops conv1d_ops_fma;
+
 #endif
 #endif

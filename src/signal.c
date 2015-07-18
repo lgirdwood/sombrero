@@ -541,7 +541,7 @@ int smbrr_signal_length(struct smbrr_signal *signal)
 	return signal->length;
 }
 
-/*! \fn float smbrr_signal_get_adu_at(struct smbrr_signal *signal, int x, int y);
+/*! \fn float smbrr_signal_get_adu_at(struct smbrr_signal *signal, int x);
  * \param signal Image
  * \param x X coordinate
  * \return Image ADU
