@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	fprintf(stdout, "Image width %d height %d stride %d\n",
 		width, height, stride);
 
-	image = smbrr_image_new(SMBRR_IMAGE_FLOAT, width, height, stride,
+	image = smbrr_image_new(SMBRR_DATA_FLOAT, width, height, stride,
 		depth, data);
 	if (image == NULL) {
 		fprintf(stderr, "cant create new image\n");

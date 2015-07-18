@@ -137,13 +137,13 @@ int smbrr_image_reconstruct(struct smbrr_image *O,
 	int tries = 2, ret = -ENOMEM;
 
 	/* diff image O0 */
-	O0 = smbrr_image_new(SMBRR_IMAGE_FLOAT, O->width, O->height, 0, 0, NULL);
+	O0 = smbrr_image_new(SMBRR_DATA_FLOAT, O->width, O->height, 0, 0, NULL);
 	if (O0 == NULL)
 		goto out;
 	smbrr_image_copy(O0, O);
 
 	/* diff image O1 */
-	O1 = smbrr_image_new(SMBRR_IMAGE_FLOAT, O->width, O->height, 0, 0, NULL);
+	O1 = smbrr_image_new(SMBRR_DATA_FLOAT, O->width, O->height, 0, 0, NULL);
 	if (O1 == NULL)
 		goto out;
 	smbrr_image_copy(O1, O);
@@ -165,7 +165,7 @@ int smbrr_image_reconstruct(struct smbrr_image *O,
 		goto out;
 
 	/* Residual Image R */
-	R = smbrr_image_new(SMBRR_IMAGE_FLOAT, O->width, O->height, 0, 0, NULL);
+	R = smbrr_image_new(SMBRR_DATA_FLOAT, O->width, O->height, 0, 0, NULL);
 	if (R == NULL)
 		goto out;
 

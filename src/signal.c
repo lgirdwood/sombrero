@@ -77,7 +77,7 @@ static void set_signal_ops(struct smbrr_signal *signal)
 * Create a new smbrr signal from source raw data or a blank signal if no
 * source is provided.
 */
-struct smbrr_signal *smbrr_signal_new(enum smbrr_image_type type,
+struct smbrr_signal *smbrr_signal_new(enum smbrr_data_type type,
 	unsigned int length, enum smbrr_adu adu, const void *src_signal)
 {
 	struct smbrr_signal *signal;
@@ -88,10 +88,10 @@ struct smbrr_signal *smbrr_signal_new(enum smbrr_image_type type,
 		return NULL;
 
 	switch (type) {
-	case SMBRR_IMAGE_UINT32:
+	case SMBRR_DATA_UINT32:
 		bytes = sizeof(uint32_t);
 		break;
-	case SMBRR_IMAGE_FLOAT:
+	case SMBRR_DATA_FLOAT:
 		bytes = sizeof(float);
 		break;
 	default:
@@ -124,10 +124,10 @@ struct smbrr_signal *smbrr_signal_new(enum smbrr_image_type type,
 
 	case SMBRR_ADU_8:
 		switch (type) {
-		case SMBRR_IMAGE_UINT32:
+		case SMBRR_DATA_UINT32:
 			signal->ops->uchar_to_uint(signal, src_signal);
 			break;
-		case SMBRR_IMAGE_FLOAT:
+		case SMBRR_DATA_FLOAT:
 			signal->ops->uchar_to_float(signal, src_signal);
 			break;
 		}
@@ -135,10 +135,10 @@ struct smbrr_signal *smbrr_signal_new(enum smbrr_image_type type,
 
 	case SMBRR_ADU_16:
 		switch (type) {
-		case SMBRR_IMAGE_UINT32:
+		case SMBRR_DATA_UINT32:
 			signal->ops->ushort_to_uint(signal, src_signal);
 			break;
-		case SMBRR_IMAGE_FLOAT:
+		case SMBRR_DATA_FLOAT:
 			signal->ops->ushort_to_float(signal, src_signal);
 			break;
 		}
@@ -146,10 +146,10 @@ struct smbrr_signal *smbrr_signal_new(enum smbrr_image_type type,
 
 	case SMBRR_ADU_32:
 		switch (type) {
-		case SMBRR_IMAGE_UINT32:
+		case SMBRR_DATA_UINT32:
 			signal->ops->uint_to_uint(signal, src_signal);
 			break;
-		case SMBRR_IMAGE_FLOAT:
+		case SMBRR_DATA_FLOAT:
 			signal->ops->uint_to_float(signal, src_signal);
 			break;
 		}
@@ -157,10 +157,10 @@ struct smbrr_signal *smbrr_signal_new(enum smbrr_image_type type,
 
 	case SMBRR_ADU_FLOAT:
 		switch (type) {
-		case SMBRR_IMAGE_UINT32:
+		case SMBRR_DATA_UINT32:
 			signal->ops->float_to_uint(signal, src_signal);
 			break;
-		case SMBRR_IMAGE_FLOAT:
+		case SMBRR_DATA_FLOAT:
 			signal->ops->float_to_float(signal, src_signal);
 			break;
 		}
@@ -199,10 +199,10 @@ struct smbrr_signal *smbrr_signal_new_from_region(struct smbrr_signal *src,
 		return NULL;
 
 	switch (src->type) {
-	case SMBRR_IMAGE_UINT32:
+	case SMBRR_DATA_UINT32:
 		bytes = sizeof(uint32_t);
 		break;
-	case SMBRR_IMAGE_FLOAT:
+	case SMBRR_DATA_FLOAT:
 		bytes = sizeof(float);
 		break;
 	default:
@@ -299,7 +299,7 @@ int smbrr_signal_copy(struct smbrr_signal *dest, struct smbrr_signal *src)
 * Convert an signal from one type to another.
 */
 int smbrr_signal_convert(struct smbrr_signal *signal,
-	enum smbrr_image_type type)
+	enum smbrr_data_type type)
 {
 	return signal->ops->convert(signal, type);
 }

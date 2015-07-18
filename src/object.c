@@ -430,7 +430,7 @@ static int object_create_image(struct smbrr_wavelet_2d *w, struct object *object
 	width = object->o.maxXy.x - object->o.minXy.x + 1;
 	height = object->o.maxxY.y - object->o.minxY.y + 1;
 
-	object->image = smbrr_image_new(SMBRR_IMAGE_FLOAT, width, height, 0,
+	object->image = smbrr_image_new(SMBRR_DATA_FLOAT, width, height, 0,
 		SMBRR_ADU_8, NULL);
 	if (object->image == NULL)
 		return -ENOMEM;
@@ -1053,7 +1053,7 @@ int smbrr_wavelet_object_get_image(struct smbrr_wavelet_2d *w,
 	width = object->maxXy.x - object->minXy.x + 1;
 	height = object->maxxY.y - object->minxY.y + 1;
 
-	o->image = smbrr_image_new(SMBRR_IMAGE_FLOAT, width, height, 0,
+	o->image = smbrr_image_new(SMBRR_DATA_FLOAT, width, height, 0,
 		SMBRR_ADU_8, NULL);
 	if (o->image == NULL)
 		return -ENOMEM;

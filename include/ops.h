@@ -51,7 +51,7 @@ struct image_ops {
 	void (*reset_value)(struct smbrr_image *a, float value);
 	void (*set_value_sig)(struct smbrr_image *a,
 		struct smbrr_image *s, float value);
-	int (*convert)(struct smbrr_image *a, enum smbrr_image_type type);
+	int (*convert)(struct smbrr_image *a, enum smbrr_data_type type);
 	void (*set_sig_value)(struct smbrr_image *a, uint32_t value);
 	void (*clear_negative)(struct smbrr_image *a);
 	int (*copy)(struct smbrr_image *dest, struct smbrr_image *src);
@@ -108,7 +108,7 @@ struct signal_ops {
 	void (*reset_value)(struct smbrr_signal *a, float value);
 	void (*set_value_sig)(struct smbrr_signal *a,
 		struct smbrr_signal *s, float value);
-	int (*convert)(struct smbrr_signal *a, enum smbrr_image_type type);
+	int (*convert)(struct smbrr_signal *a, enum smbrr_data_type type);
 	void (*set_sig_value)(struct smbrr_signal *a, uint32_t value);
 	void (*clear_negative)(struct smbrr_signal *a);
 	int (*copy)(struct smbrr_signal *dest, struct smbrr_signal *src);

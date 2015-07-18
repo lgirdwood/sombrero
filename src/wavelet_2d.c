@@ -94,21 +94,21 @@ struct smbrr_wavelet_2d *smbrr_wavelet_new(struct smbrr_image *image,
 		goto m_err;
 
 	for (i = 1; i < num_scales; i++) {
-		w->c[i] = smbrr_image_new(SMBRR_IMAGE_FLOAT, w->width,
+		w->c[i] = smbrr_image_new(SMBRR_DATA_FLOAT, w->width,
 			w->height, image->stride, 0, NULL);
 		if (w->c[i] == NULL)
 			goto c_err;
 	}
 
 	for (i = 0; i < num_scales - 1; i++) {
-		w->w[i] = smbrr_image_new(SMBRR_IMAGE_FLOAT, w->width,
+		w->w[i] = smbrr_image_new(SMBRR_DATA_FLOAT, w->width,
 			w->height, image->stride, 0, NULL);
 		if (w->w[i] == NULL)
 			goto w_err;
 	}
 
 	for (i = 0; i < num_scales - 1; i++) {
-		w->s[i] = smbrr_image_new(SMBRR_IMAGE_UINT32, w->width,
+		w->s[i] = smbrr_image_new(SMBRR_DATA_UINT32, w->width,
 			w->height, image->stride, 0, NULL);
 		if (w->s[i] == NULL)
 			goto s_err;

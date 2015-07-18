@@ -151,12 +151,12 @@ int main(int argc, char *argv[])
 
 	start_timer(time);
 
-	image = smbrr_image_new(SMBRR_IMAGE_FLOAT, width, height, stride,
+	image = smbrr_image_new(SMBRR_DATA_FLOAT, width, height, stride,
 		depth, data);
 	if (image == NULL)
 		return -EINVAL;
 
-	oimage = smbrr_image_new(SMBRR_IMAGE_FLOAT, width, height, stride,
+	oimage = smbrr_image_new(SMBRR_DATA_FLOAT, width, height, stride,
 			depth, NULL);
 		if (oimage == NULL)
 			return -EINVAL;

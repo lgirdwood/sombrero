@@ -140,10 +140,10 @@ static int signal_get(struct smbrr_signal *signal, enum smbrr_adu adu,
 	case SMBRR_ADU_8:
 
 		switch (signal->type) {
-		case SMBRR_IMAGE_UINT32:
+		case SMBRR_DATA_UINT32:
 			uint_to_uchar(signal, *buf);
 			break;
-		case SMBRR_IMAGE_FLOAT:
+		case SMBRR_DATA_FLOAT:
 			float_to_uchar(signal, *buf);
 			break;
 		}
@@ -156,7 +156,7 @@ static int signal_get(struct smbrr_signal *signal, enum smbrr_adu adu,
 }
 
 static int signal_convert(struct smbrr_signal *signal,
-	enum smbrr_image_type type)
+	enum smbrr_data_type type)
 {
 	int offset;
 
@@ -164,23 +164,23 @@ static int signal_convert(struct smbrr_signal *signal,
 		return 0;
 
 	switch (type) {
-	case SMBRR_IMAGE_UINT32:
+	case SMBRR_DATA_UINT32:
 		switch (signal->type) {
-		case SMBRR_IMAGE_FLOAT:
+		case SMBRR_DATA_FLOAT:
 			for (offset = 0; offset < signal->size; offset++)
 				signal->s[offset] = (uint32_t)signal->adu[offset];
 			break;
-		case SMBRR_IMAGE_UINT32:
+		case SMBRR_DATA_UINT32:
 			break;
 		}
 		break;
-	case SMBRR_IMAGE_FLOAT:
+	case SMBRR_DATA_FLOAT:
 		switch (signal->type) {
-		case SMBRR_IMAGE_UINT32:
+		case SMBRR_DATA_UINT32:
 			for (offset = 0; offset < signal->size; offset++)
 				signal->adu[offset] = (float)signal->s[offset];
 			break;
-		case SMBRR_IMAGE_FLOAT:
+		case SMBRR_DATA_FLOAT:
 			break;
 		}
 		break;

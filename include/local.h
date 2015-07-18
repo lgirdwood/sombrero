@@ -80,7 +80,7 @@ struct smbrr_image {
 		float *adu;
 		uint32_t *s;
 	};
-	enum smbrr_image_type type;
+	enum smbrr_data_type type;
 	unsigned int sig_pixels;
 	unsigned int width;
 	unsigned int height;
@@ -96,7 +96,7 @@ struct smbrr_signal {
 		float *adu;
 		uint32_t *s;
 	};
-	enum smbrr_image_type type;
+	enum smbrr_data_type type;
 	unsigned int sig_pixels;
 	unsigned int length;
 	unsigned int size;

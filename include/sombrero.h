@@ -108,9 +108,9 @@ enum smbrr_adu {
 *
 * Internal representation of image pixels.
 */
-enum smbrr_image_type {
-	SMBRR_IMAGE_UINT32 = 0, /*!< uint 32 - used by significant images */
-	SMBRR_IMAGE_FLOAT  = 1, /*!< float - used by image pixels */
+enum smbrr_data_type {
+	SMBRR_DATA_UINT32 = 0, /*!< uint 32 - used by significant images */
+	SMBRR_DATA_FLOAT  = 1, /*!< float - used by image pixels */
 };
 
 /*!
@@ -256,7 +256,7 @@ struct smbrr_clip_coeff {
 * \brief Create a new signal.
 * \ingroup signal
 */
-struct smbrr_signal *smbrr_signal_new(enum smbrr_image_type type,
+struct smbrr_signal *smbrr_signal_new(enum smbrr_data_type type,
 	unsigned int length, enum smbrr_adu adu, const void *sig);
 
 /*! \fn struct smbrr_signal *smbrr_signal_new_from_region(struct smbrr_signal *signal,
@@ -451,7 +451,7 @@ void smbrr_signal_set_value_sig(struct smbrr_signal *a,
  * \brief Convert signal A to new type.
  * \ingroup signal
  */
-int smbrr_signal_convert(struct smbrr_signal *a, enum smbrr_image_type type);
+int smbrr_signal_convert(struct smbrr_signal *a, enum smbrr_data_type type);
 
 /*! \fn void smbrr_signal_set_sig_value(struct smbrr_signal *a, uint32_t value);
  * \brief Image (significant) A = value
@@ -532,7 +532,7 @@ float smbrr_signal_get_adu_at(struct smbrr_signal *signal, int x);
 * \brief Create a new image.
 * \ingroup image
 */
-struct smbrr_image *smbrr_image_new(enum smbrr_image_type type,
+struct smbrr_image *smbrr_image_new(enum smbrr_data_type type,
 	unsigned int width, unsigned int height, unsigned int stride,
 	enum smbrr_adu adu, const void *img);
 
@@ -730,7 +730,7 @@ void smbrr_image_set_value_sig(struct smbrr_image *a,
  * \brief Convert image A to new type.
  * \ingroup image
  */
-int smbrr_image_convert(struct smbrr_image *a, enum smbrr_image_type type);
+int smbrr_image_convert(struct smbrr_image *a, enum smbrr_data_type type);
 
 /*! \fn void smbrr_image_set_sig_value(struct smbrr_image *a, uint32_t value);
  * \brief Image (significant) A = value

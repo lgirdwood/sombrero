@@ -192,10 +192,10 @@ static int image_get(struct smbrr_image *image, enum smbrr_adu adu,
 	case SMBRR_ADU_8:
 
 		switch (image->type) {
-		case SMBRR_IMAGE_UINT32:
+		case SMBRR_DATA_UINT32:
 			uint_to_uchar(image, *buf);
 			break;
-		case SMBRR_IMAGE_FLOAT:
+		case SMBRR_DATA_FLOAT:
 			float_to_uchar(image, *buf);
 			break;
 		}
@@ -208,7 +208,7 @@ static int image_get(struct smbrr_image *image, enum smbrr_adu adu,
 }
 
 static int image_convert(struct smbrr_image *image,
-	enum smbrr_image_type type)
+	enum smbrr_data_type type)
 {
 	int offset;
 
@@ -216,23 +216,23 @@ static int image_convert(struct smbrr_image *image,
 		return 0;
 
 	switch (type) {
-	case SMBRR_IMAGE_UINT32:
+	case SMBRR_DATA_UINT32:
 		switch (image->type) {
-		case SMBRR_IMAGE_FLOAT:
+		case SMBRR_DATA_FLOAT:
 			for (offset = 0; offset < image->size; offset++)
 				image->s[offset] = (uint32_t)image->adu[offset];
 			break;
-		case SMBRR_IMAGE_UINT32:
+		case SMBRR_DATA_UINT32:
 			break;
 		}
 		break;
-	case SMBRR_IMAGE_FLOAT:
+	case SMBRR_DATA_FLOAT:
 		switch (image->type) {
-		case SMBRR_IMAGE_UINT32:
+		case SMBRR_DATA_UINT32:
 			for (offset = 0; offset < image->size; offset++)
 				image->adu[offset] = (float)image->s[offset];
 			break;
-		case SMBRR_IMAGE_FLOAT:
+		case SMBRR_DATA_FLOAT:
 			break;
 		}
 		break;

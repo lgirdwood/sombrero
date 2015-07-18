@@ -129,7 +129,7 @@ int bmp_image_save(struct smbrr_image *image, struct bitmap *bmp,
 	void *buf;
 	float min, max;
 
-	i = smbrr_image_new(SMBRR_IMAGE_FLOAT, image->width, image->height,
+	i = smbrr_image_new(SMBRR_DATA_FLOAT, image->width, image->height,
 		0, 0, NULL);
 	if (i == NULL)
 		return -ENOMEM;
@@ -140,7 +140,7 @@ int bmp_image_save(struct smbrr_image *image, struct bitmap *bmp,
 		return -EINVAL;
 
 	sprintf(filename, "%s.bmp", file);
-	smbrr_image_convert(i, SMBRR_IMAGE_FLOAT);
+	smbrr_image_convert(i, SMBRR_DATA_FLOAT);
 	smbrr_image_find_limits(i, &min, &max);
 	fprintf(stdout, "limit for %s are %f to %f\n", filename, min, max);
 	smbrr_image_normalise(i, 0.0, 250.0);

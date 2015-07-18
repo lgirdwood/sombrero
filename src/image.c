@@ -76,7 +76,7 @@ static void set_image_ops(struct smbrr_image *image)
 * Create a new smbrr image from source raw data or a blank image if no
 * source is provided.
 */
-struct smbrr_image *smbrr_image_new(enum smbrr_image_type type,
+struct smbrr_image *smbrr_image_new(enum smbrr_data_type type,
 	unsigned int width, unsigned int height, unsigned int stride,
 	enum smbrr_adu adu, const void *src_image)
 {
@@ -88,10 +88,10 @@ struct smbrr_image *smbrr_image_new(enum smbrr_image_type type,
 		return NULL;
 
 	switch (type) {
-	case SMBRR_IMAGE_UINT32:
+	case SMBRR_DATA_UINT32:
 		bytes = sizeof(uint32_t);
 		break;
-	case SMBRR_IMAGE_FLOAT:
+	case SMBRR_DATA_FLOAT:
 		bytes = sizeof(float);
 		break;
 	default:
@@ -133,10 +133,10 @@ struct smbrr_image *smbrr_image_new(enum smbrr_image_type type,
 
 	case SMBRR_ADU_8:
 		switch (type) {
-		case SMBRR_IMAGE_UINT32:
+		case SMBRR_DATA_UINT32:
 			image->ops->uchar_to_uint(image, src_image);
 			break;
-		case SMBRR_IMAGE_FLOAT:
+		case SMBRR_DATA_FLOAT:
 			image->ops->uchar_to_float(image, src_image);
 			break;
 		}
@@ -144,10 +144,10 @@ struct smbrr_image *smbrr_image_new(enum smbrr_image_type type,
 
 	case SMBRR_ADU_16:
 		switch (type) {
-		case SMBRR_IMAGE_UINT32:
+		case SMBRR_DATA_UINT32:
 			image->ops->ushort_to_uint(image, src_image);
 			break;
-		case SMBRR_IMAGE_FLOAT:
+		case SMBRR_DATA_FLOAT:
 			image->ops->ushort_to_float(image, src_image);
 			break;
 		}
@@ -155,10 +155,10 @@ struct smbrr_image *smbrr_image_new(enum smbrr_image_type type,
 
 	case SMBRR_ADU_32:
 		switch (type) {
-		case SMBRR_IMAGE_UINT32:
+		case SMBRR_DATA_UINT32:
 			image->ops->uint_to_uint(image, src_image);
 			break;
-		case SMBRR_IMAGE_FLOAT:
+		case SMBRR_DATA_FLOAT:
 			image->ops->uint_to_float(image, src_image);
 			break;
 		}
@@ -166,10 +166,10 @@ struct smbrr_image *smbrr_image_new(enum smbrr_image_type type,
 
 	case SMBRR_ADU_FLOAT:
 		switch (type) {
-		case SMBRR_IMAGE_UINT32:
+		case SMBRR_DATA_UINT32:
 			image->ops->float_to_uint(image, src_image);
 			break;
-		case SMBRR_IMAGE_FLOAT:
+		case SMBRR_DATA_FLOAT:
 			image->ops->float_to_float(image, src_image);
 			break;
 		}
@@ -212,10 +212,10 @@ struct smbrr_image *smbrr_image_new_from_region(struct smbrr_image *src,
 		return NULL;
 
 	switch (src->type) {
-	case SMBRR_IMAGE_UINT32:
+	case SMBRR_DATA_UINT32:
 		bytes = sizeof(uint32_t);
 		break;
-	case SMBRR_IMAGE_FLOAT:
+	case SMBRR_DATA_FLOAT:
 		bytes = sizeof(float);
 		break;
 	default:
@@ -324,7 +324,7 @@ int smbrr_image_copy(struct smbrr_image *dest, struct smbrr_image *src)
 * Convert an image from one type to another.
 */
 int smbrr_image_convert(struct smbrr_image *image,
-	enum smbrr_image_type type)
+	enum smbrr_data_type type)
 {
 	return image->ops->convert(image, type);
 }

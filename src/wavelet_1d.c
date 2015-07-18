@@ -93,19 +93,19 @@ struct smbrr_wavelet_1d *smbrr_wavelet1d_new(struct smbrr_signal *signal,
 		goto m_err;
 
 	for (i = 1; i < num_scales; i++) {
-		w->c[i] = smbrr_signal_new(SMBRR_IMAGE_FLOAT, w->length, 0, NULL);
+		w->c[i] = smbrr_signal_new(SMBRR_DATA_FLOAT, w->length, 0, NULL);
 		if (w->c[i] == NULL)
 			goto c_err;
 	}
 
 	for (i = 0; i < num_scales - 1; i++) {
-		w->w[i] = smbrr_signal_new(SMBRR_IMAGE_FLOAT, w->length, 0, NULL);
+		w->w[i] = smbrr_signal_new(SMBRR_DATA_FLOAT, w->length, 0, NULL);
 		if (w->w[i] == NULL)
 			goto w_err;
 	}
 
 	for (i = 0; i < num_scales - 1; i++) {
-		w->s[i] = smbrr_signal_new(SMBRR_IMAGE_UINT32, w->length, 0, NULL);
+		w->s[i] = smbrr_signal_new(SMBRR_DATA_UINT32, w->length, 0, NULL);
 		if (w->s[i] == NULL)
 			goto s_err;
 	}
