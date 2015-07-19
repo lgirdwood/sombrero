@@ -389,18 +389,22 @@ static void find_limits_1d(struct smbrr *data, float *min, float *max)
 static void find_limits_2d(struct smbrr *data, float *min, float *max)
 {
 	float *adu = data->adu, _min, _max;
-	int offset;
+	int x, y, offset;
 
 	_min = 1.0e6;
 	_max = -1.0e6;
-// dont check stride
-	for (offset = 0; offset < data->elems; offset++) {
 
-		if (adu[offset] > _max)
-			_max = adu[offset];
+	for (x = 0; x < data->width; x++) {
+		for (y = 0; y < data->height; y++) {
 
-		if (adu[offset] < _min)
-			_min = adu[offset];
+			offset = y * data->stride + x;
+
+			if (adu[offset] > _max)
+				_max = adu[offset];
+
+			if (adu[offset] < _min)
+				_min = adu[offset];
+		}
 	}
 
 	*max = _max;
@@ -605,10 +609,15 @@ static float get_mean_1d(struct smbrr *data)
 static float get_mean_2d(struct smbrr *data)
 {
 	float mean = 0.0;
-	int i;
-// dont check stride
-	for (i = 0; i < data->elems; i++)
-		mean += data->adu[i];
+	int offset, x, y;
+
+	for (x = 0; x < data->width; x++) {
+		for (y = 0; y < data->height; y++) {
+
+			offset = y * data->stride + x;
+			mean += data->adu[offset];
+		}
+	}
 
 	mean /= (float)data->elems;
 	return mean;
@@ -641,19 +650,23 @@ static float get_mean_sig_2d(struct smbrr *data,
 	struct smbrr *sdata)
 {
 	float mean_sig = 0.0;
-	int i, ssize = 0;
+	int offset, ssize = 0, x, y;
 
 	if (data->height != sdata->height ||
 		data->width != sdata->width)
 		return 0.0;
 
-	for (i = 0; i < data->elems; i++) {
+		for (x = 0; x < data->width; x++) {
+			for (y = 0; y < data->height; y++) {
 
-		if (!sdata->s[i])
-			continue;
+			offset = y * data->stride + x;
 
-		mean_sig += data->adu[i];
-		ssize++;
+			if (!sdata->s[offset])
+				continue;
+
+			mean_sig += data->adu[offset];
+			ssize++;
+		}
 	}
 
 	mean_sig /= (float)ssize;
@@ -679,12 +692,17 @@ static float get_sigma_1d(struct smbrr *data, float mean)
 static float get_sigma_2d(struct smbrr *data, float mean)
 {
 	float t, sigma = 0.0;
-	int i;
+	int offset, x, y;
 
-	for (i = 0; i < data->elems;  i++) {
-		t = data->adu[i] - mean;
-		t *= t;
-		sigma += t;
+	for (x = 0; x < data->width; x++) {
+		for (y = 0; y < data->height; y++) {
+
+			offset = y * data->stride + x;
+
+			t = data->adu[offset] - mean;
+			t *= t;
+			sigma += t;
+		}
 	}
 
 	sigma /= (float) data->elems;
@@ -706,10 +724,15 @@ static float get_norm_1d(struct smbrr *data)
 static float get_norm_2d(struct smbrr *data)
 {
 	float norm = 0.0;
-	int i;
+	int x, y, offset;
 
-	for (i = 0; i < data->elems;  i++)
-		norm += data->adu[i] * data->adu[i];
+	for (x = 0; x < data->width; x++) {
+		for (y = 0; y < data->height; y++) {
+
+			offset = y * data->stride + x;
+			norm += data->adu[offset] * data->adu[offset];
+		}
+	}
 
 	return sqrtf(norm);
 }
@@ -776,7 +799,7 @@ static void new_significance_1d(struct smbrr *data,
 static void new_significance_2d(struct smbrr *data,
 	struct smbrr *sdata, float sigma)
 {
-	int i;
+	int offset, x, y;
 
 	if (data->height != sdata->height ||
 		data->width != sdata->width)
@@ -786,10 +809,15 @@ static void new_significance_2d(struct smbrr *data,
 	bzero(sdata->s, sizeof(uint32_t) * sdata->elems);
 	sdata->sig_pixels = 0;
 
-	for (i = 0; i < data->elems; i++) {
-		if (data->adu[i] >= sigma) {
-			sdata->s[i] = 1;
-			sdata->sig_pixels++;
+	for (x = 0; x < data->width; x++) {
+		for (y = 0; y < data->height; y++) {
+
+			offset = y * data->stride + x;
+
+			if (data->adu[offset] >= sigma) {
+				sdata->s[offset] = 1;
+				sdata->sig_pixels++;
+			}
 		}
 	}
 }
