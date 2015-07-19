@@ -29,98 +29,98 @@
 #include "mask.h"
 #include "config.h"
 
-/*! \fn float smbrr_image_get_mean(struct smbrr_image *image)
-* \param image Image
+/*! \fn float smbrr_data_get_mean(struct smbrr *data)
+* \param data Image
 * \return Image mean
 *
-* Calculate mean value of all image pixels.
+* Calculate mean value of all data pixels.
 */
-float smbrr_image_get_mean(struct smbrr_image *image)
+float smbrr_get_mean(struct smbrr *data)
 {
-	return image->ops->get_mean(image);
+	return data->ops->get_mean(data);
 }
 
-/*! \fn float smbrr_image_get_mean_sig(struct smbrr_image *image)
-* \param image Image
-* \param simage Significant image
+/*! \fn float smbrr_data_get_mean_sig(struct smbrr *data)
+* \param data Image
+* \param sdata Significant data
 * \return mean value of significant pixels.
 *
-* Calculate the mean value of significant image pixels. i.e mean value
-* of all image(pixel) where simage(pixel) > 0.
+* Calculate the mean value of significant data pixels. i.e mean value
+* of all data(pixel) where sdata(pixel) > 0.
 */
-float smbrr_image_get_mean_sig(struct smbrr_image *image,
-	struct smbrr_image *simage)
+float smbrr_significant_get_mean(struct smbrr *data,
+	struct smbrr *sdata)
 {
-	return image->ops->get_mean_sig(image, simage);
+	return data->ops->get_mean_sig(data, sdata);
 }
 
-/*! \fn float smbrr_image_get_sigma(struct smbrr_image *image, float mean)
-* \param image Image
+/*! \fn float smbrr_data_get_sigma(struct smbrr *data, float mean)
+* \param data Image
 * \param mean
-* \return Standard deviation of all image pixels.
+* \return Standard deviation of all data pixels.
 *
-* Calculate standard deviation (sigma) of image pixels.
+* Calculate standard deviation (sigma) of data pixels.
 */
-float smbrr_image_get_sigma(struct smbrr_image *image, float mean)
+float smbrr_get_sigma(struct smbrr *data, float mean)
 {
-	return image->ops->get_sigma(image, mean);
+	return data->ops->get_sigma(data, mean);
 }
 
-/*! \fn float smbrr_image_get_norm(struct smbrr_image *image)
-* \param image Image
+/*! \fn float smbrr_data_get_norm(struct smbrr *data)
+* \param data Image
 * \return Image norm
 *
-* Calculate norm of image pixels. i.e sqrt(sum of pixels)
+* Calculate norm of data pixels. i.e sqrt(sum of pixels)
 */
-float smbrr_image_get_norm(struct smbrr_image *image)
+float smbrr_get_norm(struct smbrr *data)
 {
-	return image->ops->get_norm(image);
+	return data->ops->get_norm(data);
 }
 
-/*! \fn float smbrr_image_get_sigma_sig(struct smbrr_image *image,
-	struct smbrr_image *simage, float mean_sig)
-* \param image Image
-* \param simage Significant image
+/*! \fn float smbrr_data_get_sigma_sig(struct smbrr *data,
+	struct smbrr *sdata, float mean_sig)
+* \param data Image
+* \param sdata Significant data
 * \param mean_sig Mean value of significant pixels
 * \return Standard deviation of significant pixels.
 *
-* Calculate standard deviation (sigma) of significant image pixels. i.e
-* standard deviation of all image(pixel) where simage(pixel) > 0.
+* Calculate standard deviation (sigma) of significant data pixels. i.e
+* standard deviation of all data(pixel) where sdata(pixel) > 0.
 */
-float smbrr_image_get_sigma_sig(struct smbrr_image *image,
-	struct smbrr_image *simage, float mean_sig)
+float smbrr_significant_get_sigma(struct smbrr *data,
+	struct smbrr *sdata, float mean_sig)
 {
-	return image->ops->get_sigma_sig(image, simage, mean_sig);
+	return data->ops->get_sigma_sig(data, sdata, mean_sig);
 }
 
-/*! \fn void smbrr_image_anscombe(struct smbrr_image *image, float gain,
+/*! \fn void smbrr_data_anscombe(struct smbrr *data, float gain,
 	float bias, float readout)
-* \param image Image
+* \param data Image
 * \param gain CCD amplifier gain in photo-electrons per ADU
 * \param bias Image bias in ADUs
 * \param readout Readout noise in RMS electrons.
 *
-* Convert an Poisson noise in an image to an image with a constant Guassian
+* Convert an Poisson noise in an data to an data with a constant Guassian
 * deviation suitable for wavelet convolutions.
 */
-void smbrr_image_anscombe(struct smbrr_image *image, float gain, float bias,
+void smbrr_anscombe(struct smbrr *data, float gain, float bias,
 	float readout)
 {
-	image->ops->anscombe(image, gain, bias, readout);
+	data->ops->anscombe(data, gain, bias, readout);
 }
 
-/*! \fn void smbrr_image_new_significance(struct smbrr_image *image,
-	struct smbrr_image *simage, float sigma)
-* \param image Image
-* \param simage Significant image
+/*! \fn void smbrr_data_new_significance(struct smbrr *data,
+	struct smbrr *sdata, float sigma)
+* \param data Image
+* \param sdata Significant data
 * \param sigma sigma
 *
-* Create new significance image from image for pixels above sigma.
+* Create new significance data from data for pixels above sigma.
 */
-void smbrr_image_new_significance(struct smbrr_image *image,
-	struct smbrr_image *simage, float sigma)
+void smbrr_significant_new(struct smbrr *data,
+	struct smbrr *sdata, float sigma)
 {
-	image->ops->new_significance(image, simage, sigma);
+	data->ops->new_significance(data, sdata, sigma);
 }
 
 #define D1(x)	(1.0 / x)
@@ -148,18 +148,18 @@ static const struct smbrr_clip_coeff k_sigma[6] = {
 		M1(1.0), D1(2.0), D1(4.0), D1(8.0), D1(16.0)},},
 };
 
-static void clip_scale(struct smbrr_wavelet_2d *w, int scale,
+static void clip_scale(struct smbrr_wavelet *w, int scale,
 		const struct smbrr_clip_coeff *c, float sig_delta)
 {
-	struct smbrr_image *image, *simage;
+	struct smbrr *data, *sdata;
 	float mean, sigma;
 	float mean_sig, sigma_sig, sigma_sig_old = 0.0;
 
-	image = smbrr_wavelet_image_get_wavelet(w, scale);
-	simage = smbrr_wavelet_image_get_significant(w, scale);
+	data = smbrr_wavelet_get_data_wavelet(w, scale);
+	sdata = smbrr_wavelet_get_data_significant(w, scale);
 
-	mean = smbrr_image_get_mean(image);
-	sigma = smbrr_image_get_sigma(image, mean);
+	mean = smbrr_get_mean(data);
+	sigma = smbrr_get_sigma(data, mean);
 
 	sigma_sig = sigma;
 
@@ -167,19 +167,19 @@ static void clip_scale(struct smbrr_wavelet_2d *w, int scale,
 	do {
 		sigma_sig_old = sigma_sig;
 
-		/* create new sig pixel image for scale */
-		smbrr_image_new_significance(image, simage,
+		/* create new sig pixel data for scale */
+		smbrr_significant_new(data, sdata,
 			c->coeff[scale] * sigma_sig_old);
 
 		/* calculate new mean and sigma for sig pixels */
-		mean_sig = smbrr_image_get_mean_sig(image, simage);
-		smbrr_image_get_sigma_sig(image, simage, mean_sig);
+		mean_sig = smbrr_significant_get_mean(data, sdata);
+		smbrr_significant_get_sigma(data, sdata, mean_sig);
 
 		/* keep going if sigma difference is above delta */
 	} while (fabsf(sigma_sig - sigma_sig_old) > sig_delta);
 }
 
-/*! \fn int smbrr_wavelet_ksigma_clip(struct smbrr_wavelet_2d *w,
+/*! \fn int smbrr_wavelet_ksigma_clip(struct smbrr_wavelet *w,
 	enum smbrr_clip clip, float sig_delta)
 * \param w wavelet
 * \param clip clipping strength
@@ -188,7 +188,7 @@ static void clip_scale(struct smbrr_wavelet_2d *w, int scale,
 * Clip each wavelet scale based on strength until sigma for each scale is less
 * than sig_delta.
 */
-int smbrr_wavelet_ksigma_clip(struct smbrr_wavelet_2d *w, enum smbrr_clip clip,
+int smbrr_wavelet_ksigma_clip(struct smbrr_wavelet *w, enum smbrr_clip clip,
 	float sig_delta)
 {
 	const struct smbrr_clip_coeff *coeff;
@@ -205,7 +205,7 @@ int smbrr_wavelet_ksigma_clip(struct smbrr_wavelet_2d *w, enum smbrr_clip clip,
 	return 0;
 }
 
-/*! \fn int smbrr_wavelet_ksigma_clip(struct smbrr_wavelet_2d *w,
+/*! \fn int smbrr_wavelet_ksigma_clip(struct smbrr_wavelet *w,
 	enum smbrr_clip clip, float sig_delta)
 * \param w wavelet
 * \param clip clipping strength
@@ -214,7 +214,7 @@ int smbrr_wavelet_ksigma_clip(struct smbrr_wavelet_2d *w, enum smbrr_clip clip,
 * Clip each wavelet scale based on strength until sigma for each scale is less
 * than sig_delta.
 */
-int smbrr_wavelet_ksigma_clip_custom(struct smbrr_wavelet_2d *w,
+int smbrr_wavelet_ksigma_clip_custom(struct smbrr_wavelet *w,
 	struct smbrr_clip_coeff *coeff, float sig_delta)
 {
 	int i;
@@ -226,18 +226,18 @@ int smbrr_wavelet_ksigma_clip_custom(struct smbrr_wavelet_2d *w,
 	return 0;
 }
 
-/*! \fn int smbrr_wavelet_new_significance(struct smbrr_wavelet_2d *w,
+/*! \fn int smbrr_wavelet_new_significance(struct smbrr_wavelet *w,
 	enum smbrr_clip sigma_clip)
 * \param w wavelet
 * \param sigma_clip clipping strength
 *
-* Create new significance images at each scale for wavelet using clip strength
+* Create new significance datas at each scale for wavelet using clip strength
 * sigma_clip.
 */
-int smbrr_wavelet_new_significance(struct smbrr_wavelet_2d *w,
+int smbrr_wavelet_new_significant(struct smbrr_wavelet *w,
 	enum smbrr_clip sigma_clip)
 {
-	struct smbrr_image *W, *S;
+	struct smbrr *W, *S;
 	const struct smbrr_clip_coeff *c;
 	float mean, sigma;
 	int i;
@@ -248,34 +248,34 @@ int smbrr_wavelet_new_significance(struct smbrr_wavelet_2d *w,
 	c = &k_sigma[sigma_clip];
 
 	for (i = 0; i < w->num_scales - 1; i++) {
-		W = smbrr_wavelet_image_get_wavelet(w, i);
-		S = smbrr_wavelet_image_get_significant(w, i);
+		W = smbrr_wavelet_get_data_wavelet(w, i);
+		S = smbrr_wavelet_get_data_significant(w, i);
 
-		mean = smbrr_image_get_mean(W);
-		sigma = smbrr_image_get_sigma(W, mean);
+		mean = smbrr_get_mean(W);
+		sigma = smbrr_get_sigma(W, mean);
 
-		smbrr_image_new_significance(W, S,
+		smbrr_significant_new(W, S,
 			c->coeff[i] * sigma);
 	}
 
 	return 0;
 }
 
-/*! \fn int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet_2d *w,
+/*! \fn int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet *w,
  * 	float dark);
 * \param w wavelet.
 * \param dark Mean dark ADU
 *
 * Set the mean dark ADU level.
 */
-int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet_2d *w,
+int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet *w,
 		float dark)
 {
 	w->dark = dark;
 	return 0;
 }
 
-/*! \fn void smbrr_wavelet_set_ccd(struct smbrr_wavelet_2d *w, float gain, float bias,
+/*! \fn void smbrr_wavelet_set_ccd(struct smbrr_wavelet *w, float gain, float bias,
 	float readout)
 * \param w wavelet.
 * \param gain CCD amplifier gain in photo-electrons per ADU
@@ -284,7 +284,7 @@ int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet_2d *w,
 *
 * Set the CCD device configuration for noise calculations.
 */
-void smbrr_wavelet_set_ccd(struct smbrr_wavelet_2d *w, float gain, float bias,
+void smbrr_wavelet_set_ccd(struct smbrr_wavelet *w, float gain, float bias,
 	float readout)
 {
 	w->gain = gain;

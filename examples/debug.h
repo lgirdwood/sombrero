@@ -26,7 +26,7 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-static inline void smbrr_image_dump_(struct smbrr_image *image,
+static inline void smbrr_image_dump_(struct smbrr *image,
 	const char *fmt, ...)
 {
 	va_list va;

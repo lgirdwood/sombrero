@@ -43,7 +43,7 @@
 #endif
 
 /* create Wi and Ci from C0 */
-static void atrous_conv(struct smbrr_wavelet_2d *wavelet)
+static void atrous_conv(struct smbrr_wavelet *wavelet)
 {
 	int scale, scale2, height;
 	float *c, *_c;
@@ -52,13 +52,13 @@ static void atrous_conv(struct smbrr_wavelet_2d *wavelet)
 	for (scale = 1; scale < wavelet->num_scales; scale++) {
 
 		/* clear each scale */
-		smbrr_image_reset_value(wavelet->c[scale], 0.0);
+		smbrr_reset_value(wavelet->c[scale], 0.0);
 
 		c = wavelet->c[scale]->adu;
 		_c = wavelet->c[scale - 1]->adu;
 		scale2 = 1 << (scale - 1);
 
-		/* image height loop */
+		/* data height loop */
 #pragma omp parallel for \
 		firstprivate(c, _c, scale, scale2, wavelet) \
 		schedule(static, 50)
@@ -71,7 +71,7 @@ static void atrous_conv(struct smbrr_wavelet_2d *wavelet)
 			xc = wavelet->mask.width >> 1;
 			yc = wavelet->mask.height >> 1;
 
-			/* image width loop */
+			/* data width loop */
 			for (width = 0; width < wavelet->width; width++) {
 
 				pixel = height * wavelet->width + width;
@@ -88,7 +88,7 @@ static void atrous_conv(struct smbrr_wavelet_2d *wavelet)
 						offx = x_boundary(wavelet->width,
 							width + ((x - xc) * scale2));
 
-						offxy = image_get_offset(wavelet->c[scale], offx, offy);
+						offxy = data_get_offset(wavelet->c[scale], offx, offy);
 						maskxy = mask_get_offset(wavelet->mask.width, x, y);
 
 						c[pixel] += _c[offxy] * wavelet->mask.data[maskxy];
@@ -101,13 +101,13 @@ static void atrous_conv(struct smbrr_wavelet_2d *wavelet)
 	/* create wavelet */
 #pragma omp parallel for schedule(static, 1)
 	for (scale = 1; scale < wavelet->num_scales; scale++)
-		smbrr_image_subtract(wavelet->w[scale - 1], wavelet->c[scale - 1],
+		smbrr_subtract(wavelet->w[scale - 1], wavelet->c[scale - 1],
 				wavelet->c[scale]);
 
 }
 
 /* create Wi and Ci from C0 if S */
-static void atrous_conv_sig(struct smbrr_wavelet_2d *wavelet)
+static void atrous_conv_sig(struct smbrr_wavelet *wavelet)
 {
 	int scale, height, scale2;
 	float *c, *_c;
@@ -116,7 +116,7 @@ static void atrous_conv_sig(struct smbrr_wavelet_2d *wavelet)
 	for (scale = 1; scale < wavelet->num_scales; scale++) {
 
 		/* clear each scale */
-		smbrr_image_reset_value(wavelet->c[scale], 0.0);
+		smbrr_reset_value(wavelet->c[scale], 0.0);
 
 		/* dont run loop if there are no sig pixels at this scale */
 		if (wavelet->s[scale - 1]->sig_pixels == 0)
@@ -126,7 +126,7 @@ static void atrous_conv_sig(struct smbrr_wavelet_2d *wavelet)
 		_c = wavelet->c[scale - 1]->adu;
 		scale2 = 1 << (scale - 1);
 
-		/* image height loop */
+		/* data height loop */
 #pragma omp parallel for \
 		firstprivate(c, _c, scale, scale2, wavelet) \
 		schedule(static, 50)
@@ -139,7 +139,7 @@ static void atrous_conv_sig(struct smbrr_wavelet_2d *wavelet)
 			xc = wavelet->mask.width >> 1;
 			yc = wavelet->mask.height >> 1;
 
-			/* image width loop */
+			/* data width loop */
 			for (width = 0; width < wavelet->width; width++) {
 
 				pixel = height * wavelet->width + width;
@@ -156,7 +156,7 @@ static void atrous_conv_sig(struct smbrr_wavelet_2d *wavelet)
 						offx = x_boundary(wavelet->width,
 							width + ((x - xc) * scale2));
 
-						offxy = image_get_offset(wavelet->c[scale], offx, offy);
+						offxy = data_get_offset(wavelet->c[scale], offx, offy);
 
 						/* only apply wavelet if sig */
 						if (!wavelet->s[scale - 1]->s[offxy])
@@ -173,12 +173,12 @@ static void atrous_conv_sig(struct smbrr_wavelet_2d *wavelet)
 	/* create wavelet */
 #pragma omp parallel for schedule(static, 1)
 	for (scale = 1; scale < wavelet->num_scales; scale++)
-		smbrr_image_subtract(wavelet->w[scale - 1], wavelet->c[scale - 1],
+		smbrr_subtract(wavelet->w[scale - 1], wavelet->c[scale - 1],
 				wavelet->c[scale]);
 
 }
 
-static void insert_object(struct smbrr_wavelet_2d *w,
+static void insert_object(struct smbrr_wavelet *w,
 		struct object *object, unsigned int pixel)
 {
 	/* insert object if none or current object at higher scale */
@@ -195,12 +195,12 @@ static void insert_object(struct smbrr_wavelet_2d *w,
 }
 
 /* C0 = C(scale - 1) + sum of wavelets; */
-static void atrous_deconv_object(struct smbrr_wavelet_2d *w,
+static void atrous_deconv_object(struct smbrr_wavelet *w,
 	struct smbrr_object *object)
 {
 	struct structure *s;
 	struct object *o = (struct object *)object;
-	struct smbrr_image *image = o->image, *simage, *wimage;
+	struct smbrr *data = o->data, *sdata, *wdata;
 	int scale, x, y, id, ix, iy, pixel, ipixel, start, end;
 
 	ix = object->minXy.x;
@@ -212,17 +212,17 @@ static void atrous_deconv_object(struct smbrr_wavelet_2d *w,
 		s = w->structure[object->scale] +
 			o->structure[object->scale];
 		id = s->id + 2;
-		simage = w->s[scale];
-		wimage = w->w[scale];
+		sdata = w->s[scale];
+		wdata = w->w[scale];
 
 		for (x = s->minXy.x; x <= s->maxXy.x; x++) {
 			for (y = s->minxY.y; y <= s->maxxY.y; y++) {
 
-				pixel = simage->width * y + x;
+				pixel = sdata->width * y + x;
 
-				if (simage->s[pixel] == id) {
-					ipixel = image->width * (y - iy) + (x - ix);
-					image->adu[ipixel] += wimage->adu[pixel];
+				if (sdata->s[pixel] == id) {
+					ipixel = data->width * (y - iy) + (x - ix);
+					data->adu[ipixel] += wdata->adu[pixel];
 					insert_object(w, o, pixel);
 				}
 			}
@@ -230,7 +230,7 @@ static void atrous_deconv_object(struct smbrr_wavelet_2d *w,
 	}
 }
 
-const struct convolution2d_ops OPS(conv2d_ops) = {
+const struct convolution_ops OPS(conv_ops_2d) = {
 	.atrous_conv = atrous_conv,
 	.atrous_conv_sig = atrous_conv_sig,
 	.atrous_deconv_object = atrous_deconv_object,

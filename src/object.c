@@ -24,6 +24,9 @@
 
 #include "sombrero.h"
 #include "local.h"
+#include "ops.h"
+#include "mask.h"
+#include "config.h"
 
 /*! \cond */
 struct stack {
@@ -32,8 +35,8 @@ struct stack {
 };
 
 struct structure_info {
-	struct smbrr_image *simage; /* structure significant image */
-	struct smbrr_image *wimage; /* structure wavelet coefficients */
+	struct smbrr *sdata; /* structure significant data */
+	struct smbrr *wdata; /* structure wavelet coefficients */
 
 	struct stack *stack;
 	struct structure *structure;
@@ -44,7 +47,7 @@ struct structure_info {
 };
 /*! \cond */
 
-static int create_object(struct smbrr_wavelet_2d *w, unsigned int scale,
+static int create_object(struct smbrr_wavelet *w, unsigned int scale,
 	struct structure *structure);
 
 static inline int stack_pop(struct stack *s, unsigned int *data)
@@ -83,14 +86,14 @@ static inline int stack_not_empty(struct stack *s)
 
 static inline void structure_add_pixel(struct structure_info *info, int pixel)
 {
-	struct smbrr_image *simage = info->simage;
-	struct smbrr_image *wimage = info->wimage;
+	struct smbrr *sdata = info->sdata;
+	struct smbrr *wdata = info->wdata;
 
-	simage->s[pixel] = info->id;
+	sdata->s[pixel] = info->id;
 	info->structure->size++;
 
-	if (wimage->adu[pixel] > info->structure->max_value) {
-		info->structure->max_value = wimage->adu[pixel];
+	if (wdata->adu[pixel] > info->structure->max_value) {
+		info->structure->max_value = wdata->adu[pixel];
 		info->structure->max_pixel = pixel;
 	}
 }
@@ -99,19 +102,19 @@ static inline void structure_add_pixel(struct structure_info *info, int pixel)
 static int structure_detect_south(struct structure_info *info, int pixel,
 		int new)
 {
-	struct smbrr_image *simage = info->simage;
-	unsigned int y = pixel / simage->width;
+	struct smbrr *sdata = info->sdata;
+	unsigned int y = pixel / sdata->width;
 
 	/* get minimum Y coord for structure */
 	if (info->structure->minxY.y > y) {
 		info->structure->minxY.y = y;
-		info->structure->minxY.x = pixel % simage->width;
+		info->structure->minxY.x = pixel % sdata->width;
 	}
 
-	if (y > 0 && simage->s[pixel - simage->width] == 1) {
+	if (y > 0 && sdata->s[pixel - sdata->width] == 1) {
 
 		if (!new)
-			stack_push(info->stack, pixel - simage->width);
+			stack_push(info->stack, pixel - sdata->width);
 
 		return 1;
 	}
@@ -123,20 +126,20 @@ static int structure_detect_south(struct structure_info *info, int pixel,
 static int structure_detect_north(struct structure_info *info, int pixel,
 		int new)
 {
-	struct smbrr_image *simage = info->simage;
-	unsigned int y = pixel / simage->width;
+	struct smbrr *sdata = info->sdata;
+	unsigned int y = pixel / sdata->width;
 
 	/* get maximum Y coord for structure */
 	if (info->structure->maxxY.y < y) {
 		info->structure->maxxY.y = y;
-		info->structure->maxxY.x = pixel % simage->width;
+		info->structure->maxxY.x = pixel % sdata->width;
 	}
 
-	if (y < simage->height - 1 &&
-		simage->s[pixel + simage->width] == 1) {
+	if (y < sdata->height - 1 &&
+		sdata->s[pixel + sdata->width] == 1) {
 
 		if (!new)
-			stack_push(info->stack, pixel + simage->width);
+			stack_push(info->stack, pixel + sdata->width);
 
 		return 1;
 	}
@@ -147,14 +150,14 @@ static int structure_detect_north(struct structure_info *info, int pixel,
 /* fill line with current structure ID */
 static void structure_scan_line(struct structure_info *info, int pixel)
 {
-	struct smbrr_image *simage = info->simage;
+	struct smbrr *sdata = info->sdata;
 	int x, y, start, end, line_pixel, news, newn;
 
 	/* calculate line limits */
-	x = pixel % simage->width;
-	y = pixel / simage->width;
+	x = pixel % sdata->width;
+	y = pixel / sdata->width;
 	start = pixel - x;
-	end = start + simage->width;
+	end = start + sdata->width;
 
 	/* get initial y values */
 	if (info->structure->maxxY.y < y) {
@@ -170,7 +173,7 @@ static void structure_scan_line(struct structure_info *info, int pixel)
 	news = newn = 0;
 	for (line_pixel = pixel - 1; line_pixel >= start; line_pixel--) {
 
-		if (simage->s[line_pixel] != 1)
+		if (sdata->s[line_pixel] != 1)
 			break;
 
 		structure_add_pixel(info, line_pixel);
@@ -179,7 +182,7 @@ static void structure_scan_line(struct structure_info *info, int pixel)
 	}
 
 	/* get minimum X coord for structure */
-	x = line_pixel % simage->width;
+	x = line_pixel % sdata->width;
 	if (info->structure->minXy.x > x) {
 		info->structure->minXy.x = x;
 		info->structure->minXy.y = y;
@@ -189,7 +192,7 @@ static void structure_scan_line(struct structure_info *info, int pixel)
 	news = newn = 0;
 	for (line_pixel = pixel + 1; line_pixel < end; line_pixel++) {
 
-		if (simage->s[line_pixel] != 1)
+		if (sdata->s[line_pixel] != 1)
 					break;
 
 		structure_add_pixel(info, line_pixel);
@@ -198,7 +201,7 @@ static void structure_scan_line(struct structure_info *info, int pixel)
 	}
 
 	/* get maximum X coord for structure */
-	x = line_pixel % simage->width;
+	x = line_pixel % sdata->width;
 	if (info->structure->maxXy.x < x) {
 		info->structure->maxXy.x = x;
 		info->structure->maxXy.y = y;
@@ -223,7 +226,7 @@ static void structure_detect_pixels(struct structure_info *info)
 	}
 }
 
-/*! \fn int smbrr_wavelet_structure_find(struct smbrr_wavelet_2d *w,
+/*! \fn int smbrr_wavelet_structure_find(struct smbrr_wavelet *w,
 	unsigned int scale)
 * \param w Wavelet
 * \param scale Scale to be searched.
@@ -231,16 +234,16 @@ static void structure_detect_pixels(struct structure_info *info)
 *
 * Search this wavelet scale for any structures that could be part of an object.
 */
-int smbrr_wavelet_structure_find(struct smbrr_wavelet_2d *w, unsigned int scale)
+int smbrr_wavelet_structure_find(struct smbrr_wavelet *w, unsigned int scale)
 {
 	struct structure_info info;
 	struct stack stack;
 	int size, err;
 
-	info.wimage = w->w[scale];
-	info.simage = w->s[scale];
+	info.wdata = w->w[scale];
+	info.sdata = w->s[scale];
 
-	size = info.wimage->size;
+	size = info.wdata->elems;
 	err = stack_init(&stack, size);
 	if (err < 0)
 		return -ENOMEM;
@@ -254,7 +257,7 @@ int smbrr_wavelet_structure_find(struct smbrr_wavelet_2d *w, unsigned int scale)
 	for (info.pixel = 0; info.pixel < size; info.pixel++) {
 
 		/* is pixel significant */
-		if (info.simage->s[info.pixel] == 1) {
+		if (info.sdata->s[info.pixel] == 1) {
 			info.id++;
 
 			/* new structure detected */
@@ -288,12 +291,12 @@ err:
 }
 
 /* find structure at pixel on scale */
-static struct structure *find_root_structure(struct smbrr_wavelet_2d *w,
+static struct structure *find_root_structure(struct smbrr_wavelet *w,
 		unsigned int root_scale, unsigned int pixel)
 {
-	struct smbrr_image *simage = w->s[root_scale];
+	struct smbrr *sdata = w->s[root_scale];
 	struct structure *s = w->structure[root_scale];
-	int id = simage->s[pixel];
+	int id = sdata->s[pixel];
 
 	/* is there any structure at this pixel ? */
 	if (id < 2)
@@ -303,9 +306,9 @@ static struct structure *find_root_structure(struct smbrr_wavelet_2d *w,
 	return s + id - 2;
 }
 
-/* prune structures within 8 pixels (scale 3) of image edges to
+/* prune structures within 8 pixels (scale 3) of data edges to
  * remove unwanted edge artifacts */
-static void prune_structure(struct smbrr_wavelet_2d *w,
+static void prune_structure(struct smbrr_wavelet *w,
 	unsigned int scale, struct structure *structure)
 {
 	int x, y, pixel;
@@ -319,7 +322,7 @@ static void prune_structure(struct smbrr_wavelet_2d *w,
 }
 
 /* connect a single structure to a struct on scale + 1 */
-static int connect_structure_to_root(struct smbrr_wavelet_2d *w,
+static int connect_structure_to_root(struct smbrr_wavelet *w,
 	unsigned int root_scale, struct structure *structure)
 {
 	struct structure *root;
@@ -351,20 +354,20 @@ static int connect_structure_to_root(struct smbrr_wavelet_2d *w,
 	return 0;
 }
 
-static float structure_get_distance(struct smbrr_wavelet_2d *w,
+static float structure_get_distance(struct smbrr_wavelet *w,
 		struct structure *structure1,
 		struct structure *structure2)
 {
-	struct smbrr_image *image1, *image2;
+	struct smbrr *data1, *data2;
 	float x, y;
 
-	image1 = w->s[structure1->scale];
-	image2 = w->s[structure2->scale];
+	data1 = w->s[structure1->scale];
+	data2 = w->s[structure2->scale];
 
-	x = image_get_x(image1, structure1->max_pixel) -
-			image_get_x(image1, structure2->max_pixel);
-	y = image_get_y(image2, structure1->max_pixel) -
-			image_get_y(image2, structure2->max_pixel);
+	x = data_get_x(data1, structure1->max_pixel) -
+			data_get_x(data1, structure2->max_pixel);
+	y = data_get_y(data2, structure1->max_pixel) -
+			data_get_y(data2, structure2->max_pixel);
 
 	x *= x;
 	y *= y;
@@ -373,7 +376,7 @@ static float structure_get_distance(struct smbrr_wavelet_2d *w,
 }
 
 /* get branch closest to structure max value pixel */
-struct structure *structure_get_closest_branch(struct smbrr_wavelet_2d *w,
+struct structure *structure_get_closest_branch(struct smbrr_wavelet *w,
 	int scale, struct structure *structure)
 {
 	struct structure *s, *closest, *branch;
@@ -397,11 +400,11 @@ struct structure *structure_get_closest_branch(struct smbrr_wavelet_2d *w,
 	return closest;
 }
 
-static struct structure *structure_is_root(struct smbrr_wavelet_2d *w,
+static struct structure *structure_is_root(struct smbrr_wavelet *w,
 	struct structure *structure, struct structure *root)
 {
-	struct smbrr_image *simage = w->s[structure->scale];
-	struct smbrr_image *sroot = w->s[root->scale];
+	struct smbrr *sdata = w->s[structure->scale];
+	struct smbrr *sroot = w->s[root->scale];
 	unsigned int x, y, pixel, sid, rid;
 
 	sid = structure->id + 2;
@@ -410,9 +413,9 @@ static struct structure *structure_is_root(struct smbrr_wavelet_2d *w,
 	for (x = structure->minXy.x; x <= structure->maxXy.x; x++) {
 		for (y = structure->minxY.y; y <= structure->maxxY.y; y++) {
 
-			pixel = simage->width * y + x;
+			pixel = sdata->width * y + x;
 
-			if (simage->s[pixel] == sid &&
+			if (sdata->s[pixel] == sid &&
 					sroot->s[pixel] == rid) {
 				if (pixel == root->max_pixel)
 					return structure;
@@ -423,16 +426,16 @@ static struct structure *structure_is_root(struct smbrr_wavelet_2d *w,
 	return NULL;
 }
 
-static int object_create_image(struct smbrr_wavelet_2d *w, struct object *object)
+static int object_create_data(struct smbrr_wavelet *w, struct object *object)
 {
 	int width, height, ret;
 
 	width = object->o.maxXy.x - object->o.minXy.x + 1;
 	height = object->o.maxxY.y - object->o.minxY.y + 1;
 
-	object->image = smbrr_image_new(SMBRR_DATA_FLOAT, width, height, 0,
+	object->data = smbrr_new(w->c[0]->type, width, height, 0,
 		SMBRR_ADU_8, NULL);
-	if (object->image == NULL)
+	if (object->data == NULL)
 		return -ENOMEM;
 
 	ret = smbrr_wavelet_deconvolution_object(w, w->conv_type,
@@ -441,7 +444,7 @@ static int object_create_image(struct smbrr_wavelet_2d *w, struct object *object
 	return ret;
 }
 
-static void object_get_bounds(struct smbrr_wavelet_2d *w,
+static void object_get_bounds(struct smbrr_wavelet *w,
 	struct object *object)
 {
 	struct structure *structure;
@@ -493,32 +496,32 @@ static void object_get_bounds(struct smbrr_wavelet_2d *w,
 	}
 }
 
-static void object_get_position(struct smbrr_wavelet_2d *w,
+static void object_get_position(struct smbrr_wavelet *w,
 	struct object *object)
 {
 	struct structure *structure;
-	struct smbrr_image *wimage;
+	struct smbrr *wdata;
 
 	/* get object position */
-	wimage = w->w[object->o.scale];
+	wdata = w->w[object->o.scale];
 	structure = w->structure[object->o.scale] +
 		object->structure[object->o.scale];
 
-	object->o.pos.x = structure->max_pixel % wimage->width;
-	object->o.pos.y = structure->max_pixel / wimage->width;
+	object->o.pos.x = structure->max_pixel % wdata->width;
+	object->o.pos.y = structure->max_pixel / wdata->width;
 }
 
-static void object_get_sigma(struct smbrr_wavelet_2d *w,
+static void object_get_sigma(struct smbrr_wavelet *w,
 	struct object *object)
 {
 	int i;
 	float sigma = 0.0, t;
 
 	/* get sigma */
-	for (i = 0; i < object->image->size; i++) {
-		if (object->image->adu[i] == 0.0)
+	for (i = 0; i < object->data->elems; i++) {
+		if (object->data->adu[i] == 0.0)
 			continue;
-		t = object->image->adu[i] - object->o.mean_adu;
+		t = object->data->adu[i] - object->o.mean_adu;
 		t *= t;
 		sigma += t;
 	}
@@ -527,20 +530,20 @@ static void object_get_sigma(struct smbrr_wavelet_2d *w,
 	object->o.sigma_adu = sqrtf(sigma);
 }
 
-static int object_get_area(struct smbrr_wavelet_2d *w,
+static int object_get_area(struct smbrr_wavelet *w,
 	struct object *object)
 {
 	int err, i;
 
-	/* create image for this object */
-	err = object_create_image(w, object);
+	/* create data for this object */
+	err = object_create_data(w, object);
 	if (err < 0)
 		return err;
 
 	/* calculate total ADU and area for object */
-	for (i = 0; i < object->image->size; i++) {
-		if (object->image->adu[i] != 0.0) {
-			object->o.object_adu += object->image->adu[i];
+	for (i = 0; i < object->data->elems; i++) {
+		if (object->data->adu[i] != 0.0) {
+			object->o.object_adu += object->data->adu[i];
 			object->o.object_area++;
 		}
 	}
@@ -551,7 +554,7 @@ static int object_get_area(struct smbrr_wavelet_2d *w,
 	return 0;
 }
 
-static void object_get_type(struct smbrr_wavelet_2d *w,
+static void object_get_type(struct smbrr_wavelet *w,
 		struct object *object)
 {
 	/* simple guess that stars mean value is usually higher than sigma */
@@ -559,10 +562,10 @@ static void object_get_type(struct smbrr_wavelet_2d *w,
 	if (object->o.sigma_adu > object->o.mean_adu)
 		object->o.type = SMBRR_OBJECT_EXTENDED;
 	else
-		object->o.type = SMBRR_OBJECT_STAR;
+		object->o.type = SMBRR_OBJECT_POINT;
 }
 
-static inline int pixel_is_stellar_object(struct smbrr_wavelet_2d *w,
+static inline int pixel_is_stellar_object(struct smbrr_wavelet *w,
 		unsigned int pixel)
 {
 	struct object *object = w->object_map[pixel];
@@ -575,7 +578,7 @@ static inline int pixel_is_stellar_object(struct smbrr_wavelet_2d *w,
 	return 1;
 }
 
-static inline int pixel_is_object(struct smbrr_wavelet_2d *w,
+static inline int pixel_is_object(struct smbrr_wavelet *w,
 		unsigned int pixel, struct object *object)
 {
 	struct object *o = w->object_map[pixel];
@@ -598,7 +601,7 @@ static int background_cmp(const void *o1, const void *o2)
 		return 0;
 }
 
-static void object_get_annulus_background(struct smbrr_wavelet_2d *w,
+static void object_get_annulus_background(struct smbrr_wavelet *w,
 		struct object *object)
 {
 	int count = 0, x, y, xstart, ystart, xend, yend, pixel, size, i, bstart, bend;
@@ -658,7 +661,7 @@ static void object_get_annulus_background(struct smbrr_wavelet_2d *w,
 	object->o.background_area = bend - bstart;
 }
 
-static void object_get_background(struct smbrr_wavelet_2d *w,
+static void object_get_background(struct smbrr_wavelet *w,
 		struct object *object)
 {
 	struct smbrr_object *o = &object->o;
@@ -675,7 +678,7 @@ static void object_get_background(struct smbrr_wavelet_2d *w,
 	object_get_annulus_background(w, object);
 }
 
-static void object_calc_snr(struct smbrr_wavelet_2d *w, struct object *object)
+static void object_calc_snr(struct smbrr_wavelet *w, struct object *object)
 {
 	struct smbrr_object *o = &object->o;
 	float star, background, dark, star_noise, sky_noise, ro2;
@@ -706,7 +709,7 @@ static void object_calc_snr(struct smbrr_wavelet_2d *w, struct object *object)
 	o->error  = -2.5 * log10(1.0 - 1.0 / o->snr);
 }
 
-static int object_calc_data(struct smbrr_wavelet_2d *w)
+static int object_calc_data(struct smbrr_wavelet *w)
 {
 	struct object *object;
 	int err, i;
@@ -741,7 +744,7 @@ static int object_calc_data(struct smbrr_wavelet_2d *w)
 	return 0;
 }
 
-static void object_calc_mag_delta(struct smbrr_wavelet_2d *w,
+static void object_calc_mag_delta(struct smbrr_wavelet *w,
 	struct object *object)
 {
 	/* get magnitude delta to brightest object detected */
@@ -752,7 +755,7 @@ static void object_calc_mag_delta(struct smbrr_wavelet_2d *w,
 			log10(object->o.object_adu / w->objects[0].o.object_adu);
 }
 
-static void object_calc_data2(struct smbrr_wavelet_2d *w)
+static void object_calc_data2(struct smbrr_wavelet *w)
 {
 	struct object *object;
 	int i;
@@ -764,7 +767,7 @@ static void object_calc_data2(struct smbrr_wavelet_2d *w)
 	}
 }
 
-static struct object *new_object(struct smbrr_wavelet_2d *w,
+static struct object *new_object(struct smbrr_wavelet *w,
 	unsigned int scale, struct structure *structure)
 {
 	struct object *object;
@@ -804,7 +807,7 @@ static int object_cmp(const void *o1, const void *o2)
  * single low resolution root structure and several branches from higher
  * resolution scales. TODO: add more logic here to detect more object types.
  */
-static int create_object(struct smbrr_wavelet_2d *w, unsigned int scale,
+static int create_object(struct smbrr_wavelet *w, unsigned int scale,
 	struct structure *structure)
 {
 	struct object *object;
@@ -869,7 +872,7 @@ static int create_object(struct smbrr_wavelet_2d *w, unsigned int scale,
 	return 0;
 }
 
-static int prune_objects(struct smbrr_wavelet_2d *w)
+static int prune_objects(struct smbrr_wavelet *w)
 {
 	struct object *object, *base, *nobject;
 	int i, count = 0;
@@ -908,7 +911,7 @@ static int prune_objects(struct smbrr_wavelet_2d *w)
 	return 0;
 }
 
-/*! \fn int smbrr_wavelet_structure_connect(struct smbrr_wavelet_2d *w,
+/*! \fn int smbrr_wavelet_structure_connect(struct smbrr_wavelet *w,
 		unsigned int start_scale, unsigned int end_scale)
 * \param w Wavelet
 * \param start_scale Starting wavelet scale.
@@ -917,7 +920,7 @@ static int prune_objects(struct smbrr_wavelet_2d *w)
 *
 * Search the wavelet scales for any objects.
 */
-int smbrr_wavelet_structure_connect(struct smbrr_wavelet_2d *w,
+int smbrr_wavelet_structure_connect(struct smbrr_wavelet *w,
 		unsigned int start_scale, unsigned int end_scale)
 {
 	struct structure *structure;
@@ -989,7 +992,7 @@ int smbrr_wavelet_structure_connect(struct smbrr_wavelet_2d *w,
 	return w->num_objects;
 }
 
-/*! \fn struct smbrr_onbject *smbrr_wavelet_object_get(struct smbrr_wavelet_2d *w,
+/*! \fn struct smbrr_onbject *smbrr_wavelet_object_get(struct smbrr_wavelet *w,
 	unsigned int object_id)
 * \param w Wavelet
 * \param object_id ID of object to retreive.
@@ -997,7 +1000,7 @@ int smbrr_wavelet_structure_connect(struct smbrr_wavelet_2d *w,
 *
 * Get wavelet object by ID. Objects are ordered on brightness.
 */
-struct smbrr_object *smbrr_wavelet_object_get(struct smbrr_wavelet_2d *w,
+struct smbrr_object *smbrr_wavelet_object_get(struct smbrr_wavelet *w,
 	unsigned int object_id)
 {
 	if (object_id >= w->num_objects)
@@ -1006,12 +1009,12 @@ struct smbrr_object *smbrr_wavelet_object_get(struct smbrr_wavelet_2d *w,
 	return &w->objects_sorted[object_id]->o;
 }
 
-/*! \fn void smbrr_wavelet_object_free_all(struct smbrr_wavelet_2d *w)
+/*! \fn void smbrr_wavelet_object_free_all(struct smbrr_wavelet *w)
 * \param w Wavelet.
 *
-* Free all objects, object images and structures.
+* Free all objects, object datas and structures.
 */
-void smbrr_wavelet_object_free_all(struct smbrr_wavelet_2d *w)
+void smbrr_wavelet_object_free_all(struct smbrr_wavelet *w)
 {
 	struct object *object;
 	struct structure *structure;
@@ -1019,7 +1022,7 @@ void smbrr_wavelet_object_free_all(struct smbrr_wavelet_2d *w)
 
 	for (i = 0; i < w->num_objects; i++) {
 		object = &w->objects[i];
-		smbrr_image_free(object->image);
+		smbrr_free(object->data);
 	}
 	free(&w->objects[0]);
 	free(&w->objects_sorted[0]);
@@ -1033,29 +1036,29 @@ void smbrr_wavelet_object_free_all(struct smbrr_wavelet_2d *w)
 	}
 }
 
-/*! \fn int smbrr_wavelet_object_get_image(struct smbrr_wavelet_2d *w,
-		struct smbrr_object *object, struct smbrr_image **image)
+/*! \fn int smbrr_wavelet_object_get_data(struct smbrr_wavelet *w,
+		struct smbrr_object *object, struct smbrr **data)
 * \param w Wavelet.
 *
-* Free all objects, object images and structures.
+* Free all objects, object datas and structures.
 */
-int smbrr_wavelet_object_get_image(struct smbrr_wavelet_2d *w,
-		struct smbrr_object *object, struct smbrr_image **image)
+int smbrr_wavelet_object_get_data(struct smbrr_wavelet *w,
+		struct smbrr_object *object, struct smbrr **data)
 {
 	struct object *o = (struct object *)object;
 	int width, height, ret;
 
-	if (o->image) {
-		*image = o->image;
+	if (o->data) {
+		*data = o->data;
 		return 0;
 	}
 
 	width = object->maxXy.x - object->minXy.x + 1;
 	height = object->maxxY.y - object->minxY.y + 1;
 
-	o->image = smbrr_image_new(SMBRR_DATA_FLOAT, width, height, 0,
+	o->data = smbrr_new(w->c[0]->type, width, height, 0,
 		SMBRR_ADU_8, NULL);
-	if (o->image == NULL)
+	if (o->data == NULL)
 		return -ENOMEM;
 
 	ret = smbrr_wavelet_deconvolution_object(w, w->conv_type,
@@ -1064,7 +1067,7 @@ int smbrr_wavelet_object_get_image(struct smbrr_wavelet_2d *w,
 	return ret;
 }
 
-/*! \fn struct smbrr_object *smbrr_wavelet_get_object_at(struct smbrr_wavelet_2d *w,
+/*! \fn struct smbrr_object *smbrr_wavelet_get_object_at(struct smbrr_wavelet *w,
  * 	int x, int y)
 * \param w Wavelet.
 * \param x X position
@@ -1073,7 +1076,7 @@ int smbrr_wavelet_object_get_image(struct smbrr_wavelet_2d *w,
 *
 * Get object at position (x,y).
 */
-struct smbrr_object *smbrr_wavelet_get_object_at(struct smbrr_wavelet_2d *w,
+struct smbrr_object *smbrr_wavelet_get_object_at_posn(struct smbrr_wavelet *w,
 		int x, int y)
 {
 	int pixel;

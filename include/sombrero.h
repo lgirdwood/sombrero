@@ -20,9 +20,9 @@
  *
  * \section intro_sec Introduction
  *
- * Sombrero is a fast wavelet image processing and object detection C library for
- * astronomical images. Sombrero is named after the "Mexican Hat" shape of the
- * wavelet masks used in image convolution and is released under the GNU LGPL
+ * Sombrero is a fast wavelet data processing and object detection C library for
+ * astronomical datas. Sombrero is named after the "Mexican Hat" shape of the
+ * wavelet masks used in data convolution and is released under the GNU LGPL
  * library.
  *
  * Some of the algorithms in this library are taken from "Astronomical Image
@@ -31,39 +31,39 @@
  * \section features Current Features
  *
  * - Significant pixel detection with k-sigma clipping. This can reduce the
- *   background noise in an image resulting in a better structure and object
+ *   background noise in an data resulting in a better structure and object
  *   detection. Various K-sigma clipping levels are supported including custom
  *   user defined clipping coefficients.
- * - A'trous Wavelet convolution and deconvolution of images. The A'trous
- *   "with holes" image convolution is supported with either a linear or
+ * - A'trous Wavelet convolution and deconvolution of datas. The A'trous
+ *   "with holes" data convolution is supported with either a linear or
  *   bicubic mask.
  * - Image transformations, i.e. add, subtract, multiply etc. Most general
  *   operators are supported. Can be used for stacking, flats, dark frames.
- * - Detection of structures and objects within images. Structures and objects
- *   are detected within images alongside properties like max pixel, brightness,
+ * - Detection of structures and objects within datas. Structures and objects
+ *   are detected within datas alongside properties like max pixel, brightness,
  *   average pixel brightness, position, size. Simple object de-blending
  *   also performed.
  *
  * \section examples Example Code
  *
  * Examples are provided showing the API in action for a variety of tasks and
- * are useful in their own right too for image processing and object detection.
+ * are useful in their own right too for data processing and object detection.
  *
- * The examples include simple Bitmap image support for working with bitmap
- * images. This is intentional so that Sombrero has no dependencies on image
- * libraries (for FITS, etc) and users are free to choose their own image
+ * The examples include simple Bitmap data support for working with bitmap
+ * datas. This is intentional so that Sombrero has no dependencies on data
+ * libraries (for FITS, etc) and users are free to choose their own data
  * libraries.
  *
  * \section planned Planned Features
  *
- * - SIMD optimisations for Wavelet and image operations. i.e AVX, NEON. A lot
- *   of the image processing is highly aligned with SIMD concepts so will
+ * - SIMD optimisations for Wavelet and data operations. i.e AVX, NEON. A lot
+ *   of the data processing is highly aligned with SIMD concepts so will
  *   greatly benefit from SIMD support.
  * - OpenMP/Cilk optimisations for improved parallelism. Some library APIs are
  *   good candidates to exploit the parallel capabilities of modern processors.
  *   k-sigma clipping, structure detection.
  * - Convert examples to tools. Gives the example code more functionality and
- *   link them to some image libraries for handling common image types
+ *   link them to some data libraries for handling common data types
  *   (e.g FITS, raw CCD output)
  * - Improve object detection by creating more merge/de-blend tests.
  * - Use a Neural Network like FANN to enable object classification.
@@ -95,22 +95,24 @@
 * Number of CCD digitisation bits per pixel.
 */
 enum smbrr_adu {
-	SMBRR_ADU_8		= 0,	/*!< 8 bits per image pixel */
-	SMBRR_ADU_16	= 1,	/*!< 16 bits per image pixel */
-	SMBRR_ADU_32	= 2,	/*!< 32 bits per image pixel */
-	SMBRR_ADU_FLOAT	= 3,	/*!< 32 bits float per image pixel */
+	SMBRR_ADU_8		= 0,	/*!< 8 bits per data pixel */
+	SMBRR_ADU_16	= 1,	/*!< 16 bits per data pixel */
+	SMBRR_ADU_32	= 2,	/*!< 32 bits per data pixel */
+	SMBRR_ADU_FLOAT	= 3,	/*!< 32 bits float per data pixel */
 };
 
 /*!
-** Image Type
-* \enum smbrr_image_type
-* \brief Supported Image types.
+** Data Type
+* \enum smbrr_type
+* \brief Supported Data types.
 *
-* Internal representation of image pixels.
+* Type of data and tranforms carried out by sombrero.
 */
-enum smbrr_data_type {
-	SMBRR_DATA_UINT32 = 0, /*!< uint 32 - used by significant images */
-	SMBRR_DATA_FLOAT  = 1, /*!< float - used by image pixels */
+enum smbrr_type {
+	SMBRR_DATA_1D_UINT32 = 0, /*!< uint 32 - used by significant signal data */
+	SMBRR_DATA_1D_FLOAT  = 1, /*!< float - used by signal */
+	SMBRR_DATA_2D_UINT32 = 2, /*!< uint 32 - used by significant data pixels */
+	SMBRR_DATA_2D_FLOAT  = 3, /*!< float - used by data pixels */
 };
 
 /*!
@@ -118,7 +120,7 @@ enum smbrr_data_type {
 * \enum smbrr_conv
 * \brief Supported wavelet convolution types.
 *
-* Type of wavelet convolution or deconvolution applied to an image.
+* Type of wavelet convolution or deconvolution applied to an data.
 */
 enum smbrr_conv {
 	SMBRR_CONV_ATROUS	= 0, /*!< The A-trous "with holes" convolution */
@@ -127,7 +129,7 @@ enum smbrr_conv {
 /*! \enum smbrr_wavelet_mask
 * \brief Wavelet convolution mask
 *
-* Type of wavelet convolution or deconvolution mask applied to an image.
+* Type of wavelet convolution or deconvolution mask applied to an data.
 */
 enum smbrr_wavelet_mask {
 	SMBRR_WAVELET_MASK_LINEAR	= 0, /*!< Linear wavelet convolution */
@@ -135,9 +137,9 @@ enum smbrr_wavelet_mask {
 };
 
 /*! \enum smbrr_clip
-* \brief Wavelet image clipping strengths.
+* \brief Wavelet data clipping strengths.
 *
-* Strength of K-sigma image background clipping.
+* Strength of K-sigma data background clipping.
 */
 enum smbrr_clip {
 	SMBRR_CLIP_VGENTLE	= 0, /*!< Very gentle clipping */
@@ -149,9 +151,9 @@ enum smbrr_clip {
 };
 
 /*! \enum smbrr_gain
-* \brief Wavelet image gain strengths.
+* \brief Wavelet data gain strengths.
 *
-* Strength of K-sigma image background gain.
+* Strength of K-sigma data background gain.
 */
 enum smbrr_gain {
 	SMBRR_GAIN_NONE		= 0,	/*!< No gain */
@@ -167,50 +169,43 @@ enum smbrr_gain {
 * Classifications of detected objects.
 */
 enum smbrr_object_type {
-	SMBRR_OBJECT_STAR			= 0,	/*!< Stellar object Detected */
-	SMBRR_OBJECT_EXTENDED		= 1,	/*!< Non stellar object detected */
+	SMBRR_OBJECT_POINT			= 0,	/*!< Point like object Detected */
+	SMBRR_OBJECT_EXTENDED		= 1,	/*!< Exteded / Diffuse object detected */
 };
 
-/*! \struct smbrr_image
-* \brief Image.
+/*! \struct smbrr
+* \brief data.
 *
-* Image structure containing image representation and runtime data.
+* Sombrero data structure containing data representation and internal runtime data.
 */
-struct smbrr_image;
+struct smbrr;
 
-/*! \struct smbrr_wavelet_2d
- * \brief Wavelet
- *
- * Wavelet structure containing wavelet, scale and significant image
- * representations and runtime data.
- */
-struct smbrr_wavelet_2d;
 
 /*! \struct smbrr_coord
 * \brief Coordinates.
 *
-* Structure and object image coordinates.
+* Structure and object data coordinates.
 */
 struct smbrr_coord {
-	unsigned int x;		/*!< Image X coordinate */
+	unsigned int x;		/*!< Signal / Image X coordinate  */
 	unsigned int y;		/*!< Image Y coordinate */
 };
 
 /*! \struct smbrr_object
 * \brief Detected Object.
 *
-* Object detected in image.
+* Object detected in data.
 */
 struct smbrr_object {
 	unsigned int id;	/*!< Object ID. Brightest = 0 */
 	enum smbrr_object_type type;	/*!< Object classification */
 
 	/* positional bounds */
-	struct smbrr_coord pos;	/*!< Object image coordinates for max pixel */
-	struct smbrr_coord minXy;	/*!< Object image min X coordinate */
-	struct smbrr_coord minxY;	/*!< Object image min Y coordinate */
-	struct smbrr_coord maxXy;	/*!< Object image max X coordinate */
-	struct smbrr_coord maxxY;	/*!< Object image max Y coordinate */
+	struct smbrr_coord pos;	/*!< Object data coordinates for max pixel */
+	struct smbrr_coord minXy;	/*!< Object data min X coordinate */
+	struct smbrr_coord minxY;	/*!< Object data min Y coordinate */
+	struct smbrr_coord maxXy;	/*!< Object data max X coordinate */
+	struct smbrr_coord maxxY;	/*!< Object data max Y coordinate */
 	float pa;				/*!< Position angle  */
 
 	/* object aperture */
@@ -242,282 +237,7 @@ struct smbrr_clip_coeff {
 };
 
 
-/*! \defgroup signal Signals
-*
-* Signal manipulation and management.
-*/
-
-/*
- * Signal Construction and destruction.
- */
-
-/*! \fn struct smbrr_signal *smbrr_signal_new(enum smbrr_image_type type,
-	unsigned int length, enum smbrr_adu adu, const void *sig);
-* \brief Create a new signal.
-* \ingroup signal
-*/
-struct smbrr_signal *smbrr_signal_new(enum smbrr_data_type type,
-	unsigned int length, enum smbrr_adu adu, const void *sig);
-
-/*! \fn struct smbrr_signal *smbrr_signal_new_from_region(struct smbrr_signal *signal,
-	unsigned int start, unsigned int end)
-* \brief Create a new signal from another signal region.
-* \ingroup signal
-*/
-struct smbrr_signal *smbrr_signal_new_from_region(struct smbrr_signal *signal,
-	unsigned int start, unsigned int end);
-
-/*! \fn struct smbrr_signal *smbrr_signal_new_copy(struct smbrr_signal *signal)
-* \param signal Source signal.
-* \brief Create a new smbrr signal from source signal.
-* \ingroup signal
-*/
-struct smbrr_signal *smbrr_signal_new_copy(struct smbrr_signal *src);
-
-/*! \fn void smbrr_signal_free(struct smbrr_signal *signal);
- * \brief Free an signal.
- * \ingroup signal
- */
-void smbrr_signal_free(struct smbrr_signal *signal);
-
-/*
- * Signal information.
- */
-
-/*! \fn int smbrr_signal_get(struct smbrr_signal *signal, enum smbrr_adu adu,
-	void **img);
- * \brief Get raw data from an signal.
- * \ingroup signal
- */
-int smbrr_signal_get(struct smbrr_signal *signal, enum smbrr_adu adu,
-	void **img);
-
-/*! \fn int smbrr_signal_pixels(struct smbrr_signal *signal);
- * \brief Get number of pixels in signal.
- * \ingroup signal
- */
-int smbrr_signal_pixels(struct smbrr_signal *signal);
-
-/*! \fn int smbrr_signal_bytes(struct smbrr_signal *signal);
- * \brief Get number of bytes for raw signal.
- * \ingroup signal
- */
-int smbrr_signal_bytes(struct smbrr_signal *signal);
-
-/*! \fn int smbrr_signal_stride(struct smbrr_signal *signal)
-* \brief Return the number of pixels in signal stride.
-* \ingroup signal
-*/
-int smbrr_signal_stride(struct smbrr_signal *signal);
-
-/*! \fn int smbrr_signal_width(struct smbrr_signal *signal)
-* \brief Return the number of pixels in signal width.
-* \ingroup signal
-*/
-int smbrr_signal_width(struct smbrr_signal *signal);
-
-/*! \fn int smbrr_signal_height(struct smbrr_signal *signal)
-* \brief Return the number of pixels in signal height.
-* \ingroup signal
-*/
-int smbrr_signal_height(struct smbrr_signal *signal);
-
-/*! \fn void smbrr_signal_find_limits(struct smbrr_signal *signal, float *min,
- * float *max);
- * \brief Find signal limits.
- * \ingroup signal
- */
-void smbrr_signal_find_limits(struct smbrr_signal *signal, float *min, float *max);
-
-/*! \fn float smbrr_signal_get_mean(struct smbrr_signal *signal);
- * \brief Get mean pixel value of signal.
- * \ingroup signal
- */
-float smbrr_signal_get_mean(struct smbrr_signal *signal);
-
-/*! \fn float smbrr_signal_get_sigma(struct smbrr_signal *signal, float mean);
- * \brief Get pixel standard deviation of signal.
- * \ingroup signal
- */
-float smbrr_signal_get_sigma(struct smbrr_signal *signal, float mean);
-
-/*! \fn float smbrr_signal_get_mean_sig(struct smbrr_signal *signal,
-	struct smbrr_signal *ssignal);
- * \brief Get signal mean for significant pixels.
- * \ingroup signal
- */
-float smbrr_signal_get_mean_sig(struct smbrr_signal *signal,
-	struct smbrr_signal *ssignal);
-
-/*! \fn float smbrr_signal_get_sigma_sig(struct smbrr_signal *signal,
-	struct smbrr_signal *ssignal, float mean);
- * \brief Get signal standard deviation for significant pixels.
- * \ingroup signal
- */
-float smbrr_signal_get_sigma_sig(struct smbrr_signal *signal,
-	struct smbrr_signal *ssignal, float mean);
-
-/*! \fn float smbrr_signal_get_norm(struct smbrr_signal *signal);
- * \brief Get signal norm.
- * \ingroup signal
- */
-float smbrr_signal_get_norm(struct smbrr_signal *signal);
-
-/*
- * Signal Transformations
- */
-
-/*! \fn float void smbrr_signal_normalise(struct smbrr_signal *signal,
- * float min, float max);
- * \brief Normalise signal pixels between new min and max values.
- * \ingroup signal
- */
-void smbrr_signal_normalise(struct smbrr_signal *signal, float min, float max);
-
-/*! \fn void smbrr_signal_add(struct smbrr_signal *a, struct smbrr_signal *b,
-	struct smbrr_signal *c);
- * \brief Image A = B + C
- * \ingroup signal
- */
-void smbrr_signal_add(struct smbrr_signal *a, struct smbrr_signal *b,
-	struct smbrr_signal *c);
-
-/*! \fn void smbrr_signal_add_value_sig(struct smbrr_signal *signal,
-	struct smbrr_signal *signal, float value)
-* \brief If pixel significant then Image A += value
-* \ingroup signal
-*/
-void smbrr_signal_add_value_sig(struct smbrr_signal *signal,
-	struct smbrr_signal *ssignal, float value);
-
-/*! \fn void smbrr_signal_add_sig(struct smbrr_signal *a, struct smbrr_signal *b,
-	struct smbrr_signal *c, struct smbrr_signal *s);
- * \brief Image A = B + (significant) C
- * \ingroup signal
- */
-void smbrr_signal_add_sig(struct smbrr_signal *a, struct smbrr_signal *b,
-	struct smbrr_signal *c, struct smbrr_signal *s);
-
-/*! \fn void smbrr_signal_subtract(struct smbrr_signal *a, struct smbrr_signal *b,
-	struct smbrr_signal *c);
- * \brief Image A = B - C
- * \ingroup signal
- */
-void smbrr_signal_subtract(struct smbrr_signal *a, struct smbrr_signal *b,
-	struct smbrr_signal *c);
-
-/*! \fn void smbrr_signal_subtract_sig(struct smbrr_signal *a,
- *  struct smbrr_signal *b, struct smbrr_signal *c, struct smbrr_signal *s);
- * \brief Image A = B - (significant) C
- * \ingroup signal
- */
-void smbrr_signal_subtract_sig(struct smbrr_signal *a, struct smbrr_signal *b,
-	struct smbrr_signal *c, struct smbrr_signal *s);
-
-/*! \fn void smbrr_signal_add_value(struct smbrr_signal *a, float value);
- * \brief Image A = A + real value
- * \ingroup signal
- */
-void smbrr_signal_add_value(struct smbrr_signal *a, float value);
-
-/*! \fn void smbrr_signal_subtract_value(struct smbrr_signal *a, float value);
- * \brief Image A = A - real value
- * \ingroup signal
- */
-void smbrr_signal_subtract_value(struct smbrr_signal *a, float value);
-
-/*! \fn void smbrr_signal_mult_value(struct smbrr_signal *a, float value);
- * \brief Image A = A * real value
- * \ingroup signal
- */
-void smbrr_signal_mult_value(struct smbrr_signal *a, float value);
-
-/*! \fn void smbrr_signal_reset_value(struct smbrr_signal *a, float value);
- * \brief Image A = real value
- * \ingroup signal
- */
-void smbrr_signal_reset_value(struct smbrr_signal *a, float value);
-
-/*! \fn void smbrr_signal_set_value_sig(struct smbrr_signal *a,
-	struct smbrr_signal *s, float sig_value);
- * \brief Image (significant) A = value
- * \ingroup signal
- */
-void smbrr_signal_set_value_sig(struct smbrr_signal *a,
-	struct smbrr_signal *s, float value);
-
-/*! \fn int smbrr_signal_convert(struct smbrr_signal *a,
- * enum smbrr_signal_type type);
- * \brief Convert signal A to new type.
- * \ingroup signal
- */
-int smbrr_signal_convert(struct smbrr_signal *a, enum smbrr_data_type type);
-
-/*! \fn void smbrr_signal_set_sig_value(struct smbrr_signal *a, uint32_t value);
- * \brief Image (significant) A = value
- * \ingroup signal
- */
-void smbrr_signal_set_sig_value(struct smbrr_signal *a, uint32_t value);
-
-/*! \fn void smbrr_signal_clear_negative(struct smbrr_signal *a);
- * \brief Set Image A negative pixels to zero.
- * \ingroup signal
- */
-void smbrr_signal_clear_negative(struct smbrr_signal *a);
-
-/*! \fn int smbrr_signal_copy(struct smbrr_signal *dest, struct smbrr_signal *src);
- * \brief Image dest = src.
- * \ingroup signal
- */
-int smbrr_signal_copy(struct smbrr_signal *dest, struct smbrr_signal *src);
-
-/*! \fn void smbrr_signal_fma(struct smbrr_signal *dest, struct smbrr_signal *a,
-	struct smbrr_signal *b, float c);
- * \brief Image A = A + B * value C
- * \ingroup signal
- */
-void smbrr_signal_fma(struct smbrr_signal *dest, struct smbrr_signal *a,
-	struct smbrr_signal *b, float c);
-
-/*! \fn void smbrr_signal_fms(struct smbrr_signal *dest, struct smbrr_signal *a,
-	struct smbrr_signal *b, float c);
- * \brief Image A = A - B * value C
- * \ingroup signal
- */
-void smbrr_signal_fms(struct smbrr_signal *dest, struct smbrr_signal *a,
-	struct smbrr_signal *b, float c);
-
-/*! \fn void smbrr_signal_anscombe(struct smbrr_signal *signal, float gain,
- * float bias, float readout);
- * \brief Perform Anscombe noise reduction on Image.
- * \ingroup signal
- */
-void smbrr_signal_anscombe(struct smbrr_signal *signal, float gain, float bias,
-	float readout);
-
-/*! \fn void smbrr_signal_new_significance(struct smbrr_signal *a,
-	struct smbrr_signal *s, float sigma);
- * \brief Set S(pixel) if A(pixel) > sigma
- * \ingroup signal
- */
-void smbrr_signal_new_significance(struct smbrr_signal *a,
-	struct smbrr_signal *s, float sigma);
-
-/*! \fn int smbrr_signal_psf(struct smbrr_signal *src, struct smbrr_signal *dest,
-	enum smbrr_wavelet_mask mask);
- * \brief Perform PSF on source signal
- * \ingroup signal
- */
-int smbrr_signal_psf(struct smbrr_signal *src, struct smbrr_signal *dest,
-	enum smbrr_wavelet_mask mask);
-
-/*! \fn float smbrr_signal_get_adu_at(struct smbrr_signal *signal, int x);
- * \brief Get signal ADU value at (x,y)
- * \ingroup signal
- */
-float smbrr_signal_get_adu_at(struct smbrr_signal *signal, int x);
-
-/*! \defgroup image Images
+/*! \defgroup data Images
 *
 * Image manipulation and management.
 */
@@ -526,283 +246,292 @@ float smbrr_signal_get_adu_at(struct smbrr_signal *signal, int x);
  * Image Construction and destruction.
  */
 
-/*! \fn struct smbrr_image *smbrr_image_new(enum smbrr_image_type type,
+/*! \fn struct smbrr *smbrr_new(enum smbrr_type type,
 	unsigned int width, unsigned int height, unsigned int stride,
 	enum smbrr_adu adu, const void *img);
-* \brief Create a new image.
-* \ingroup image
+* \brief Create a new data.
+* \ingroup data
 */
-struct smbrr_image *smbrr_image_new(enum smbrr_data_type type,
+struct smbrr *smbrr_new(enum smbrr_type type,
 	unsigned int width, unsigned int height, unsigned int stride,
-	enum smbrr_adu adu, const void *img);
+	enum smbrr_adu adu, const void *data);
 
-/*! \fn struct smbrr_image *smbrr_image_new_from_region(struct smbrr_image *image,
+/*! \fn struct smbrr *smbrr_new_from_region(struct smbrr *data,
 	unsigned int x_start, unsigned int y_start, unsigned int x_end,
 	unsigned int y_end);
-* \brief Create a new image from another image region.
-* \ingroup image
+* \brief Create a new data from another data region.
+* \ingroup data
 */
-struct smbrr_image *smbrr_image_new_from_region(struct smbrr_image *image,
+struct smbrr *smbrr_new_from_area(struct smbrr *data,
 	unsigned int x_start, unsigned int y_start, unsigned int x_end,
 	unsigned int y_end);
 
-/*! \fn struct smbrr_image *smbrr_image_new_copy(struct smbrr_image *image)
-* \param image Source image.
-* \brief Create a new smbrr image from source image.
-* \ingroup image
+/*! \fn struct smbrr *smbrr_new_from_region(struct smbrr *data,
+	unsigned int x_start, unsigned int y_start, unsigned int x_end,
+	unsigned int y_end);
+* \brief Create a new data from another data region.
+* \ingroup data
 */
-struct smbrr_image *smbrr_image_new_copy(struct smbrr_image *src);
+struct smbrr *smbrr_new_from_section(struct smbrr *data,
+	unsigned int start,  unsigned int end);
 
-/*! \fn void smbrr_image_free(struct smbrr_image *image);
- * \brief Free an image.
- * \ingroup image
+/*! \fn struct smbrr *smbrr_new_copy(struct smbrr *data)
+* \param data Source data.
+* \brief Create a new smbrr data from source data.
+* \ingroup data
+*/
+struct smbrr *smbrr_new_copy(struct smbrr *src);
+
+/*! \fn void smbrr_free(struct smbrr *data);
+ * \brief Free an data.
+ * \ingroup data
  */
-void smbrr_image_free(struct smbrr_image *image);
+void smbrr_free(struct smbrr *smbrr);
 
 /*
  * Image information.
  */
 
-/*! \fn int smbrr_image_get(struct smbrr_image *image, enum smbrr_adu adu,
+/*! \fn int smbrr_get(struct smbrr *data, enum smbrr_adu adu,
 	void **img);
- * \brief Get raw data from an image.
- * \ingroup image
+ * \brief Get raw data from an data.
+ * \ingroup data
  */
-int smbrr_image_get(struct smbrr_image *image, enum smbrr_adu adu,
+int smbrr_get_data(struct smbrr *data, enum smbrr_adu adu,
 	void **img);
 
-/*! \fn int smbrr_image_pixels(struct smbrr_image *image);
- * \brief Get number of pixels in image.
- * \ingroup image
+/*! \fn int smbrr_pixels(struct smbrr *data);
+ * \brief Get number of pixels in data.
+ * \ingroup data
  */
-int smbrr_image_pixels(struct smbrr_image *image);
+int smbrr_get_size(struct smbrr *data);
 
-/*! \fn int smbrr_image_bytes(struct smbrr_image *image);
- * \brief Get number of bytes for raw image.
- * \ingroup image
+/*! \fn int smbrr_bytes(struct smbrr *data);
+ * \brief Get number of bytes for raw data.
+ * \ingroup data
  */
-int smbrr_image_bytes(struct smbrr_image *image);
+int smbrr_get_bytes(struct smbrr *data);
 
-/*! \fn int smbrr_image_stride(struct smbrr_image *image)
-* \brief Return the number of pixels in image stride.
-* \ingroup image
+/*! \fn int smbrr_stride(struct smbrr *data)
+* \brief Return the number of pixels in data stride.
+* \ingroup data
 */
-int smbrr_image_stride(struct smbrr_image *image);
+int smbrr_get_stride(struct smbrr *data);
 
-/*! \fn int smbrr_image_width(struct smbrr_image *image)
-* \brief Return the number of pixels in image width.
-* \ingroup image
+/*! \fn int smbrr_width(struct smbrr *data)
+* \brief Return the number of pixels in data width.
+* \ingroup data
 */
-int smbrr_image_width(struct smbrr_image *image);
+int smbrr_get_width(struct smbrr *data);
 
-/*! \fn int smbrr_image_height(struct smbrr_image *image)
-* \brief Return the number of pixels in image height.
-* \ingroup image
+/*! \fn int smbrr_height(struct smbrr *data)
+* \brief Return the number of pixels in data height.
+* \ingroup data
 */
-int smbrr_image_height(struct smbrr_image *image);
+int smbrr_get_height(struct smbrr *data);
 
-/*! \fn void smbrr_image_find_limits(struct smbrr_image *image, float *min,
+/*! \fn void smbrr_find_limits(struct smbrr *data, float *min,
  * float *max);
- * \brief Find image limits.
- * \ingroup image
+ * \brief Find data limits.
+ * \ingroup data
  */
-void smbrr_image_find_limits(struct smbrr_image *image, float *min, float *max);
+void smbrr_find_limits(struct smbrr *data, float *min, float *max);
 
-/*! \fn float smbrr_image_get_mean(struct smbrr_image *image);
- * \brief Get mean pixel value of image.
- * \ingroup image
+/*! \fn float smbrr_get_mean(struct smbrr *data);
+ * \brief Get mean pixel value of data.
+ * \ingroup data
  */
-float smbrr_image_get_mean(struct smbrr_image *image);
+float smbrr_get_mean(struct smbrr *data);
 
-/*! \fn float smbrr_image_get_sigma(struct smbrr_image *image, float mean);
- * \brief Get pixel standard deviation of image.
- * \ingroup image
+/*! \fn float smbrr_get_sigma(struct smbrr *data, float mean);
+ * \brief Get pixel standard deviation of data.
+ * \ingroup data
  */
-float smbrr_image_get_sigma(struct smbrr_image *image, float mean);
+float smbrr_get_sigma(struct smbrr *data, float mean);
 
-/*! \fn float smbrr_image_get_mean_sig(struct smbrr_image *image,
-	struct smbrr_image *simage);
- * \brief Get image mean for significant pixels.
- * \ingroup image
+/*! \fn float smbrr_get_mean_sig(struct smbrr *data,
+	struct smbrr *sdata);
+ * \brief Get data mean for significant pixels.
+ * \ingroup data
  */
-float smbrr_image_get_mean_sig(struct smbrr_image *image,
-	struct smbrr_image *simage);
+float smbrr_significant_get_mean(struct smbrr *data,
+	struct smbrr *sdata);
 
-/*! \fn float smbrr_image_get_sigma_sig(struct smbrr_image *image,
-	struct smbrr_image *simage, float mean);
- * \brief Get image standard deviation for significant pixels.
- * \ingroup image
+/*! \fn float smbrr_get_sigma_sig(struct smbrr *data,
+	struct smbrr *sdata, float mean);
+ * \brief Get data standard deviation for significant pixels.
+ * \ingroup data
  */
-float smbrr_image_get_sigma_sig(struct smbrr_image *image,
-	struct smbrr_image *simage, float mean);
+float smbrr_significant_get_sigma(struct smbrr *data,
+	struct smbrr *sdata, float mean);
 
-/*! \fn float smbrr_image_get_norm(struct smbrr_image *image);
- * \brief Get image norm.
- * \ingroup image
+/*! \fn float smbrr_get_norm(struct smbrr *data);
+ * \brief Get data norm.
+ * \ingroup data
  */
-float smbrr_image_get_norm(struct smbrr_image *image);
+float smbrr_get_norm(struct smbrr *data);
 
 /*
  * Image Transformations
  */
 
-/*! \fn float void smbrr_image_normalise(struct smbrr_image *image,
+/*! \fn float void smbrr_normalise(struct smbrr *data,
  * float min, float max);
- * \brief Normalise image pixels between new min and max values.
- * \ingroup image
+ * \brief Normalise data pixels between new min and max values.
+ * \ingroup data
  */
-void smbrr_image_normalise(struct smbrr_image *image, float min, float max);
+void smbrr_normalise(struct smbrr *data, float min, float max);
 
-/*! \fn void smbrr_image_add(struct smbrr_image *a, struct smbrr_image *b,
-	struct smbrr_image *c);
+/*! \fn void smbrr_add(struct smbrr *a, struct smbrr *b,
+	struct smbrr *c);
  * \brief Image A = B + C
- * \ingroup image
+ * \ingroup data
  */
-void smbrr_image_add(struct smbrr_image *a, struct smbrr_image *b,
-	struct smbrr_image *c);
+void smbrr_add(struct smbrr *a, struct smbrr *b,
+	struct smbrr *c);
 
-/*! \fn void smbrr_image_add_value_sig(struct smbrr_image *image,
-	struct smbrr_image *image, float value)
+/*! \fn void smbrr_add_value_sig(struct smbrr *data,
+	struct smbrr *data, float value)
 * \brief If pixel significant then Image A += value
-* \ingroup image
+* \ingroup data
 */
-void smbrr_image_add_value_sig(struct smbrr_image *image,
-	struct smbrr_image *simage, float value);
+void smbrr_significant_add_value(struct smbrr *data,
+	struct smbrr *sdata, float value);
 
-/*! \fn void smbrr_image_add_sig(struct smbrr_image *a, struct smbrr_image *b,
-	struct smbrr_image *c, struct smbrr_image *s);
+/*! \fn void smbrr_add_sig(struct smbrr *a, struct smbrr *b,
+	struct smbrr *c, struct smbrr *s);
  * \brief Image A = B + (significant) C
- * \ingroup image
+ * \ingroup data
  */
-void smbrr_image_add_sig(struct smbrr_image *a, struct smbrr_image *b,
-	struct smbrr_image *c, struct smbrr_image *s);
+void smbrr_significant_add(struct smbrr *a, struct smbrr *b,
+	struct smbrr *c, struct smbrr *s);
 
-/*! \fn void smbrr_image_subtract(struct smbrr_image *a, struct smbrr_image *b,
-	struct smbrr_image *c);
+/*! \fn void smbrr_subtract(struct smbrr *a, struct smbrr *b,
+	struct smbrr *c);
  * \brief Image A = B - C
- * \ingroup image
+ * \ingroup data
  */
-void smbrr_image_subtract(struct smbrr_image *a, struct smbrr_image *b,
-	struct smbrr_image *c);
+void smbrr_subtract(struct smbrr *a, struct smbrr *b,
+	struct smbrr *c);
 
-/*! \fn void smbrr_image_subtract_sig(struct smbrr_image *a,
- *  struct smbrr_image *b, struct smbrr_image *c, struct smbrr_image *s);
+/*! \fn void smbrr_subtract_sig(struct smbrr *a,
+ *  struct smbrr *b, struct smbrr *c, struct smbrr *s);
  * \brief Image A = B - (significant) C
- * \ingroup image
+ * \ingroup data
  */
-void smbrr_image_subtract_sig(struct smbrr_image *a, struct smbrr_image *b,
-	struct smbrr_image *c, struct smbrr_image *s);
+void smbrr_significant_subtract(struct smbrr *a, struct smbrr *b,
+	struct smbrr *c, struct smbrr *s);
 
-/*! \fn void smbrr_image_add_value(struct smbrr_image *a, float value);
+/*! \fn void smbrr_add_value(struct smbrr *a, float value);
  * \brief Image A = A + real value
- * \ingroup image
+ * \ingroup data
  */
-void smbrr_image_add_value(struct smbrr_image *a, float value);
+void smbrr_add_value(struct smbrr *a, float value);
 
-/*! \fn void smbrr_image_subtract_value(struct smbrr_image *a, float value);
+/*! \fn void smbrr_subtract_value(struct smbrr *a, float value);
  * \brief Image A = A - real value
- * \ingroup image
+ * \ingroup data
  */
-void smbrr_image_subtract_value(struct smbrr_image *a, float value);
+void smbrr_subtract_value(struct smbrr *a, float value);
 
-/*! \fn void smbrr_image_mult_value(struct smbrr_image *a, float value);
+/*! \fn void smbrr_mult_value(struct smbrr *a, float value);
  * \brief Image A = A * real value
- * \ingroup image
+ * \ingroup data
  */
-void smbrr_image_mult_value(struct smbrr_image *a, float value);
+void smbrr_mult_value(struct smbrr *a, float value);
 
-/*! \fn void smbrr_image_reset_value(struct smbrr_image *a, float value);
+/*! \fn void smbrr_reset_value(struct smbrr *a, float value);
  * \brief Image A = real value
- * \ingroup image
+ * \ingroup data
  */
-void smbrr_image_reset_value(struct smbrr_image *a, float value);
+void smbrr_reset_value(struct smbrr *a, float value);
 
-/*! \fn void smbrr_image_set_value_sig(struct smbrr_image *a,
-	struct smbrr_image *s, float sig_value);
+/*! \fn void smbrr_set_value_sig(struct smbrr *a,
+	struct smbrr *s, float sig_value);
  * \brief Image (significant) A = value
- * \ingroup image
+ * \ingroup data
  */
-void smbrr_image_set_value_sig(struct smbrr_image *a,
-	struct smbrr_image *s, float value);
+void smbrr_significant_set_value(struct smbrr *a,
+	struct smbrr *s, float value);
 
-/*! \fn int smbrr_image_convert(struct smbrr_image *a,
- * enum smbrr_image_type type);
- * \brief Convert image A to new type.
- * \ingroup image
+/*! \fn int smbrr_convert(struct smbrr *a,
+ * enum smbrr_type type);
+ * \brief Convert data A to new type.
+ * \ingroup data
  */
-int smbrr_image_convert(struct smbrr_image *a, enum smbrr_data_type type);
+int smbrr_convert(struct smbrr *a, enum smbrr_type type);
 
-/*! \fn void smbrr_image_set_sig_value(struct smbrr_image *a, uint32_t value);
+/*! \fn void smbrr_set_sig_value(struct smbrr *a, uint32_t value);
  * \brief Image (significant) A = value
- * \ingroup image
+ * \ingroup data
  */
-void smbrr_image_set_sig_value(struct smbrr_image *a, uint32_t value);
+void smbrr_significant_set_sig_value(struct smbrr *a, uint32_t value);
 
-/*! \fn void smbrr_image_clear_negative(struct smbrr_image *a);
+/*! \fn void smbrr_clear_negative(struct smbrr *a);
  * \brief Set Image A negative pixels to zero.
- * \ingroup image
+ * \ingroup data
  */
-void smbrr_image_clear_negative(struct smbrr_image *a);
+void smbrr_zero_negative(struct smbrr *a);
 
-/*! \fn int smbrr_image_copy(struct smbrr_image *dest, struct smbrr_image *src);
+/*! \fn int smbrr_copy(struct smbrr *dest, struct smbrr *src);
  * \brief Image dest = src.
- * \ingroup image
+ * \ingroup data
  */
-int smbrr_image_copy(struct smbrr_image *dest, struct smbrr_image *src);
+int smbrr_copy(struct smbrr *dest, struct smbrr *src);
 
-/*! \fn void smbrr_image_fma(struct smbrr_image *dest, struct smbrr_image *a,
-	struct smbrr_image *b, float c);
+/*! \fn void smbrr_fma(struct smbrr *dest, struct smbrr *a,
+	struct smbrr *b, float c);
  * \brief Image A = A + B * value C
- * \ingroup image
+ * \ingroup data
  */
-void smbrr_image_fma(struct smbrr_image *dest, struct smbrr_image *a,
-	struct smbrr_image *b, float c);
+void smbrr_mult_add(struct smbrr *dest, struct smbrr *a,
+	struct smbrr *b, float c);
 
-/*! \fn void smbrr_image_fms(struct smbrr_image *dest, struct smbrr_image *a,
-	struct smbrr_image *b, float c);
+/*! \fn void smbrr_fms(struct smbrr *dest, struct smbrr *a,
+	struct smbrr *b, float c);
  * \brief Image A = A - B * value C
- * \ingroup image
+ * \ingroup data
  */
-void smbrr_image_fms(struct smbrr_image *dest, struct smbrr_image *a,
-	struct smbrr_image *b, float c);
+void smbrr_mult_subtract(struct smbrr *dest, struct smbrr *a,
+	struct smbrr *b, float c);
 
-/*! \fn void smbrr_image_anscombe(struct smbrr_image *image, float gain,
+/*! \fn void smbrr_anscombe(struct smbrr *data, float gain,
  * float bias, float readout);
  * \brief Perform Anscombe noise reduction on Image.
- * \ingroup image
+ * \ingroup data
  */
-void smbrr_image_anscombe(struct smbrr_image *image, float gain, float bias,
+void smbrr_anscombe(struct smbrr *data, float gain, float bias,
 	float readout);
 
-/*! \fn void smbrr_image_new_significance(struct smbrr_image *a,
-	struct smbrr_image *s, float sigma);
+/*! \fn void smbrr_new_significance(struct smbrr *a,
+	struct smbrr *s, float sigma);
  * \brief Set S(pixel) if A(pixel) > sigma
- * \ingroup image
+ * \ingroup data
  */
-void smbrr_image_new_significance(struct smbrr_image *a,
-	struct smbrr_image *s, float sigma);
+void smbrr_significant_new(struct smbrr *a,
+	struct smbrr *s, float sigma);
 
-/*! \fn int smbrr_image_psf(struct smbrr_image *src, struct smbrr_image *dest,
+/*! \fn int smbrr_psf(struct smbrr *src, struct smbrr *dest,
 	enum smbrr_wavelet_mask mask);
- * \brief Perform PSF on source image
- * \ingroup image
+ * \brief Perform PSF on source data
+ * \ingroup data
  */
-int smbrr_image_psf(struct smbrr_image *src, struct smbrr_image *dest,
+int smbrr_psf(struct smbrr *src, struct smbrr *dest,
 	enum smbrr_wavelet_mask mask);
 
-/*! \fn float smbrr_image_get_adu_at(struct smbrr_image *image, int x, int y);
- * \brief Get image ADU value at (x,y)
- * \ingroup image
+/*! \fn float smbrr_get_adu_at(struct smbrr *data, int x, int y);
+ * \brief Get data ADU value at (x,y)
+ * \ingroup data
  */
-float smbrr_image_get_adu_at(struct smbrr_image *image, int x, int y);
+float smbrr_get_adu_at_posn(struct smbrr *data, int x, int y);
 
-/*! \fn int smbrr_image_reconstruct(struct smbrr_image *O,
+/*! \fn int smbrr_reconstruct(struct smbrr *O,
 	enum smbrr_wavelet_mask mask, float threshold, int scales,
 	enum smbrr_clip sigma_clip);
- * \brief Reconstruct an image without noise.
- * \ingroup image
+ * \brief Reconstruct an data without noise.
+ * \ingroup data
  */
-int smbrr_image_reconstruct(struct smbrr_image *O,
+int smbrr_reconstruct(struct smbrr *O,
 	enum smbrr_wavelet_mask mask, float threshold, int scales,
 	enum smbrr_clip sigma_clip);
 
@@ -811,193 +540,192 @@ int smbrr_image_reconstruct(struct smbrr_image *O,
 * Wavelet manipulation and management.
 */
 
-
-/*! \fn struct smbrr_wavelet_2d *smbrr_wavelet_new(struct smbrr_image *image,
+/*! \fn struct smbrr_wavelet *smbrr_wavelet_new(struct smbrr *data,
 	unsigned int num_scales);
- * \brief Create new wavelet from image.
+ * \brief Create new wavelet from data.
  * \ingroup wavelet
  */
-struct smbrr_wavelet_2d *smbrr_wavelet_new(struct smbrr_image *image,
+struct smbrr_wavelet *smbrr_wavelet_new(struct smbrr *data,
 	unsigned int num_scales);
 
-/*! \fn struct smbrr_wavelet_2d *smbrr_wavelet_new_from_object(
+/*! \fn struct smbrr_wavelet *smbrr_wavelet_new_from_object(
 	 struct smbrr_object *object);
  * \brief Create new wavelet from object.
  * \ingroup wavelet
  */
-struct smbrr_wavelet_2d *smbrr_wavelet_new_from_object(struct smbrr_object *object);
+struct smbrr_wavelet *smbrr_wavelet_new_from_object(struct smbrr_object *object);
 
-/*! \fn void smbrr_wavelet_free(struct smbrr_wavelet_2d *w);
+/*! \fn void smbrr_wavelet_free(struct smbrr_wavelet *w);
  * \brief Free wavelet.
  * \ingroup wavelet
  */
-void smbrr_wavelet_free(struct smbrr_wavelet_2d *w);
+void smbrr_wavelet_free(struct smbrr_wavelet *w);
 
-/*! \fn int smbrr_wavelet_convolution(struct smbrr_wavelet_2d *w,
+/*! \fn int smbrr_wavelet_convolution(struct smbrr_wavelet *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask);
  * \brief Convolve wavelet.
  * \ingroup wavelet
  */
-int smbrr_wavelet_convolution(struct smbrr_wavelet_2d *w, enum smbrr_conv conv,
+int smbrr_wavelet_convolution(struct smbrr_wavelet *w, enum smbrr_conv conv,
 	enum smbrr_wavelet_mask mask);
 
-/*! \fn int smbrr_wavelet_convolution_sig(struct smbrr_wavelet_2d *w,
+/*! \fn int smbrr_wavelet_convolution_sig(struct smbrr_wavelet *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask);
  * \brief Convolve wavelet using significant pixels only
  * \ingroup wavelet
  */
-int smbrr_wavelet_convolution_sig(struct smbrr_wavelet_2d *w, enum smbrr_conv conv,
+int smbrr_wavelet_significant_convolution(struct smbrr_wavelet *w, enum smbrr_conv conv,
 	enum smbrr_wavelet_mask mask);
 
-/*! \fn int smbrr_wavelet_deconvolution(struct smbrr_wavelet_2d *w,
+/*! \fn int smbrr_wavelet_deconvolution(struct smbrr_wavelet *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask);
  * \brief Deconvolve wavelet.
  * \ingroup wavelet
  */
-int smbrr_wavelet_deconvolution(struct smbrr_wavelet_2d *w,
+int smbrr_wavelet_deconvolution(struct smbrr_wavelet *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask);
 
-/*! \fn int smbrr_wavelet_deconvolution_sig(struct smbrr_wavelet_2d *w,
+/*! \fn int smbrr_wavelet_deconvolution_sig(struct smbrr_wavelet *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask, enum smbrr_gain gain);
  * \brief Deconvolve wavelet using significant pixels.
  * \ingroup wavelet
  */
-int smbrr_wavelet_deconvolution_sig(struct smbrr_wavelet_2d *w,
+int smbrr_wavelet_significant_deconvolution(struct smbrr_wavelet *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask, enum smbrr_gain gain);
 
-/*! \fn int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet_2d *w,
+/*! \fn int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask,
 	struct smbrr_object *object);
  * \brief Deconvolve wavelet object using significant pixels.
  * \ingroup wavelet
  */
-int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet_2d *w,
+int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask,
 	struct smbrr_object *object);
 
-/*! \fn struct smbrr_image *smbrr_wavelet_image_get_scale(
-	struct smbrr_wavelet_2d *w, unsigned int scale);
- * \brief Get scale image from wavelet at scale.
+/*! \fn struct smbrr *smbrr_wavelet_data_get_scale(
+	struct smbrr_wavelet *w, unsigned int scale);
+ * \brief Get scale data from wavelet at scale.
  * \ingroup wavelet
  */
-struct smbrr_image *smbrr_wavelet_image_get_scale(struct smbrr_wavelet_2d *w,
+struct smbrr *smbrr_wavelet_get_data_scale(struct smbrr_wavelet *w,
 	unsigned int scale);
 
-/*! \fn struct smbrr_image *smbrr_wavelet_image_get_wavelet(
-	struct smbrr_wavelet_2d *w, unsigned int scale);
- * \brief Get wavelet image from wavelet at scale.
+/*! \fn struct smbrr *smbrr_wavelet_data_get_wavelet(
+	struct smbrr_wavelet *w, unsigned int scale);
+ * \brief Get wavelet data from wavelet at scale.
  * \ingroup wavelet
  */
-struct smbrr_image *smbrr_wavelet_image_get_wavelet(struct smbrr_wavelet_2d *w,
+struct smbrr *smbrr_wavelet_get_data_wavelet(struct smbrr_wavelet *w,
 	unsigned int scale);
 
-/*! \fn struct smbrr_image *smbrr_wavelet_image_get_significant(
-	struct smbrr_wavelet_2d *w, unsigned int scale);
- * \brief Get significant image from wavelet at scale.
+/*! \fn struct smbrr *smbrr_wavelet_data_get_significant(
+	struct smbrr_wavelet *w, unsigned int scale);
+ * \brief Get significant data from wavelet at scale.
  * \ingroup wavelet
  */
-struct smbrr_image *smbrr_wavelet_image_get_significant(struct smbrr_wavelet_2d *w,
+struct smbrr *smbrr_wavelet_get_data_significant(struct smbrr_wavelet *w,
 	unsigned int scale);
 
-/*! \fn void smbrr_wavelet_add(struct smbrr_wavelet_2d *a,
-    struct smbrr_wavelet_2d *b, struct smbrr_wavelet_2d *c);
+/*! \fn void smbrr_wavelet_add(struct smbrr_wavelet *a,
+    struct smbrr_wavelet *b, struct smbrr_wavelet *c);
  * \brief Wavelet A = B + C.
  * \ingroup wavelet
  */
-void smbrr_wavelet_add(struct smbrr_wavelet_2d *a, struct smbrr_wavelet_2d *b,
-	struct smbrr_wavelet_2d *c);
+void smbrr_wavelet_add(struct smbrr_wavelet *a, struct smbrr_wavelet *b,
+	struct smbrr_wavelet *c);
 
-/*! \fn void smbrr_wavelet_subtract(struct smbrr_wavelet_2d *a,
-	struct smbrr_wavelet_2d *b, struct smbrr_wavelet_2d *c);
+/*! \fn void smbrr_wavelet_subtract(struct smbrr_wavelet *a,
+	struct smbrr_wavelet *b, struct smbrr_wavelet *c);
  * \brief Wavelet A = B - C.
  * \ingroup wavelet
  */
-void smbrr_wavelet_subtract(struct smbrr_wavelet_2d *a, struct smbrr_wavelet_2d *b,
-	struct smbrr_wavelet_2d *c);
+void smbrr_wavelet_subtract(struct smbrr_wavelet *a, struct smbrr_wavelet *b,
+	struct smbrr_wavelet *c);
 
-/*! \fn int smbrr_wavelet_new_significance(struct smbrr_wavelet_2d *w,
+/*! \fn int smbrr_wavelet_new_significance(struct smbrr_wavelet *w,
 	enum smbrr_clip sigma_clip);
  * \brief Create new significance scales for wavlet.
  * \ingroup wavelet
  */
-int smbrr_wavelet_new_significance(struct smbrr_wavelet_2d *w,
+int smbrr_wavelet_new_significant(struct smbrr_wavelet *w,
 	enum smbrr_clip sigma_clip);
 
-/*! \fn int smbrr_wavelet_ksigma_clip(struct smbrr_wavelet_2d *w,
+/*! \fn int smbrr_wavelet_ksigma_clip(struct smbrr_wavelet *w,
     enum smbrr_clip clip, float sig_delta);
  * \brief K sigma clip each wavelet scale.
  * \ingroup wavelet
  */
-int smbrr_wavelet_ksigma_clip(struct smbrr_wavelet_2d *w, enum smbrr_clip clip,
+int smbrr_wavelet_ksigma_clip(struct smbrr_wavelet *w, enum smbrr_clip clip,
 	float sig_delta);
 
-/*! \fn int smbrr_wavelet_ksigma_clip_custom(struct smbrr_wavelet_2d *w,
+/*! \fn int smbrr_wavelet_ksigma_clip_custom(struct smbrr_wavelet *w,
 	struct smbrr_clip_coeff *coeff, float sig_delta);
  * \brief K sigma clip each wavelet scale with custom coefficients.
  * \ingroup wavelet
  */
-int smbrr_wavelet_ksigma_clip_custom(struct smbrr_wavelet_2d *w,
+int smbrr_wavelet_ksigma_clip_custom(struct smbrr_wavelet *w,
 	struct smbrr_clip_coeff *coeff, float sig_delta);
 
-/*! \fn int smbrr_wavelet_structure_find(struct smbrr_wavelet_2d *w,
+/*! \fn int smbrr_wavelet_structure_find(struct smbrr_wavelet *w,
 	unsigned int scale);
  * \brief Find structures in wavelet scale.
  * \ingroup wavelet
  */
-int smbrr_wavelet_structure_find(struct smbrr_wavelet_2d *w, unsigned int scale);
+int smbrr_wavelet_structure_find(struct smbrr_wavelet *w, unsigned int scale);
 
-/*! \fn int smbrr_wavelet_structure_connect(struct smbrr_wavelet_2d *w,
+/*! \fn int smbrr_wavelet_structure_connect(struct smbrr_wavelet *w,
 		unsigned int start_scale, unsigned int end_scale);
  * \brief Connect structures between wavelet scales.
  * \ingroup wavelet
  */
-int smbrr_wavelet_structure_connect(struct smbrr_wavelet_2d *w,
+int smbrr_wavelet_structure_connect(struct smbrr_wavelet *w,
 		unsigned int start_scale, unsigned int end_scale);
 
-/*! \fn struct smbrr_object *smbrr_wavelet_object_get(struct smbrr_wavelet_2d *w,
+/*! \fn struct smbrr_object *smbrr_wavelet_object_get(struct smbrr_wavelet *w,
 	unsigned int object_id);
 * \brief Get wavelet object.
 * \ingroup wavelet
 */
-struct smbrr_object *smbrr_wavelet_object_get(struct smbrr_wavelet_2d *w,
+struct smbrr_object *smbrr_wavelet_object_get(struct smbrr_wavelet *w,
 	unsigned int object_id);
 
-/*! \fn void smbrr_wavelet_object_free_all(struct smbrr_wavelet_2d *w)
+/*! \fn void smbrr_wavelet_object_free_all(struct smbrr_wavelet *w)
 * \brief Free all wavelet structures and objects.
 * \ingroup wavelet
 */
-void smbrr_wavelet_object_free_all(struct smbrr_wavelet_2d *w);
+void smbrr_wavelet_object_free_all(struct smbrr_wavelet *w);
 
-/*! \fn int smbrr_wavelet_object_get_image(struct smbrr_wavelet_2d *w,
-		struct smbrr_object *object, struct smbrr_image **image);
-* \brief Get wavelet object image.
+/*! \fn int smbrr_wavelet_object_get_data(struct smbrr_wavelet *w,
+		struct smbrr_object *object, struct smbrr **data);
+* \brief Get wavelet object data.
 * \ingroup wavelet
 */
-int smbrr_wavelet_object_get_image(struct smbrr_wavelet_2d *w,
-		struct smbrr_object *object, struct smbrr_image **image);
+int smbrr_wavelet_object_get_data(struct smbrr_wavelet *w,
+		struct smbrr_object *object, struct smbrr **data);
 
-/*! \fn struct smbrr_object *smbrr_wavelet_get_object_at(struct smbrr_wavelet_2d *w,
+/*! \fn struct smbrr_object *smbrr_wavelet_get_object_at(struct smbrr_wavelet *w,
  * 	int x, int y)
 * \brief Get object at position (x,y).
 * \ingroup wavelet
 */
-struct smbrr_object *smbrr_wavelet_get_object_at(struct smbrr_wavelet_2d *w,
+struct smbrr_object *smbrr_wavelet_get_object_at_posn(struct smbrr_wavelet *w,
 		int x, int y);
 
-/*! \fn int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet_2d *w,
+/*! \fn int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet *w,
  * 	float dark);
 * \brief Set average background value.
 * \ingroup wavelet
 */
-int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet_2d *w,
+int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet *w,
 		float dark);
 
-/*! \fnvoid smbrr_wavelet_set_ccd(struct smbrr_wavelet_2d *w, float gain, float bias,
+/*! \fnvoid smbrr_wavelet_set_ccd(struct smbrr_wavelet *w, float gain, float bias,
 	float readout)
 * \brief Set CCD configuration
 * \ingroup wavelet
 */
-void smbrr_wavelet_set_ccd(struct smbrr_wavelet_2d *w, float gain, float bias,
+void smbrr_wavelet_set_ccd(struct smbrr_wavelet *w, float gain, float bias,
 	float readout);
 
 #endif

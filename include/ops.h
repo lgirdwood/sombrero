@@ -21,161 +21,96 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-struct smbrr_image;
-struct smbrr_signal;
-struct smbrr_wavelet_2d;
+struct smbrr;
+struct smbrr_wavelet;
 
-struct image_ops {
+struct data_ops {
 
-	float (*get_mean)(struct smbrr_image *image);
-	float (*get_sigma)(struct smbrr_image *image, float mean);
-	float (*get_mean_sig)(struct smbrr_image *image,
-		struct smbrr_image *simage);
-	float (*get_sigma_sig)(struct smbrr_image *image,
-		struct smbrr_image *simage, float mean);
-	float (*get_norm)(struct smbrr_image *image);
-	void (*normalise)(struct smbrr_image *image, float min, float max);
-	void (*add)(struct smbrr_image *a, struct smbrr_image *b,
-		struct smbrr_image *c);
-	void (*add_value_sig)(struct smbrr_image *image,
-		struct smbrr_image *simage, float value);
-	void (*add_sig)(struct smbrr_image *a, struct smbrr_image *b,
-		struct smbrr_image *c, struct smbrr_image *s);
-	void (*subtract)(struct smbrr_image *a, struct smbrr_image *b,
-		struct smbrr_image *c);
-	void (*subtract_sig)(struct smbrr_image *a, struct smbrr_image *b,
-		struct smbrr_image *c, struct smbrr_image *s);
-	void (*add_value)(struct smbrr_image *a, float value);
-	void (*subtract_value)(struct smbrr_image *a, float value);
-	void (*mult_value)(struct smbrr_image *a, float value);
-	void (*reset_value)(struct smbrr_image *a, float value);
-	void (*set_value_sig)(struct smbrr_image *a,
-		struct smbrr_image *s, float value);
-	int (*convert)(struct smbrr_image *a, enum smbrr_data_type type);
-	void (*set_sig_value)(struct smbrr_image *a, uint32_t value);
-	void (*clear_negative)(struct smbrr_image *a);
-	int (*copy)(struct smbrr_image *dest, struct smbrr_image *src);
-	void (*fma)(struct smbrr_image *dest, struct smbrr_image *a,
-		struct smbrr_image *b, float c);
-	void (*fms)(struct smbrr_image *dest, struct smbrr_image *a,
-		struct smbrr_image *b, float c);
-	void (*anscombe)(struct smbrr_image *image, float gain, float bias,
+	float (*get_mean)(struct smbrr *data);
+	float (*get_sigma)(struct smbrr *data, float mean);
+	float (*get_mean_sig)(struct smbrr *data,
+		struct smbrr *sdata);
+	float (*get_sigma_sig)(struct smbrr *data,
+		struct smbrr *sdata, float mean);
+	float (*get_norm)(struct smbrr *data);
+	void (*normalise)(struct smbrr *data, float min, float max);
+	void (*add)(struct smbrr *a, struct smbrr *b,
+		struct smbrr *c);
+	void (*add_value_sig)(struct smbrr *data,
+		struct smbrr *sdata, float value);
+	void (*add_sig)(struct smbrr *a, struct smbrr *b,
+		struct smbrr *c, struct smbrr *s);
+	void (*subtract)(struct smbrr *a, struct smbrr *b,
+		struct smbrr *c);
+	void (*subtract_sig)(struct smbrr *a, struct smbrr *b,
+		struct smbrr *c, struct smbrr *s);
+	void (*add_value)(struct smbrr *a, float value);
+	void (*subtract_value)(struct smbrr *a, float value);
+	void (*mult_value)(struct smbrr *a, float value);
+	void (*reset_value)(struct smbrr *a, float value);
+	void (*set_value_sig)(struct smbrr *a,
+		struct smbrr *s, float value);
+	int (*convert)(struct smbrr *a, enum smbrr_type type);
+	void (*set_sig_value)(struct smbrr *a, uint32_t value);
+	void (*clear_negative)(struct smbrr *a);
+	int (*copy)(struct smbrr *dest, struct smbrr *src);
+	void (*mult_add)(struct smbrr *dest, struct smbrr *a,
+		struct smbrr *b, float c);
+	void (*mult_subtract)(struct smbrr *dest, struct smbrr *a,
+		struct smbrr *b, float c);
+	void (*anscombe)(struct smbrr *data, float gain, float bias,
 		float readout);
-	void (*new_significance)(struct smbrr_image *a,
-		struct smbrr_image *s, float sigma);
-	void (*find_limits)(struct smbrr_image *image, float *min, float *max);
-	int (*get)(struct smbrr_image *image, enum smbrr_adu adu,
+	void (*new_significance)(struct smbrr *a,
+		struct smbrr *s, float sigma);
+	void (*find_limits)(struct smbrr *data, float *min, float *max);
+	int (*get)(struct smbrr *data, enum smbrr_adu adu,
 		void **buf);
-	int (*psf)(struct smbrr_image *src, struct smbrr_image *dest,
+	int (*psf)(struct smbrr *src, struct smbrr *dest,
 		enum smbrr_wavelet_mask mask);
 
 	/* conversion */
-	void (*uchar_to_float)(struct smbrr_image *i, const unsigned char *c);
-	void (*ushort_to_float)(struct smbrr_image *i, const unsigned short *c);
-	void (*uint_to_float)(struct smbrr_image *i, const unsigned int *c);
-	void (*float_to_uchar)(struct smbrr_image *i, unsigned char *c);
-	void (*uint_to_uint)(struct smbrr_image *i, const unsigned int *c);
-	void (*ushort_to_uint)(struct smbrr_image *i, const unsigned short *c);
-	void (*uchar_to_uint)(struct smbrr_image *i, const unsigned char *c);
-	void (*float_to_uint)(struct smbrr_image *i, const float *c);
-	void (*float_to_float)(struct smbrr_image *i, const float *c);
-	void (*uint_to_uchar)(struct smbrr_image *i, unsigned char *c);
+	void (*uchar_to_float)(struct smbrr *i, const unsigned char *c);
+	void (*ushort_to_float)(struct smbrr *i, const unsigned short *c);
+	void (*uint_to_float)(struct smbrr *i, const unsigned int *c);
+	void (*float_to_uchar)(struct smbrr *i, unsigned char *c);
+	void (*uint_to_uint)(struct smbrr *i, const unsigned int *c);
+	void (*ushort_to_uint)(struct smbrr *i, const unsigned short *c);
+	void (*uchar_to_uint)(struct smbrr *i, const unsigned char *c);
+	void (*float_to_uint)(struct smbrr *i, const float *c);
+	void (*float_to_float)(struct smbrr *i, const float *c);
+	void (*uint_to_uchar)(struct smbrr *i, unsigned char *c);
 };
 
-struct signal_ops {
-
-	float (*get_mean)(struct smbrr_signal *signal);
-	float (*get_sigma)(struct smbrr_signal *signal, float mean);
-	float (*get_mean_sig)(struct smbrr_signal *signal,
-		struct smbrr_signal *ssignal);
-	float (*get_sigma_sig)(struct smbrr_signal *signal,
-		struct smbrr_signal *ssignal, float mean);
-	float (*get_norm)(struct smbrr_signal *signal);
-	void (*normalise)(struct smbrr_signal *signal, float min, float max);
-	void (*add)(struct smbrr_signal *a, struct smbrr_signal *b,
-		struct smbrr_signal *c);
-	void (*add_value_sig)(struct smbrr_signal *signal,
-		struct smbrr_signal *ssignal, float value);
-	void (*add_sig)(struct smbrr_signal *a, struct smbrr_signal *b,
-		struct smbrr_signal *c, struct smbrr_signal *s);
-	void (*subtract)(struct smbrr_signal *a, struct smbrr_signal *b,
-		struct smbrr_signal *c);
-	void (*subtract_sig)(struct smbrr_signal *a, struct smbrr_signal *b,
-		struct smbrr_signal *c, struct smbrr_signal *s);
-	void (*add_value)(struct smbrr_signal *a, float value);
-	void (*subtract_value)(struct smbrr_signal *a, float value);
-	void (*mult_value)(struct smbrr_signal *a, float value);
-	void (*reset_value)(struct smbrr_signal *a, float value);
-	void (*set_value_sig)(struct smbrr_signal *a,
-		struct smbrr_signal *s, float value);
-	int (*convert)(struct smbrr_signal *a, enum smbrr_data_type type);
-	void (*set_sig_value)(struct smbrr_signal *a, uint32_t value);
-	void (*clear_negative)(struct smbrr_signal *a);
-	int (*copy)(struct smbrr_signal *dest, struct smbrr_signal *src);
-	void (*fma)(struct smbrr_signal *dest, struct smbrr_signal *a,
-		struct smbrr_signal *b, float c);
-	void (*fms)(struct smbrr_signal *dest, struct smbrr_signal *a,
-		struct smbrr_signal *b, float c);
-	void (*anscombe)(struct smbrr_signal *signal, float gain, float bias,
-		float readout);
-	void (*new_significance)(struct smbrr_signal *a,
-		struct smbrr_signal *s, float sigma);
-	void (*find_limits)(struct smbrr_signal *signal, float *min, float *max);
-	int (*get)(struct smbrr_signal *signal, enum smbrr_adu adu,
-		void **buf);
-	int (*psf)(struct smbrr_signal *src, struct smbrr_signal *dest,
-		enum smbrr_wavelet_mask mask);
-
-	/* conversion */
-	void (*uchar_to_float)(struct smbrr_signal *i, const unsigned char *c);
-	void (*ushort_to_float)(struct smbrr_signal *i, const unsigned short *c);
-	void (*uint_to_float)(struct smbrr_signal *i, const unsigned int *c);
-	void (*float_to_uchar)(struct smbrr_signal *i, unsigned char *c);
-	void (*uint_to_uint)(struct smbrr_signal *i, const unsigned int *c);
-	void (*ushort_to_uint)(struct smbrr_signal *i, const unsigned short *c);
-	void (*uchar_to_uint)(struct smbrr_signal *i, const unsigned char *c);
-	void (*float_to_uint)(struct smbrr_signal *i, const float *c);
-	void (*float_to_float)(struct smbrr_signal *i, const float *c);
-	void (*uint_to_uchar)(struct smbrr_signal *i, unsigned char *c);
-};
-
-struct convolution2d_ops {
-	void (*atrous_conv)(struct smbrr_wavelet_2d *wavelet);
-	void (*atrous_conv_sig)(struct smbrr_wavelet_2d *wavelet);
-	void (*atrous_deconv_object)(struct smbrr_wavelet_2d *w,
+struct convolution_ops {
+	void (*atrous_conv)(struct smbrr_wavelet *wavelet);
+	void (*atrous_conv_sig)(struct smbrr_wavelet *wavelet);
+	void (*atrous_deconv_object)(struct smbrr_wavelet *w,
 		struct smbrr_object *object);
 };
 
-struct convolution1d_ops {
-	void (*atrous_conv)(struct smbrr_wavelet_1d *wavelet);
-	void (*atrous_conv_sig)(struct smbrr_wavelet_1d *wavelet);
-	void (*atrous_deconv_object)(struct smbrr_wavelet_1d *w,
-		struct smbrr_object *object);
-};
+extern const struct data_ops data_ops_1d;
+extern const struct data_ops data_ops_1d_sse42;
+extern const struct data_ops data_ops_1d_avx;
+extern const struct data_ops data_ops_1d_avx2;
+extern const struct data_ops data_ops_1d_fma;
 
-extern const struct image_ops image_ops;
-extern const struct image_ops image_ops_sse42;
-extern const struct image_ops image_ops_avx;
-extern const struct image_ops image_ops_avx2;
-extern const struct image_ops image_ops_fma;
+extern const struct data_ops data_ops_2d;
+extern const struct data_ops data_ops_2d_sse42;
+extern const struct data_ops data_ops_2d_avx;
+extern const struct data_ops data_ops_2d_avx2;
+extern const struct data_ops data_ops_2d_fma;
 
-extern const struct signal_ops signal_ops;
-extern const struct signal_ops signal_ops_sse42;
-extern const struct signal_ops signal_ops_avx;
-extern const struct signal_ops signal_ops_avx2;
-extern const struct signal_ops signal_ops_fma;
+extern const struct convolution_ops conv_ops_1d;
+extern const struct convolution_ops conv_ops_1d_sse42;
+extern const struct convolution_ops conv_ops_1d_avx;
+extern const struct convolution_ops conv_ops_1d_avx2;
+extern const struct convolution_ops conv_ops_1d_fma;
 
-extern const struct convolution2d_ops conv2d_ops;
-extern const struct convolution2d_ops conv2d_ops_sse42;
-extern const struct convolution2d_ops conv2d_ops_avx;
-extern const struct convolution2d_ops conv2d_ops_avx2;
-extern const struct convolution2d_ops conv2d_ops_fma;
-
-extern const struct convolution1d_ops conv1d_ops;
-extern const struct convolution1d_ops conv1d_ops_sse42;
-extern const struct convolution1d_ops conv1d_ops_avx;
-extern const struct convolution1d_ops conv1d_ops_avx2;
-extern const struct convolution1d_ops conv1d_ops_fma;
+extern const struct convolution_ops conv_ops_2d;
+extern const struct convolution_ops conv_ops_2d_sse42;
+extern const struct convolution_ops conv_ops_2d_avx;
+extern const struct convolution_ops conv_ops_2d_avx2;
+extern const struct convolution_ops conv_ops_2d_fma;
 
 #endif
 #endif

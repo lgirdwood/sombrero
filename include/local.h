@@ -60,8 +60,8 @@ struct object {
 	unsigned int end_scale;
 	unsigned int pruned;
 
-	/* reconstructed wavelet image of object */
-	struct smbrr_image *image;
+	/* reconstructed wavelet data of object */
+	struct smbrr *data;
 };
 
 struct wavelet_mask {
@@ -73,53 +73,41 @@ struct wavelet_mask {
 	const float *data;
 };
 
-struct image_ops;
+struct data_ops;
 
-struct smbrr_image {
+struct smbrr {
 	union {
 		float *adu;
 		uint32_t *s;
 	};
-	enum smbrr_data_type type;
+	enum smbrr_type type;
 	unsigned int sig_pixels;
 	unsigned int width;
 	unsigned int height;
-	unsigned int size;
+	unsigned int elems;
 	unsigned int stride;
-	const struct image_ops *ops;
+	const struct data_ops *ops;
 };
 
 struct signal_ops;
 
-struct smbrr_signal {
-	union {
-		float *adu;
-		uint32_t *s;
-	};
-	enum smbrr_data_type type;
-	unsigned int sig_pixels;
-	unsigned int length;
-	unsigned int size;
-	const struct signal_ops *ops;
-};
-
-struct smbrr_wavelet_2d {
+struct smbrr_wavelet {
 	struct smbrr *smbrr;
 
 	unsigned int width;
 	unsigned int height;
-	const struct convolution2d_ops *ops;
+	const struct convolution_ops *ops;
 
 	/* convolution wavelet mask */
 	struct wavelet_mask mask;
 	enum smbrr_conv conv_type;
 	enum smbrr_wavelet_mask mask_type;
 
-	/* image scales */
+	/* data scales */
 	int num_scales;
-	struct smbrr_image *c[SMBRR_MAX_SCALES];	/* image scales - original is c[0] */
-	struct smbrr_image *w[SMBRR_MAX_SCALES - 1];	/* wavelet coefficients scales */
-	struct smbrr_image *s[SMBRR_MAX_SCALES - 1];	/* significance images */
+	struct smbrr *c[SMBRR_MAX_SCALES];	/* data scales - original is c[0] */
+	struct smbrr *w[SMBRR_MAX_SCALES - 1];	/* wavelet coefficients scales */
+	struct smbrr *s[SMBRR_MAX_SCALES - 1];	/* significance datas */
 
 	/* structures */
 	unsigned int num_structures[SMBRR_MAX_SCALES - 1];
@@ -133,54 +121,17 @@ struct smbrr_wavelet_2d {
 
 	/* dark */
 	float dark;
-	struct smbrr_image *dark_image;
+	struct smbrr *dark_data;
 
-	/* ccd */
+	/* ccd  / receiver */
 	float gain;
 	float bias;
 	float readout;
 };
 
-struct smbrr_wavelet_1d {
-	struct smbrr *smbrr;
-
-	unsigned int length;
-	const struct convolution1d_ops *ops;
-
-	/* convolution wavelet mask */
-	struct wavelet_mask mask;
-	enum smbrr_conv conv_type;
-	enum smbrr_wavelet_mask mask_type;
-
-	/* image scales */
-	int num_scales;
-	struct smbrr_signal *c[SMBRR_MAX_SCALES];	/* image scales - original is c[0] */
-	struct smbrr_signal *w[SMBRR_MAX_SCALES - 1];	/* wavelet coefficients scales */
-	struct smbrr_signal *s[SMBRR_MAX_SCALES - 1];	/* significance images */
-
-	/* structures */
-	unsigned int num_structures[SMBRR_MAX_SCALES - 1];
-	struct structure *structure[SMBRR_MAX_SCALES - 1];
-
-	/* objects */
-	struct object *objects;
-	struct object **objects_sorted;
-	int num_objects;
-	struct object **object_map;
-
-	/* dark */
-	float dark;
-	struct smbrr_image *dark_image;
-
-	/* receiver */
-	float gain;
-	float bias;
-	float readout;
-};
-
-static inline int image_get_offset(struct smbrr_image *image, int offx, int offy)
+static inline int data_get_offset(struct smbrr *data, int offx, int offy)
 {
-	return offy * image->width + offx;
+	return offy * data->width + offx;
 }
 
 static inline int mask_get_offset(int width, int offx, int offy)
@@ -188,22 +139,22 @@ static inline int mask_get_offset(int width, int offx, int offy)
 	return offy * width + offx;
 }
 
-static inline int image_get_x(struct smbrr_image *image, unsigned int pixel)
+static inline int data_get_x(struct smbrr *data, unsigned int pixel)
 {
-	return pixel % image->width;
+	return pixel % data->width;
 }
 
-static inline int image_get_y(struct smbrr_image *image, unsigned int pixel)
+static inline int data_get_y(struct smbrr *data, unsigned int pixel)
 {
-	return pixel / image->width;
+	return pixel / data->width;
 }
 
-static inline int wavelet_get_x(struct smbrr_wavelet_2d *w, unsigned int pixel)
+static inline int wavelet_get_x(struct smbrr_wavelet *w, unsigned int pixel)
 {
 	return pixel % w->width;
 }
 
-static inline int wavelet_get_y(struct smbrr_wavelet_2d *w, unsigned int pixel)
+static inline int wavelet_get_y(struct smbrr_wavelet *w, unsigned int pixel)
 {
 	return pixel / w->width;
 }

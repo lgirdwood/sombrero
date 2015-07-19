@@ -50,8 +50,8 @@ static void usage(char *argv[])
 
 int main(int argc, char *argv[])
 {
-	struct smbrr_wavelet_2d *w;
-	struct smbrr_image *image, *oimage, *simage;
+	struct smbrr_wavelet *w;
+	struct smbrr *image, *oimage, *simage;
 	struct bitmap *bmp;
 	const void *data;
 	int ret, width, height, stride, i, opt, anscombe = 0, k = 1,
@@ -118,12 +118,12 @@ int main(int argc, char *argv[])
 	fprintf(stdout, "Image width %d height %d stride %d\n",
 		width, height, stride);
 
-	image = smbrr_image_new(SMBRR_DATA_FLOAT, width, height, stride,
+	image = smbrr_new(SMBRR_DATA_2D_FLOAT, width, height, stride,
 		depth, data);
 	if (image == NULL)
 		return -EINVAL;
 
-	oimage = smbrr_image_new(SMBRR_DATA_FLOAT, width, height, stride,
+	oimage = smbrr_new(SMBRR_DATA_2D_FLOAT, width, height, stride,
 		depth, NULL);
 	if (oimage == NULL)
 		return -EINVAL;
@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
 			"gain = %3.3f, bias = %3.3f, readout = %3.3f\n",
 			gain, bias, readout);
 
-		smbrr_image_anscombe(image, gain, bias, readout);
+		smbrr_anscombe(image, gain, bias, readout);
 	}
 
 	w = smbrr_wavelet_new(image, scales);
@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
 	fprintf(stdout, "Using K sigma strength %d delta %f\n", k, sigma_delta);
 		smbrr_wavelet_ksigma_clip(w, k, sigma_delta);
 
-	ret = smbrr_wavelet_deconvolution_sig(w, SMBRR_CONV_ATROUS,
+	ret = smbrr_wavelet_significant_deconvolution(w, SMBRR_CONV_ATROUS,
 				SMBRR_WAVELET_MASK_LINEAR, a);
 	if (ret < 0)
 		return ret;
@@ -159,8 +159,8 @@ int main(int argc, char *argv[])
 
 	for (i = 0; i < scales - 1; i++) {
 			/* save each significant scale for visualisation */
-			simage = smbrr_wavelet_image_get_significant(w, i);
-			smbrr_image_add_value_sig(oimage, simage,
+			simage = smbrr_wavelet_get_data_significant(w, i);
+			smbrr_significant_add_value(oimage, simage,
 					16 + (1 << ((scales - 1) - i)));
 	}
 
@@ -168,16 +168,16 @@ int main(int argc, char *argv[])
 	bmp_image_save(oimage, bmp, outfile);
 
 	for (i = 0; i < scales - 1; i++) {
-		simage = smbrr_wavelet_image_get_significant(w, i);
-		smbrr_image_reset_value(oimage, 0.0);
-		smbrr_image_set_value_sig(oimage, simage, 127);
+		simage = smbrr_wavelet_get_data_significant(w, i);
+		smbrr_reset_value(oimage, 0.0);
+		smbrr_significant_set_value(oimage, simage, 127);
 		sprintf(outfile, "%s-sig-%d", ofile, i);
 		bmp_image_save(oimage, bmp, outfile);
 	}
 
 	free(bmp);
 	smbrr_wavelet_free(w);
-	smbrr_image_free(oimage);
-	smbrr_image_free(image);
+	smbrr_free(oimage);
+	smbrr_free(image);
 	return 0;
 }

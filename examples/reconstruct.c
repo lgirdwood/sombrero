@@ -29,7 +29,7 @@
 
 int main(int argc, char *argv[])
 {
-	struct smbrr_image *image;
+	struct smbrr *image;
 	struct bitmap *bmp;
 	const void *data;
 	int ret, width, height, stride;
@@ -50,27 +50,27 @@ int main(int argc, char *argv[])
 	fprintf(stdout, "Image width %d height %d stride %d\n",
 		width, height, stride);
 
-	image = smbrr_image_new(SMBRR_DATA_FLOAT, width, height, stride,
+	image = smbrr_new(SMBRR_DATA_2D_FLOAT, width, height, stride,
 		depth, data);
 	if (image == NULL) {
 		fprintf(stderr, "cant create new image\n");
 		return -EINVAL;
 	}
 
-	mean = smbrr_image_get_mean(image);
-	sigma = smbrr_image_get_sigma(image, mean);
+	mean = smbrr_get_mean(image);
+	sigma = smbrr_get_sigma(image, mean);
 	fprintf(stdout, "Image before mean %f sigma %f\n", mean, sigma);
 
-	smbrr_image_reconstruct(image, SMBRR_WAVELET_MASK_LINEAR, 1.0e-4, 8,
+	smbrr_reconstruct(image, SMBRR_WAVELET_MASK_LINEAR, 1.0e-4, 8,
 		SMBRR_CLIP_VGENTLE);
 
-	mean = smbrr_image_get_mean(image);
-	sigma = smbrr_image_get_sigma(image, mean);
+	mean = smbrr_get_mean(image);
+	sigma = smbrr_get_sigma(image, mean);
 	fprintf(stdout, "Image after mean %f sigma %f\n", mean, sigma);
 
 	bmp_image_save(image, bmp, "reconstruct");
 	free(bmp);
-	smbrr_image_free(image);
+	smbrr_free(image);
 
 	return 0;
 }

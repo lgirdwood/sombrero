@@ -97,7 +97,7 @@ static const float k_amp[5][8] = {
 	{1.0, 1.0, 1.5, 2.0, 4.0, 4.0, 4.0, 8.0},	/* low-mid pass */
 };
 
-static inline int conv_mask_set_2d(struct smbrr_wavelet_2d *w,
+static inline int conv_mask_set_2d(struct smbrr_wavelet *w,
 	enum smbrr_wavelet_mask mask)
 {
 	switch (mask) {
@@ -120,7 +120,7 @@ static inline int conv_mask_set_2d(struct smbrr_wavelet_2d *w,
 	return 0;
 }
 
-static inline int deconv_mask_set_2d(struct smbrr_wavelet_2d *w,
+static inline int deconv_mask_set_2d(struct smbrr_wavelet *w,
 	enum smbrr_wavelet_mask mask)
 {
 	switch (mask) {
@@ -143,18 +143,18 @@ static inline int deconv_mask_set_2d(struct smbrr_wavelet_2d *w,
 	return 0;
 }
 
-static inline int conv_mask_set_1d(struct smbrr_wavelet_1d *w,
+static inline int conv_mask_set_1d(struct smbrr_wavelet *w,
 	enum smbrr_wavelet_mask mask)
 {
 	switch (mask) {
 	case SMBRR_WAVELET_MASK_LINEAR:
 		w->mask.data = (float*)linear_mask_1d;
-		w->mask.length = 3;
+		w->mask.width = 3;
 		w->mask_type = mask;
 		break;
 	case SMBRR_WAVELET_MASK_BICUBIC:
 		w->mask.data = (float*)bicubic_mask_1d;
-		w->mask.length = 5;
+		w->mask.width = 5;
 		w->mask_type = mask;
 		break;
 	default:
@@ -164,18 +164,18 @@ static inline int conv_mask_set_1d(struct smbrr_wavelet_1d *w,
 	return 0;
 }
 
-static inline int deconv_mask_set_1d(struct smbrr_wavelet_1d *w,
+static inline int deconv_mask_set_1d(struct smbrr_wavelet *w,
 	enum smbrr_wavelet_mask mask)
 {
 	switch (mask) {
 	case SMBRR_WAVELET_MASK_LINEAR:
 		w->mask.data = (float*)linear_mask_inverse_1d;
-		w->mask.length = 3;
+		w->mask.width = 3;
 		w->mask_type = mask;
 		break;
 	case SMBRR_WAVELET_MASK_BICUBIC:
 		w->mask.data = (float*)bicubic_mask_inverse_1d;
-		w->mask.length = 5;
+		w->mask.width = 5;
 		w->mask_type = mask;
 		break;
 	default:

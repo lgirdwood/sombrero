@@ -44,8 +44,8 @@ static void usage(char *argv[])
 
 int main(int argc, char *argv[])
 {
-	struct smbrr_image *image, *simage, *wimage;
-	struct smbrr_wavelet_2d *w;
+	struct smbrr *image, *simage, *wimage;
+	struct smbrr_wavelet *w;
 	struct bitmap *bmp;
 	const void *data;
 	int ret, width, height, stride, i, opt, k = 1,
@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
 	fprintf(stdout, "Image width %d height %d stride %d\n",
 		width, height, stride);
 
-	image = smbrr_image_new(SMBRR_DATA_FLOAT, width, height, stride,
+	image = smbrr_new(SMBRR_DATA_2D_FLOAT, width, height, stride,
 		depth, data);
 	if (image == NULL) {
 		fprintf(stderr, "can't create new image\n");
@@ -118,19 +118,19 @@ int main(int argc, char *argv[])
 
 	for (i = 0; i < scales; i++) {
 
-		simage = smbrr_wavelet_image_get_scale(w, i);
-		wimage = smbrr_wavelet_image_get_wavelet(w, i);
+		simage = smbrr_wavelet_get_data_scale(w, i);
+		wimage = smbrr_wavelet_get_data_wavelet(w, i);
 
-		mean = smbrr_image_get_mean(simage);
-		sigma = smbrr_image_get_sigma(simage, mean);
+		mean = smbrr_get_mean(simage);
+		sigma = smbrr_get_sigma(simage, mean);
 
 		fprintf(stdout, "scale %d mean %3.3f sigma %3.3f\n", i, mean, sigma);
 		sprintf(outfile, "%s-as-%d", ofile, i);
 		bmp_image_save(simage, bmp, outfile);
 
 		if (i < scales - 1) {
-			mean = smbrr_image_get_mean(wimage);
-			sigma = smbrr_image_get_sigma(wimage, mean);
+			mean = smbrr_get_mean(wimage);
+			sigma = smbrr_get_sigma(wimage, mean);
 			fprintf(stdout, "wavelet %d mean %3.3f sigma %3.3f\n", i, mean, sigma);
 
 			sprintf(outfile, "%s-aw-%d", ofile, i);
@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
 
 	free(bmp);
 	smbrr_wavelet_free(w);
-	smbrr_image_free(image);
+	smbrr_free(image);
 
 	return 0;
 }
