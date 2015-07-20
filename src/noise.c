@@ -255,29 +255,26 @@ int smbrr_wavelet_new_significant(struct smbrr_wavelet *w,
 		mean = smbrr_get_mean(W);
 		sigma = smbrr_get_sigma(W, mean);
 
-		smbrr_significant_new(W, S,
-			c->coeff[i] * sigma);
+		smbrr_significant_new(W, S, c->coeff[i] * sigma);
 	}
 
 	return 0;
 }
 
-/*! \fn int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet *w,
- * 	float dark);
+/*! \fn int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet *w, float dark);
 * \param w wavelet.
 * \param dark Mean dark ADU
 *
 * Set the mean dark ADU level.
 */
-int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet *w,
-		float dark)
+int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet *w, float dark)
 {
 	w->dark = dark;
 	return 0;
 }
 
 /*! \fn void smbrr_wavelet_set_ccd(struct smbrr_wavelet *w, float gain, float bias,
-	float readout)
+	float readout);
 * \param w wavelet.
 * \param gain CCD amplifier gain in photo-electrons per ADU
 * \param bias Image bias in ADUs

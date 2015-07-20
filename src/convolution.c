@@ -159,6 +159,7 @@ int smbrr_wavelet_deconvolution(struct smbrr_wavelet *w, enum smbrr_conv conv,
 * \param w wavelet
 * \param conv wavelet convolution type
 * \param mask wavelet convolution mask
+* \param gain wavelte convolution gain
 * \return 0 for success.
 *
 * De-convolve wavelet scales into data using significant pixels only.

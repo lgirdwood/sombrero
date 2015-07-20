@@ -1039,6 +1039,8 @@ void smbrr_wavelet_object_free_all(struct smbrr_wavelet *w)
 /*! \fn int smbrr_wavelet_object_get_data(struct smbrr_wavelet *w,
 		struct smbrr_object *object, struct smbrr **data)
 * \param w Wavelet.
+* \param object Object
+* \param data Data
 *
 * Free all objects, object datas and structures.
 */

@@ -117,7 +117,7 @@ enum smbrr_type {
 
 /*!
 ** Wavelet Convolution Type
-* \enum smbrr_conv
+* \enum smbrr_conv Wavelet Convolution Type
 * \brief Supported wavelet convolution types.
 *
 * Type of wavelet convolution or deconvolution applied to an data.
@@ -212,8 +212,8 @@ struct smbrr_object {
 	float object_adu;		/*!< Sum of all object pixels values */
 	float object_radius;	/*!< Object radius in pixels */
 	unsigned int object_area;		/*!< Object area in pixels */
-	float snr;
-	float error;
+	float snr;		/*!< Signal to Noise Ration */
+	float error;		/*!< Error in SNR */
 
 	/* object anullus (background) */
 	unsigned int background_area; /*!< Count of background pixels in annulus */
@@ -731,7 +731,7 @@ struct smbrr_object *smbrr_wavelet_get_object_at_posn(struct smbrr_wavelet *w,
 int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet *w,
 		float dark);
 
-/*! \fnvoid smbrr_wavelet_set_ccd(struct smbrr_wavelet *w, float gain, float bias,
+/*! \fn void smbrr_wavelet_set_ccd(struct smbrr_wavelet *w, float gain, float bias,
 	float readout)
 * \brief Set CCD configuration
 * \ingroup wavelet
