@@ -37,13 +37,13 @@ static struct smbrr *data_get_A_tilda(struct smbrr_wavelet *w,
 	smbrr_wavelet_new_significant(w, sigma_clip);
 
 	/* clear sig pixels at scale 0 to lessen artifacts on restored data */
-	sdata = smbrr_wavelet_get_data_significant(w, 0);
+	sdata = smbrr_wavelet_get_significant(w, 0);
 	if (sdata->sig_pixels)
 		smbrr_significant_set_sig_value(sdata, 0);
 
 	smbrr_wavelet_significant_deconvolution(w, SMBRR_CONV_ATROUS, mask,
 		SMBRR_GAIN_NONE);
-	return smbrr_wavelet_get_data_scale(w, 0);
+	return smbrr_wavelet_get_scale(w, 0);
 }
 
 /* deconvolve data where wavelet are significant at all scales */
@@ -65,7 +65,7 @@ static struct smbrr *data_get_A(struct smbrr *data,
 	smbrr_wavelet_significant_convolution(w, SMBRR_CONV_ATROUS, mask);
 	smbrr_wavelet_significant_deconvolution(w, SMBRR_CONV_ATROUS, mask,
 		SMBRR_GAIN_NONE);
-	i = smbrr_wavelet_get_data_scale(w, 0);
+	i = smbrr_wavelet_get_scale(w, 0);
 
 	smbrr_wavelet_free(w);
 	return i;
@@ -193,7 +193,8 @@ int smbrr_reconstruct(struct smbrr *O,
 
 		/* step 2 - calculate convergance parameter alpha */
 		alpha = calc_alpha(R, wr0, mask, scales, sigma_clip);
-printf("alpha %f\n", alpha);
+		//printf("alpha %f\n", alpha);
+
 		/* step 3 - calculate new data O - add correction to O */
 		/* O(n+1) = O(n) + alpha * R after which O is O(n+1) */
 		smbrr_mult_add(O0, O0, R, alpha);
@@ -217,10 +218,13 @@ printf("alpha %f\n", alpha);
 		/* step 6 - if (norm(w(n+1)) < threshold) then stop  */
 		if (calc_residual_thres(wr1) < threshold)
 			break;
-//smbrr_data_dump(O0, "O0-%d", tries);
+
+		//smbrr_data_dump(O0, "O0-%d", tries);
+
 		/* step 7 - calculate new convergence parameter beta */
 		beta = calc_beta(wr0, wr1, mask, sigma_clip);
-printf("beta %f\n", beta);
+		//printf("beta %f\n", beta);
+
 		/* step 8 - calculate new residual data R */
 		/* R(n+1) = atilda(wr(n+1)) + beta * R(n) */
 

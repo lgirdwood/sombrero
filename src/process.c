@@ -29,7 +29,7 @@
 #include "ops.h"
 #include "mask.h"
 
-static const struct data_ops* get_1d_data_ops(void)
+static const struct data_ops* get_1d_ops(void)
 {
 	unsigned int cpu_flags = cpu_get_flags();
 
@@ -54,7 +54,7 @@ static const struct data_ops* get_1d_data_ops(void)
 	return &data_ops_1d;
 }
 
-static const struct data_ops* get_2d_data_ops(void)
+static const struct data_ops* get_2d_ops(void)
 {
 	unsigned int cpu_flags = cpu_get_flags();
 
@@ -79,7 +79,7 @@ static const struct data_ops* get_2d_data_ops(void)
 	return &data_ops_2d;
 }
 
-/*! \fn struct smbrr *smbrr_data_new(enum smbrr_data_type type,
+/*! \fn struct smbrr *smbrr_new(enum smbrr_type type,
 	unsigned int width, unsigned int height, unsigned int stride,
 	enum smbrr_adu adu, const void *src_data);
 * \param type New data type
@@ -109,28 +109,28 @@ struct smbrr *smbrr_new(enum smbrr_type type,
 	case SMBRR_DATA_1D_UINT32:
 		bytes = sizeof(uint32_t);
 		size = width * bytes;
-		ops = get_1d_data_ops();
+		ops = get_1d_ops();
 		elems = width;
 		height_ = 1;
 		break;
 	case SMBRR_DATA_2D_UINT32:
 		bytes = sizeof(uint32_t);
 		size = width * height * bytes;
-		ops = get_2d_data_ops();
+		ops = get_2d_ops();
 		elems = width * height;
 		height_ = height;
 		break;
 	case SMBRR_DATA_1D_FLOAT:
 		bytes = sizeof(float);
 		size = width * bytes;
-		ops = get_1d_data_ops();
+		ops = get_1d_ops();
 		elems = width;
 		height_ = 1;
 		break;
 	case SMBRR_DATA_2D_FLOAT:
 		bytes = sizeof(float);
 		size = width * height * bytes;
-		ops = get_2d_data_ops();
+		ops = get_2d_ops();
 		elems = width * height;
 		height_ = height;
 		break;
@@ -229,7 +229,7 @@ struct smbrr *smbrr_new(enum smbrr_type type,
 	return data;
 }
 
-/*! \fn struct smbrr *smbrr_data_new_from_region(struct smbrr *src,
+/*! \fn struct smbrr *smbrr_new_from_area(struct smbrr *src,
 	unsigned int x_start, unsigned int y_start, unsigned int x_end,
 	unsigned int y_end)
 * \param src Source data
@@ -239,8 +239,8 @@ struct smbrr *smbrr_new(enum smbrr_type type,
 * \param y_end Y pixel offset for region end
 * \return Pointer to new data or NULL on failure
 *
-* Create a new smbrr data from a smaller source data region. This is useful
-* for faster processing and reconstructing smaller regions of interest.
+* Create a new 2D smbrr data from a smaller source data region. This is useful
+* for faster 2D processing and reconstructing smaller regions of interest.
 */
 struct smbrr *smbrr_new_from_area(struct smbrr *src,
 	unsigned int x_start, unsigned int y_start, unsigned int x_end,
@@ -280,7 +280,7 @@ struct smbrr *smbrr_new_from_area(struct smbrr *src,
 	}
 	bzero(data->adu, size);
 
-	data->ops = get_2d_data_ops();
+	data->ops = get_2d_ops();
 	data->elems = width * height;
 	data->width = width;
 	data->height = height;
@@ -301,6 +301,16 @@ struct smbrr *smbrr_new_from_area(struct smbrr *src,
 	return data;
 }
 
+/*! \fn struct smbrr *smbrr_new_from_section(struct smbrr *src,
+	unsigned int start,  unsigned int end)
+* \param src Source data
+* \param start data offset for region start
+* \param end  data offset for region end
+* \return Pointer to new data or NULL on failure
+*
+* Create a new1D smbrr data from a smaller source data region. This is useful
+* for faster 1D processing and reconstructing smaller regions of interest.
+*/
 struct smbrr *smbrr_new_from_section(struct smbrr *src,
 	unsigned int start,  unsigned int end)
 {
@@ -337,7 +347,7 @@ struct smbrr *smbrr_new_from_section(struct smbrr *src,
 	}
 	bzero(data->adu, size);
 
-	data->ops = get_1d_data_ops();
+	data->ops = get_1d_ops();
 	data->elems = width;
 	data->width = width;
 	data->height = 1;
@@ -354,7 +364,7 @@ struct smbrr *smbrr_new_from_section(struct smbrr *src,
 	return data;
 }
 
-/*! \fn struct smbrr *smbrr_data_new_copy(struct smbrr *data)
+/*! \fn struct smbrr *smbrr_new_copy(struct smbrr *data)
 * \param data Source data.
 * \return Pointer to new data or NULL on failure
 *
@@ -374,7 +384,7 @@ struct smbrr *smbrr_new_copy(struct smbrr *src)
 	}
 }
 
-/*! \fn void smbrr_data_free(struct smbrr *data)
+/*! \fn void smbrr_free(struct smbrr *data)
 * \param data Image to be freed
 *
 * Free data resources.
@@ -388,7 +398,7 @@ void smbrr_free(struct smbrr *data)
 	free(data);
 }
 
-/*! \fn int smbrr_data_get(struct smbrr *data, enum smbrr_adu adu,
+/*! \fn int smbrr_get_data(struct smbrr *data, enum smbrr_adu adu,
 	void **buf)
 * \param data Image
 * \param adu ADU type of raw data
@@ -403,7 +413,7 @@ int smbrr_get_data(struct smbrr *data, enum smbrr_adu adu,
 	return data->ops->get(data, adu, buf);
 }
 
-/*! \fn int smbrr_data_copy(struct smbrr *dest, struct smbrr *src)
+/*! \fn int smbrr_copy(struct smbrr *dest, struct smbrr *src)
 * \param src Source data
 * \param dest Destination data.
 * \return 0 on success.
@@ -421,8 +431,8 @@ int smbrr_copy(struct smbrr *dest, struct smbrr *src)
 	return 0;
 }
 
-/*! \fn int smbrr_data_convert(struct smbrr *data,
-	enum smbrr_data_type type)
+/*! \fn int smbrr_convert(struct smbrr *data,
+	enum smbrr_type type)
 * \param data Image
 * \param type target destination type
 * \return 0 on success
@@ -435,7 +445,7 @@ int smbrr_convert(struct smbrr *data,
 	return data->ops->convert(data, type);
 }
 
-/*! \fn void smbrr_data_find_limits(struct smbrr *data,
+/*! \fn void smbrr_find_limits(struct smbrr *data,
     float *min, float *max)
 * \param data Image
 * \param min pointer to store data min pixel value
@@ -448,7 +458,7 @@ void smbrr_find_limits(struct smbrr *data, float *min, float *max)
 	data->ops->find_limits(data, min, max);
 }
 
-/*! \fn void smbrr_data_normalise(struct smbrr *data, float min,
+/*! \fn void smbrr_normalise(struct smbrr *data, float min,
 	float max)
 * \param data Image
 * \param min minimum pixel value
@@ -462,7 +472,7 @@ void smbrr_normalise(struct smbrr *data, float min, float max)
 	data->ops->normalise(data, min, max);
 }
 
-/*! \fn void smbrr_data_add(struct smbrr *a, struct smbrr *b,
+/*! \fn void smbrr_add(struct smbrr *a, struct smbrr *b,
 	struct smbrr *c)
 * \param a Image A
 * \param b data B
@@ -476,7 +486,7 @@ void smbrr_add(struct smbrr *a, struct smbrr *b,
 	a->ops->add(a, b, c);
 }
 
-/*! \fn void smbrr_data_add_sig(struct smbrr *a, struct smbrr *b,
+/*! \fn void smbrr_significant_add(struct smbrr *a, struct smbrr *b,
 	struct smbrr *c, struct smbrr *s)
 * \param a Image A
 * \param b data B
@@ -491,7 +501,7 @@ void smbrr_significant_add(struct smbrr *a, struct smbrr *b,
 	a->ops->add_sig(a, b, c, s);
 }
 
-/*! \fn void smbrr_data_mult_add(struct smbrr *dest, struct smbrr *a,
+/*! \fn void smbrr_mult_add(struct smbrr *dest, struct smbrr *a,
 	struct smbrr *b, float c)
 * \param dest Destination Image
 * \param a Image A
@@ -507,7 +517,7 @@ void smbrr_mult_add(struct smbrr *dest, struct smbrr *a,
 	a->ops->mult_add(dest, a, b, c);
 }
 
-/*! \fn void smbrr_data_fms(struct smbrr *dest, struct smbrr *a,
+/*! \fn void smbrr_mult_subtract(struct smbrr *dest, struct smbrr *a,
 	struct smbrr *b, float c)
 * \param dest Destination Image
 * \param a Image A
@@ -523,7 +533,7 @@ void smbrr_mult_subtract(struct smbrr *dest, struct smbrr *a,
 	dest->ops->mult_subtract(dest, a, b, c);
 }
 
-/*! \fn void smbrr_data_subtract(struct smbrr *a, struct smbrr *b,
+/*! \fn void smbrr_subtract(struct smbrr *a, struct smbrr *b,
 	struct smbrr *c)
 * \param a Image A
 * \param b data B
@@ -537,7 +547,7 @@ void smbrr_subtract(struct smbrr *a, struct smbrr *b,
 	a->ops->subtract(a, b, c);
 }
 
-/*! \fn void smbrr_data_subtract_sig(struct smbrr *a, struct smbrr *b,
+/*! \fn void smbrr_significant_subtract(struct smbrr *a, struct smbrr *b,
 	struct smbrr *c, struct smbrr *s)
 * \param a Image A
 * \param b data B
@@ -552,7 +562,7 @@ void smbrr_significant_subtract(struct smbrr *a, struct smbrr *b,
 	a->ops->subtract_sig(a, b, c, s);
 }
 
-/*! \fn void smbrr_data_add_value(struct smbrr *data, float value)
+/*! \fn void smbrr_add_value(struct smbrr *data, float value)
 * \param data Image
 * \param value Value
 *
@@ -563,9 +573,10 @@ void smbrr_add_value(struct smbrr *data, float value)
 	data->ops->add_value(data, value);
 }
 
-/*! \fn void smbrr_data_add_value_sig(struct smbrr *data,
-	struct smbrr *data, float value)
+/*! \fn void smbrr_significant_add_value(struct smbrr *data,
+	struct smbrr *sdata, float value)
 * \param data Image
+* \param sdata Image
 * \param value Value
 *
 * Add value to all significant data pixels.
@@ -576,7 +587,7 @@ void smbrr_significant_add_value(struct smbrr *data,
 	data->ops->add_value_sig(data, sdata, value);
 }
 
-/*! \fn void smbrr_data_subtract_value(struct smbrr *data, float value)
+/*! \fn void smbrr_subtract_value(struct smbrr *data, float value)
 * \param data Image
 * \param value Value
 *
@@ -587,7 +598,7 @@ void smbrr_subtract_value(struct smbrr *data, float value)
 	data->ops->subtract_value(data, value);
 }
 
-/*! \fn void smbrr_data_mult_value(struct smbrr *data, float value)
+/*! \fn void smbrr_mult_value(struct smbrr *data, float value)
 * \param data Image
 * \param value Value
 *
@@ -598,7 +609,7 @@ void smbrr_mult_value(struct smbrr *data, float value)
 	data->ops->mult_value(data, value);
 }
 
-/*! \fn void smbrr_data_reset_value(struct smbrr *data, float value)
+/*! \fn void smbrr_reset_value(struct smbrr *data, float value)
 * \param data Image
 * \param value Value
 *
@@ -609,8 +620,7 @@ void smbrr_reset_value(struct smbrr *data, float value)
 	data->ops->reset_value(data, value);
 }
 
-/*! \fn void smbrr_data_set_sig_value(struct smbrr *data,
-	uint32_t value)
+/*! \fn void smbrr_significant_set_sig_value(struct smbrr *data, uint32_t value)
 * \param data Image
 * \param value reset value
 *
@@ -621,7 +631,7 @@ void smbrr_significant_set_sig_value(struct smbrr *data, uint32_t value)
 	data->ops->set_sig_value(data, value);
 }
 
-/*! \fn void smbrr_data_set_value_sig(struct smbrr *data,
+/*! \fn void smbrr_significant_set_value(struct smbrr *data,
 	struct smbrr *sdata, float sig_value)
 * \param data Image
 * \param sdata Significant Image
@@ -635,7 +645,7 @@ void smbrr_significant_set_value(struct smbrr *data,
 	data->ops->set_value_sig(data, sdata, sig_value);
 }
 
-/*! \fn void smbrr_data_clear_negative(struct smbrr *data)
+/*! \fn void smbrr_zero_negative(struct smbrr *data)
 * \param data Image
 *
 * Clear any data pixels with negative values to zero..
@@ -645,7 +655,7 @@ void smbrr_zero_negative(struct smbrr *data)
 	data->ops->clear_negative(data);
 }
 
-/*! \fn int smbrr_data_psf(struct smbrr *src, struct smbrr *dest,
+/*! \fn int smbrr_psf(struct smbrr *src, struct smbrr *dest,
 	enum smbrr_wavelet_mask mask)
 * \param src Source data
 * \param dest Destination Image
@@ -661,7 +671,7 @@ int smbrr_psf(struct smbrr *src, struct smbrr *dest,
 	return src->ops->psf(src, dest, mask);
 }
 
-/*! \fn int smbrr_data_pixels(struct smbrr *data)
+/*! \fn int smbrr_get_size(struct smbrr *data)
 * \param data Image
 * \return Number of data pixels.
 *
@@ -672,7 +682,7 @@ int smbrr_get_size(struct smbrr *data)
 	return data->width * data->height;
 }
 
-/*! \fn int smbrr_data_bytes(struct smbrr *data)
+/*! \fn int smbrr_get_bytes(struct smbrr *data)
 * \param data Image
 * \return Number of data bytes.
 *
@@ -683,7 +693,7 @@ int smbrr_get_bytes(struct smbrr *data)
 	return data->stride * data->height;
 }
 
-/*! \fn int smbrr_data_stride(struct smbrr *data)
+/*! \fn int smbrr_get_stride(struct smbrr *data)
 * \param data Image
 * \return Image stride.
 *
@@ -694,7 +704,7 @@ int smbrr_get_stride(struct smbrr *data)
 	return data->stride;
 }
 
-/*! \fn int smbrr_data_width(struct smbrr *data)
+/*! \fn int smbrr_get_width(struct smbrr *data)
 * \param data Image
 * \return Image stride.
 *
@@ -705,7 +715,7 @@ int smbrr_get_width(struct smbrr *data)
 	return data->width;
 }
 
-/*! \fn int smbrr_data_height(struct smbrr *data)
+/*! \fn int smbrr_get_height(struct smbrr *data)
 * \param data Image
 * \return Image height.
 *
@@ -716,7 +726,7 @@ int smbrr_get_height(struct smbrr *data)
 	return data->height;
 }
 
-/*! \fn float smbrr_data_get_adu_at(struct smbrr *data, int x, int y);
+/*! \fn float smbrr_get_adu_at_posn(struct smbrr *data, int x, int y);
  * \param data Image
  * \param x X coordinate
  * \param y Y coordinate
@@ -735,4 +745,19 @@ float smbrr_get_adu_at_posn(struct smbrr *data, int x, int y)
 
 	pixel = y * data->width + x;
 	return data->adu[pixel];
+}
+
+/*! \fn float smbrr_get_adu_at_offset(struct smbrr *data, int offset);
+ * \param data Image
+ * \param offset daat offset
+ * \return data ADU
+ *
+ * Get data ADU value at (offset)
+ */
+float smbrr_get_adu_at_offset(struct smbrr *data, int offset)
+{
+	if (offset < 0 || offset >= data->width)
+		return -1.0;
+
+	return data->adu[offset];
 }

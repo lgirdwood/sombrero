@@ -94,7 +94,7 @@ int smbrr_wavelet_convolution(struct smbrr_wavelet *w, enum smbrr_conv conv,
 	return 0;
 }
 
-/*! \fn int smbrr_wavelet_convolution_sig(struct smbrr_wavelet *w,
+/*! \fn int smbrr_wavelet_significant_convolution(struct smbrr_wavelet *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask)
 * \param w wavelet
 * \param conv wavelet convolution type
@@ -103,8 +103,8 @@ int smbrr_wavelet_convolution(struct smbrr_wavelet *w, enum smbrr_conv conv,
 *
 * Convolve data into wavelets using significant pixels only.
 */
-int smbrr_wavelet_significant_convolution(struct smbrr_wavelet *w, enum smbrr_conv conv,
-	enum smbrr_wavelet_mask mask)
+int smbrr_wavelet_significant_convolution(struct smbrr_wavelet *w,
+	enum smbrr_conv conv, enum smbrr_wavelet_mask mask)
 {
 	int ret;
 
@@ -154,8 +154,8 @@ int smbrr_wavelet_deconvolution(struct smbrr_wavelet *w, enum smbrr_conv conv,
 	return 0;
 }
 
-/*! \fn int smbrr_wavelet_deconvolution_sig(struct smbrr_wavelet *w,
-	enum smbrr_conv conv, enum smbrr_wavelet_mask mask)
+/*! \fn int smbrr_wavelet_significant_deconvolution(struct smbrr_wavelet *w,
+	enum smbrr_conv conv, enum smbrr_wavelet_mask mask, enum smbrr_gain gain)
 * \param w wavelet
 * \param conv wavelet convolution type
 * \param mask wavelet convolution mask

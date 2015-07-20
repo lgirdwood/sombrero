@@ -237,13 +237,13 @@ struct smbrr_clip_coeff {
 };
 
 
-/*! \defgroup data Images
+/*! \defgroup data Data
 *
-* Image manipulation and management.
+* Data manipulation and management.
 */
 
 /*
- * Image Construction and destruction.
+ * Data Construction and destruction.
  */
 
 /*! \fn struct smbrr *smbrr_new(enum smbrr_type type,
@@ -256,7 +256,7 @@ struct smbrr *smbrr_new(enum smbrr_type type,
 	unsigned int width, unsigned int height, unsigned int stride,
 	enum smbrr_adu adu, const void *data);
 
-/*! \fn struct smbrr *smbrr_new_from_region(struct smbrr *data,
+/*! \fn struct smbrr *smbrr_new_from_area(struct smbrr *data,
 	unsigned int x_start, unsigned int y_start, unsigned int x_end,
 	unsigned int y_end);
 * \brief Create a new data from another data region.
@@ -266,9 +266,8 @@ struct smbrr *smbrr_new_from_area(struct smbrr *data,
 	unsigned int x_start, unsigned int y_start, unsigned int x_end,
 	unsigned int y_end);
 
-/*! \fn struct smbrr *smbrr_new_from_region(struct smbrr *data,
-	unsigned int x_start, unsigned int y_start, unsigned int x_end,
-	unsigned int y_end);
+/*! \fn struct smbrr *smbrr_new_from_section(struct smbrr *data,
+	unsigned int start,  unsigned int end)
 * \brief Create a new data from another data region.
 * \ingroup data
 */
@@ -292,7 +291,7 @@ void smbrr_free(struct smbrr *smbrr);
  * Image information.
  */
 
-/*! \fn int smbrr_get(struct smbrr *data, enum smbrr_adu adu,
+/*! \fn int smbrr_get_data(struct smbrr *data, enum smbrr_adu adu,
 	void **img);
  * \brief Get raw data from an data.
  * \ingroup data
@@ -300,31 +299,31 @@ void smbrr_free(struct smbrr *smbrr);
 int smbrr_get_data(struct smbrr *data, enum smbrr_adu adu,
 	void **img);
 
-/*! \fn int smbrr_pixels(struct smbrr *data);
+/*! \fn int smbrr_get_size(struct smbrr *data);
  * \brief Get number of pixels in data.
  * \ingroup data
  */
 int smbrr_get_size(struct smbrr *data);
 
-/*! \fn int smbrr_bytes(struct smbrr *data);
+/*! \fn int smbrr_get_bytes(struct smbrr *data);
  * \brief Get number of bytes for raw data.
  * \ingroup data
  */
 int smbrr_get_bytes(struct smbrr *data);
 
-/*! \fn int smbrr_stride(struct smbrr *data)
+/*! \fn int smbrr_get_stride(struct smbrr *data)
 * \brief Return the number of pixels in data stride.
 * \ingroup data
 */
 int smbrr_get_stride(struct smbrr *data);
 
-/*! \fn int smbrr_width(struct smbrr *data)
+/*! \fn int smbrr_get_width(struct smbrr *data);
 * \brief Return the number of pixels in data width.
 * \ingroup data
 */
 int smbrr_get_width(struct smbrr *data);
 
-/*! \fn int smbrr_height(struct smbrr *data)
+/*! \fn int smbrr_get_height(struct smbrr *data)
 * \brief Return the number of pixels in data height.
 * \ingroup data
 */
@@ -349,7 +348,7 @@ float smbrr_get_mean(struct smbrr *data);
  */
 float smbrr_get_sigma(struct smbrr *data, float mean);
 
-/*! \fn float smbrr_get_mean_sig(struct smbrr *data,
+/*! \fn float smbrr_significant_get_mean(struct smbrr *data,
 	struct smbrr *sdata);
  * \brief Get data mean for significant pixels.
  * \ingroup data
@@ -357,7 +356,7 @@ float smbrr_get_sigma(struct smbrr *data, float mean);
 float smbrr_significant_get_mean(struct smbrr *data,
 	struct smbrr *sdata);
 
-/*! \fn float smbrr_get_sigma_sig(struct smbrr *data,
+/*! \fn float smbrr_significant_get_sigma(struct smbrr *data,
 	struct smbrr *sdata, float mean);
  * \brief Get data standard deviation for significant pixels.
  * \ingroup data
@@ -390,15 +389,15 @@ void smbrr_normalise(struct smbrr *data, float min, float max);
 void smbrr_add(struct smbrr *a, struct smbrr *b,
 	struct smbrr *c);
 
-/*! \fn void smbrr_add_value_sig(struct smbrr *data,
-	struct smbrr *data, float value)
+/*! \fn void smbrr_significant_add_value(struct smbrr *data,
+	struct smbrr *sdata, float value);
 * \brief If pixel significant then Image A += value
 * \ingroup data
 */
 void smbrr_significant_add_value(struct smbrr *data,
 	struct smbrr *sdata, float value);
 
-/*! \fn void smbrr_add_sig(struct smbrr *a, struct smbrr *b,
+/*! \fn void smbrr_significant_add(struct smbrr *a, struct smbrr *b,
 	struct smbrr *c, struct smbrr *s);
  * \brief Image A = B + (significant) C
  * \ingroup data
@@ -414,8 +413,8 @@ void smbrr_significant_add(struct smbrr *a, struct smbrr *b,
 void smbrr_subtract(struct smbrr *a, struct smbrr *b,
 	struct smbrr *c);
 
-/*! \fn void smbrr_subtract_sig(struct smbrr *a,
- *  struct smbrr *b, struct smbrr *c, struct smbrr *s);
+/*! \fn void smbrr_significant_subtract(struct smbrr *a, struct smbrr *b,
+	struct smbrr *c, struct smbrr *s);
  * \brief Image A = B - (significant) C
  * \ingroup data
  */
@@ -446,8 +445,8 @@ void smbrr_mult_value(struct smbrr *a, float value);
  */
 void smbrr_reset_value(struct smbrr *a, float value);
 
-/*! \fn void smbrr_set_value_sig(struct smbrr *a,
-	struct smbrr *s, float sig_value);
+/*! \fn void smbrr_significant_set_value(struct smbrr *a,
+	struct smbrr *s, float value);
  * \brief Image (significant) A = value
  * \ingroup data
  */
@@ -461,17 +460,23 @@ void smbrr_significant_set_value(struct smbrr *a,
  */
 int smbrr_convert(struct smbrr *a, enum smbrr_type type);
 
-/*! \fn void smbrr_set_sig_value(struct smbrr *a, uint32_t value);
+/*! \fn void smbrr_significant_set_sig_value(struct smbrr *a, uint32_t value);
  * \brief Image (significant) A = value
  * \ingroup data
  */
 void smbrr_significant_set_sig_value(struct smbrr *a, uint32_t value);
 
-/*! \fn void smbrr_clear_negative(struct smbrr *a);
+/*! \fn void smbrr_zero_negative(struct smbrr *a)
  * \brief Set Image A negative pixels to zero.
  * \ingroup data
  */
 void smbrr_zero_negative(struct smbrr *a);
+
+/*! \fn void smbrr_abs(struct smbrr *a);
+ * \brief Set data elements to absolute values
+ * \ingroup data
+ */
+void smbrr_abs(struct smbrr *a);
 
 /*! \fn int smbrr_copy(struct smbrr *dest, struct smbrr *src);
  * \brief Image dest = src.
@@ -479,15 +484,15 @@ void smbrr_zero_negative(struct smbrr *a);
  */
 int smbrr_copy(struct smbrr *dest, struct smbrr *src);
 
-/*! \fn void smbrr_fma(struct smbrr *dest, struct smbrr *a,
-	struct smbrr *b, float c);
+/*! \fn void smbrr_mult_add(struct smbrr *dest, struct smbrr *a,
+	struct smbrr *b, float c)
  * \brief Image A = A + B * value C
  * \ingroup data
  */
 void smbrr_mult_add(struct smbrr *dest, struct smbrr *a,
 	struct smbrr *b, float c);
 
-/*! \fn void smbrr_fms(struct smbrr *dest, struct smbrr *a,
+/*! \fn void smbrr_mult_subtract(struct smbrr *dest, struct smbrr *a,
 	struct smbrr *b, float c);
  * \brief Image A = A - B * value C
  * \ingroup data
@@ -503,7 +508,7 @@ void smbrr_mult_subtract(struct smbrr *dest, struct smbrr *a,
 void smbrr_anscombe(struct smbrr *data, float gain, float bias,
 	float readout);
 
-/*! \fn void smbrr_new_significance(struct smbrr *a,
+/*! \fn void smbrr_significant_new(struct smbrr *a,
 	struct smbrr *s, float sigma);
  * \brief Set S(pixel) if A(pixel) > sigma
  * \ingroup data
@@ -519,11 +524,17 @@ void smbrr_significant_new(struct smbrr *a,
 int smbrr_psf(struct smbrr *src, struct smbrr *dest,
 	enum smbrr_wavelet_mask mask);
 
-/*! \fn float smbrr_get_adu_at(struct smbrr *data, int x, int y);
+/*! \fn float smbrr_get_adu_at_posn(struct smbrr *data, int x, int y);
  * \brief Get data ADU value at (x,y)
  * \ingroup data
  */
 float smbrr_get_adu_at_posn(struct smbrr *data, int x, int y);
+
+/*! \fn float smbrr_get_adu_at_offset(struct smbrr *data, int offset);
+ * \brief Get data ADU value at (x,y)
+ * \ingroup data
+ */
+float smbrr_get_adu_at_offset(struct smbrr *data, int offset);
 
 /*! \fn int smbrr_reconstruct(struct smbrr *O,
 	enum smbrr_wavelet_mask mask, float threshold, int scales,
@@ -569,13 +580,13 @@ void smbrr_wavelet_free(struct smbrr_wavelet *w);
 int smbrr_wavelet_convolution(struct smbrr_wavelet *w, enum smbrr_conv conv,
 	enum smbrr_wavelet_mask mask);
 
-/*! \fn int smbrr_wavelet_convolution_sig(struct smbrr_wavelet *w,
+/*! \fn int smbrr_wavelet_significant_convolution(struct smbrr_wavelet *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask);
  * \brief Convolve wavelet using significant pixels only
  * \ingroup wavelet
  */
-int smbrr_wavelet_significant_convolution(struct smbrr_wavelet *w, enum smbrr_conv conv,
-	enum smbrr_wavelet_mask mask);
+int smbrr_wavelet_significant_convolution(struct smbrr_wavelet *w,
+	enum smbrr_conv conv, enum smbrr_wavelet_mask mask);
 
 /*! \fn int smbrr_wavelet_deconvolution(struct smbrr_wavelet *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask);
@@ -585,7 +596,7 @@ int smbrr_wavelet_significant_convolution(struct smbrr_wavelet *w, enum smbrr_co
 int smbrr_wavelet_deconvolution(struct smbrr_wavelet *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask);
 
-/*! \fn int smbrr_wavelet_deconvolution_sig(struct smbrr_wavelet *w,
+/*! \fn int smbrr_wavelet_significant_deconvolution(struct smbrr_wavelet *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask, enum smbrr_gain gain);
  * \brief Deconvolve wavelet using significant pixels.
  * \ingroup wavelet
@@ -603,28 +614,28 @@ int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask,
 	struct smbrr_object *object);
 
-/*! \fn struct smbrr *smbrr_wavelet_data_get_scale(
+/*! \fn struct smbrr *smbrr_wavelet_get_scale(
 	struct smbrr_wavelet *w, unsigned int scale);
  * \brief Get scale data from wavelet at scale.
  * \ingroup wavelet
  */
-struct smbrr *smbrr_wavelet_get_data_scale(struct smbrr_wavelet *w,
+struct smbrr *smbrr_wavelet_get_scale(struct smbrr_wavelet *w,
 	unsigned int scale);
 
-/*! \fn struct smbrr *smbrr_wavelet_data_get_wavelet(
+/*! \fn struct smbrr *smbrr_wavelet_get_wavelet(
 	struct smbrr_wavelet *w, unsigned int scale);
  * \brief Get wavelet data from wavelet at scale.
  * \ingroup wavelet
  */
-struct smbrr *smbrr_wavelet_get_data_wavelet(struct smbrr_wavelet *w,
+struct smbrr *smbrr_wavelet_get_wavelet(struct smbrr_wavelet *w,
 	unsigned int scale);
 
-/*! \fn struct smbrr *smbrr_wavelet_data_get_significant(
+/*! \fn struct smbrr *smbrr_wavelet_get_significant(
 	struct smbrr_wavelet *w, unsigned int scale);
  * \brief Get significant data from wavelet at scale.
  * \ingroup wavelet
  */
-struct smbrr *smbrr_wavelet_get_data_significant(struct smbrr_wavelet *w,
+struct smbrr *smbrr_wavelet_get_significant(struct smbrr_wavelet *w,
 	unsigned int scale);
 
 /*! \fn void smbrr_wavelet_add(struct smbrr_wavelet *a,
@@ -643,7 +654,7 @@ void smbrr_wavelet_add(struct smbrr_wavelet *a, struct smbrr_wavelet *b,
 void smbrr_wavelet_subtract(struct smbrr_wavelet *a, struct smbrr_wavelet *b,
 	struct smbrr_wavelet *c);
 
-/*! \fn int smbrr_wavelet_new_significance(struct smbrr_wavelet *w,
+/*! \fn int smbrr_wavelet_new_significant(struct smbrr_wavelet *w,
 	enum smbrr_clip sigma_clip);
  * \brief Create new significance scales for wavlet.
  * \ingroup wavelet
@@ -704,8 +715,8 @@ void smbrr_wavelet_object_free_all(struct smbrr_wavelet *w);
 int smbrr_wavelet_object_get_data(struct smbrr_wavelet *w,
 		struct smbrr_object *object, struct smbrr **data);
 
-/*! \fn struct smbrr_object *smbrr_wavelet_get_object_at(struct smbrr_wavelet *w,
- * 	int x, int y)
+/*! \fn struct smbrr_object *smbrr_wavelet_get_object_at_posn(struct smbrr_wavelet *w,
+		int x, int y)
 * \brief Get object at position (x,y).
 * \ingroup wavelet
 */

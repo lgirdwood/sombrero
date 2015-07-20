@@ -159,7 +159,7 @@ int main(int argc, char *argv[])
 
 	for (i = 0; i < scales - 1; i++) {
 			/* save each significant scale for visualisation */
-			simage = smbrr_wavelet_get_data_significant(w, i);
+			simage = smbrr_wavelet_get_significant(w, i);
 			smbrr_significant_add_value(oimage, simage,
 					16 + (1 << ((scales - 1) - i)));
 	}
@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
 	bmp_image_save(oimage, bmp, outfile);
 
 	for (i = 0; i < scales - 1; i++) {
-		simage = smbrr_wavelet_get_data_significant(w, i);
+		simage = smbrr_wavelet_get_significant(w, i);
 		smbrr_reset_value(oimage, 0.0);
 		smbrr_significant_set_value(oimage, simage, 127);
 		sprintf(outfile, "%s-sig-%d", ofile, i);

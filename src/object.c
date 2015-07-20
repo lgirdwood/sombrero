@@ -45,7 +45,7 @@ struct structure_info {
 	unsigned int pixel;
 	float value;
 };
-/*! \cond */
+/*! \endcond */
 
 static int create_object(struct smbrr_wavelet *w, unsigned int scale,
 	struct structure *structure);
@@ -1067,8 +1067,8 @@ int smbrr_wavelet_object_get_data(struct smbrr_wavelet *w,
 	return ret;
 }
 
-/*! \fn struct smbrr_object *smbrr_wavelet_get_object_at(struct smbrr_wavelet *w,
- * 	int x, int y)
+/*! \fn struct smbrr_object *smbrr_wavelet_get_object_at_posn(struct smbrr_wavelet *w,
+		int x, int y)
 * \param w Wavelet.
 * \param x X position
 * \param y Y position
@@ -1089,4 +1089,21 @@ struct smbrr_object *smbrr_wavelet_get_object_at_posn(struct smbrr_wavelet *w,
 	pixel= y * w->width + x;
 
 	return &w->object_map[pixel]->o;
+}
+
+/*! \fn struct smbrr_object *smbrr_wavelet_get_object_at_offset(struct smbrr_wavelet *w,
+		int x, int y)
+* \param w Wavelet.
+* \param offset Position
+* \return Object pointer or NULL if none found.
+*
+* Get object at position (offset).
+*/
+struct smbrr_object *smbrr_wavelet_get_object_at_offset(struct smbrr_wavelet *w,
+		int offset)
+{
+	if (offset < 0 || offset > w->width - 1)
+		return NULL;
+
+	return &w->object_map[offset]->o;
 }

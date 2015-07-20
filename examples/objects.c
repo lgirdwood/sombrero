@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
 		fprintf(stdout, "Found %d structures at scale %d\n", structures, i);
 
 		/* save each structure scale for visualisation */
-		simage = smbrr_wavelet_get_data_significant(w, i);
+		simage = smbrr_wavelet_get_significant(w, i);
 		smbrr_reset_value(oimage, 0.0);
 		smbrr_significant_set_value(oimage, simage, 1);
 		sprintf(outfile, "%s-struct-%d", ofile, i);

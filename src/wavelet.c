@@ -203,15 +203,15 @@ void smbrr_wavelet_free(struct smbrr_wavelet *w)
 	free(w);
 }
 
-/*! \fn void struct smbrr *smbrr_wavelet_data_get_scale(
-	struct smbrr_wavelet *w, unsigned int scale)
+/*! \fn struct smbrr *smbrr_wavelet_get_scale(struct smbrr_wavelet *w,
+	unsigned int scale)
 * \param w Wavelet
 * \param scale Wavelet scale.
 * \return Wavelet data
 *
 * Returns wavelet scale data at scale.
 */
-struct smbrr *smbrr_wavelet_get_data_scale(struct smbrr_wavelet *w,
+struct smbrr *smbrr_wavelet_get_scale(struct smbrr_wavelet *w,
 	unsigned int scale)
 {
 	if (scale > w->num_scales - 1)
@@ -220,15 +220,15 @@ struct smbrr *smbrr_wavelet_get_data_scale(struct smbrr_wavelet *w,
 	return w->c[scale];
 }
 
-/*! \fn struct smbrr *smbrr_wavelet_data_get_wavelet(
-	struct smbrr_wavelet *w, unsigned int scale)
+/*! \fn struct smbrr *smbrr_wavelet_get_wavelet(struct smbrr_wavelet *w,
+	unsigned int scale)
 * \param w Wavelet
 * \param scale Wavelet scale.
 * \return Wavelet data
 *
 * Returns wavelet data at scale.
 */
-struct smbrr *smbrr_wavelet_get_data_wavelet(struct smbrr_wavelet *w,
+struct smbrr *smbrr_wavelet_get_wavelet(struct smbrr_wavelet *w,
 	unsigned int scale)
 {
 	if (scale > w->num_scales - 2)
@@ -237,15 +237,15 @@ struct smbrr *smbrr_wavelet_get_data_wavelet(struct smbrr_wavelet *w,
 	return w->w[scale];
 }
 
-/*! \fn struct smbrr *smbrr_wavelet_data_get_significant(
-	struct smbrr_wavelet *w, unsigned int scale)
+/*! \fn struct smbrr *smbrr_wavelet_get_significant(struct smbrr_wavelet *w,
+	unsigned int scale)
 * \param w Wavelet
 * \param scale Wavelet scale.
 * \return Wavelet data
 *
 * Returns wavelet significant data at scale.
 */
-struct smbrr *smbrr_wavelet_get_data_significant(struct smbrr_wavelet *w,
+struct smbrr *smbrr_wavelet_get_significant(struct smbrr_wavelet *w,
 	unsigned int scale)
 {
 	if (scale > w->num_scales - 2)
@@ -269,9 +269,9 @@ void smbrr_wavelet_add(struct smbrr_wavelet *a, struct smbrr_wavelet *b,
 	int i;
 
 	for (i = 0; i < a->num_scales - 1; i++) {
-		A = smbrr_wavelet_get_data_wavelet(a, i);
-		B = smbrr_wavelet_get_data_wavelet(b, i);
-		C = smbrr_wavelet_get_data_wavelet(c, i);
+		A = smbrr_wavelet_get_wavelet(a, i);
+		B = smbrr_wavelet_get_wavelet(b, i);
+		C = smbrr_wavelet_get_wavelet(c, i);
 		smbrr_add(A, B, C);
 	}
 }
@@ -291,9 +291,9 @@ void smbrr_wavelet_subtract(struct smbrr_wavelet *a, struct smbrr_wavelet *b,
 	int i;
 
 	for (i = 0; i < a->num_scales - 1; i++) {
-		A = smbrr_wavelet_get_data_wavelet(a, i);
-		B = smbrr_wavelet_get_data_wavelet(b, i);
-		C = smbrr_wavelet_get_data_wavelet(c, i);
+		A = smbrr_wavelet_get_wavelet(a, i);
+		B = smbrr_wavelet_get_wavelet(b, i);
+		C = smbrr_wavelet_get_wavelet(c, i);
 		smbrr_subtract(A, B, C);
 	}
 }

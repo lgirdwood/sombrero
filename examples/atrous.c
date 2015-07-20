@@ -118,8 +118,8 @@ int main(int argc, char *argv[])
 
 	for (i = 0; i < scales; i++) {
 
-		simage = smbrr_wavelet_get_data_scale(w, i);
-		wimage = smbrr_wavelet_get_data_wavelet(w, i);
+		simage = smbrr_wavelet_get_scale(w, i);
+		wimage = smbrr_wavelet_get_wavelet(w, i);
 
 		mean = smbrr_get_mean(simage);
 		sigma = smbrr_get_sigma(simage, mean);
