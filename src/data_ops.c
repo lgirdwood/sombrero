@@ -365,7 +365,7 @@ static int convert(struct smbrr *data, enum smbrr_type type)
 	return 0;
 }
 
-static void find_limits_1d(struct smbrr *data, float *min, float *max)
+static void find_limits(struct smbrr *data, float *min, float *max)
 {
 	float *adu = data->adu, _min, _max;
 	int offset;
@@ -380,31 +380,6 @@ static void find_limits_1d(struct smbrr *data, float *min, float *max)
 
 		if (adu[offset] < _min)
 			_min = adu[offset];
-	}
-
-	*max = _max;
-	*min = _min;
-}
-
-static void find_limits_2d(struct smbrr *data, float *min, float *max)
-{
-	float *adu = data->adu, _min, _max;
-	int x, y, offset;
-
-	_min = 1.0e6;
-	_max = -1.0e6;
-
-	for (x = 0; x < data->width; x++) {
-		for (y = 0; y < data->height; y++) {
-
-			offset = y * data->stride + x;
-
-			if (adu[offset] > _max)
-				_max = adu[offset];
-
-			if (adu[offset] < _min)
-				_min = adu[offset];
-		}
 	}
 
 	*max = _max;
@@ -594,7 +569,16 @@ static void clear_negative(struct smbrr *data)
 			i[offset] = 0.0;
 }
 
-static float get_mean_1d(struct smbrr *data)
+static void sabs(struct smbrr *data)
+{
+	float *i = data->adu;
+	int offset;
+
+	for (offset = 0; offset < data->elems; offset++)
+		i[offset] = fabs(i[offset]);
+}
+
+static float get_mean(struct smbrr *data)
 {
 	float mean = 0.0;
 	int i;
@@ -606,24 +590,7 @@ static float get_mean_1d(struct smbrr *data)
 	return mean;
 }
 
-static float get_mean_2d(struct smbrr *data)
-{
-	float mean = 0.0;
-	int offset, x, y;
-
-	for (x = 0; x < data->width; x++) {
-		for (y = 0; y < data->height; y++) {
-
-			offset = y * data->stride + x;
-			mean += data->adu[offset];
-		}
-	}
-
-	mean /= (float)data->elems;
-	return mean;
-}
-
-static float get_mean_sig_1d(struct smbrr *data,
+static float get_mean_sig(struct smbrr *data,
 	struct smbrr *sdata)
 {
 	float mean_sig = 0.0;
@@ -646,34 +613,7 @@ static float get_mean_sig_1d(struct smbrr *data,
 	return mean_sig;
 }
 
-static float get_mean_sig_2d(struct smbrr *data,
-	struct smbrr *sdata)
-{
-	float mean_sig = 0.0;
-	int offset, ssize = 0, x, y;
-
-	if (data->height != sdata->height ||
-		data->width != sdata->width)
-		return 0.0;
-
-		for (x = 0; x < data->width; x++) {
-			for (y = 0; y < data->height; y++) {
-
-			offset = y * data->stride + x;
-
-			if (!sdata->s[offset])
-				continue;
-
-			mean_sig += data->adu[offset];
-			ssize++;
-		}
-	}
-
-	mean_sig /= (float)ssize;
-	return mean_sig;
-}
-
-static float get_sigma_1d(struct smbrr *data, float mean)
+static float get_sigma(struct smbrr *data, float mean)
 {
 	float t, sigma = 0.0;
 	int i;
@@ -689,50 +629,13 @@ static float get_sigma_1d(struct smbrr *data, float mean)
 	return sigma;
 }
 
-static float get_sigma_2d(struct smbrr *data, float mean)
-{
-	float t, sigma = 0.0;
-	int offset, x, y;
-
-	for (x = 0; x < data->width; x++) {
-		for (y = 0; y < data->height; y++) {
-
-			offset = y * data->stride + x;
-
-			t = data->adu[offset] - mean;
-			t *= t;
-			sigma += t;
-		}
-	}
-
-	sigma /= (float) data->elems;
-	sigma = sqrtf(sigma);
-	return sigma;
-}
-
-static float get_norm_1d(struct smbrr *data)
+static float get_norm(struct smbrr *data)
 {
 	float norm = 0.0;
 	int i;
 
 	for (i = 0; i < data->elems;  i++)
 		norm += data->adu[i] * data->adu[i];
-
-	return sqrtf(norm);
-}
-
-static float get_norm_2d(struct smbrr *data)
-{
-	float norm = 0.0;
-	int x, y, offset;
-
-	for (x = 0; x < data->width; x++) {
-		for (y = 0; y < data->height; y++) {
-
-			offset = y * data->stride + x;
-			norm += data->adu[offset] * data->adu[offset];
-		}
-	}
 
 	return sqrtf(norm);
 }
@@ -775,7 +678,7 @@ static void anscombe(struct smbrr *data, float gain, float bias,
 		 data->adu[i] = hgain * sqrtf(gain * (data->adu[i] - bias) + r);
 }
 
-static void new_significance_1d(struct smbrr *data,
+static void new_significance(struct smbrr *data,
 	struct smbrr *sdata, float sigma)
 {
 	int i;
@@ -792,32 +695,6 @@ static void new_significance_1d(struct smbrr *data,
 		if (data->adu[i] >= sigma) {
 			sdata->s[i] = 1;
 			sdata->sig_pixels++;
-		}
-	}
-}
-
-static void new_significance_2d(struct smbrr *data,
-	struct smbrr *sdata, float sigma)
-{
-	int offset, x, y;
-
-	if (data->height != sdata->height ||
-		data->width != sdata->width)
-		return;
-
-	/* clear the old significance data */
-	bzero(sdata->s, sizeof(uint32_t) * sdata->elems);
-	sdata->sig_pixels = 0;
-
-	for (x = 0; x < data->width; x++) {
-		for (y = 0; y < data->height; y++) {
-
-			offset = y * data->stride + x;
-
-			if (data->adu[offset] >= sigma) {
-				sdata->s[offset] = 1;
-				sdata->sig_pixels++;
-			}
 		}
 	}
 }
@@ -920,12 +797,13 @@ static int psf_2d(struct smbrr *src, struct smbrr *dest,
 }
 
 const struct data_ops OPS(data_ops_1d) = {
-	.find_limits =find_limits_1d,
-	.get_mean = get_mean_1d,
-	.get_sigma = get_sigma_1d,
-	.get_mean_sig = get_mean_sig_1d,
+	.abs = sabs,
+	.find_limits =find_limits,
+	.get_mean = get_mean,
+	.get_sigma = get_sigma,
+	.get_mean_sig = get_mean_sig,
 	.get_sigma_sig = get_sigma_sig,
-	.get_norm = get_norm_1d,
+	.get_norm = get_norm,
 	.normalise = normalise,
 	.add = add,
 	.add_value_sig = add_value_sig,
@@ -943,7 +821,7 @@ const struct data_ops OPS(data_ops_1d) = {
 	.mult_add = mult_add,
 	.mult_subtract = mult_subtract,
 	.anscombe = anscombe,
-	.new_significance = new_significance_1d,
+	.new_significance = new_significance,
 	.get = get,
 	.psf = psf_1d,
 
@@ -960,12 +838,13 @@ const struct data_ops OPS(data_ops_1d) = {
 };
 
 const struct data_ops OPS(data_ops_2d) = {
-	.find_limits =find_limits_2d,
-	.get_mean = get_mean_2d,
-	.get_sigma = get_sigma_2d,
-	.get_mean_sig = get_mean_sig_2d,
+	.abs = sabs,
+	.find_limits = find_limits,
+	.get_mean = get_mean,
+	.get_sigma = get_sigma,
+	.get_mean_sig = get_mean_sig,
 	.get_sigma_sig = get_sigma_sig,
-	.get_norm = get_norm_2d,
+	.get_norm = get_norm,
 	.normalise = normalise,
 	.add = add,
 	.add_value_sig = add_value_sig,
@@ -983,7 +862,7 @@ const struct data_ops OPS(data_ops_2d) = {
 	.mult_add = mult_add,
 	.mult_subtract = mult_subtract,
 	.anscombe = anscombe,
-	.new_significance = new_significance_2d,
+	.new_significance = new_significance,
 	.get = get,
 	.psf = psf_2d,
 

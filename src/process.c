@@ -655,6 +655,16 @@ void smbrr_zero_negative(struct smbrr *data)
 	data->ops->clear_negative(data);
 }
 
+/*! \fn void smbrr_abs(struct smbrr *data)
+* \param data Image
+*
+* Set all elements to absolute values.
+*/
+void smbrr_abs(struct smbrr *data)
+{
+	data->ops->abs(data);
+}
+
 /*! \fn int smbrr_psf(struct smbrr *src, struct smbrr *dest,
 	enum smbrr_wavelet_mask mask)
 * \param src Source data

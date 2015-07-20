@@ -53,6 +53,7 @@ struct data_ops {
 	int (*convert)(struct smbrr *a, enum smbrr_type type);
 	void (*set_sig_value)(struct smbrr *a, uint32_t value);
 	void (*clear_negative)(struct smbrr *a);
+	void (*abs)(struct smbrr *a);
 	int (*copy)(struct smbrr *dest, struct smbrr *src);
 	void (*mult_add)(struct smbrr *dest, struct smbrr *a,
 		struct smbrr *b, float c);
