@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	const void *data;
 	int ret, width, height, stride, i, opt, k = 1,
 			a = 0, scales = 9;
-	enum smbrr_adu depth;
+	enum smbrr_source_type depth;
 	float sigma, mean;
 	char outfile[64], *ifile = NULL, *ofile = NULL;
 

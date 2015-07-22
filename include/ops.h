@@ -50,7 +50,7 @@ struct data_ops {
 	void (*reset_value)(struct smbrr *a, float value);
 	void (*set_value_sig)(struct smbrr *a,
 		struct smbrr *s, float value);
-	int (*convert)(struct smbrr *a, enum smbrr_type type);
+	int (*convert)(struct smbrr *a, enum smbrr_data_type type);
 	void (*set_sig_value)(struct smbrr *a, uint32_t value);
 	void (*clear_negative)(struct smbrr *a);
 	void (*abs)(struct smbrr *a);
@@ -64,7 +64,7 @@ struct data_ops {
 	void (*new_significance)(struct smbrr *a,
 		struct smbrr *s, float sigma);
 	void (*find_limits)(struct smbrr *data, float *min, float *max);
-	int (*get)(struct smbrr *data, enum smbrr_adu adu,
+	int (*get)(struct smbrr *data, enum smbrr_source_type adu,
 		void **buf);
 	int (*psf)(struct smbrr *src, struct smbrr *dest,
 		enum smbrr_wavelet_mask mask);

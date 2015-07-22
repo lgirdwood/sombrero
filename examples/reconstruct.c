@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 	struct bitmap *bmp;
 	const void *data;
 	int ret, width, height, stride;
-	enum smbrr_adu depth;
+	enum smbrr_source_type depth;
 	float mean, sigma;
 
 	if (argc == 2)

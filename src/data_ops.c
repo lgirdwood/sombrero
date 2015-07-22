@@ -271,13 +271,13 @@ static void uint_to_uchar_2d(struct smbrr *i, unsigned char *c)
 	}
 }
 
-static int get(struct smbrr *data, enum smbrr_adu adu, void **buf)
+static int get(struct smbrr *data, enum smbrr_source_type adu, void **buf)
 {
 	if (buf == NULL)
 		return -EINVAL;
 
 	switch (adu) {
-	case SMBRR_ADU_8:
+	case SMBRR_SOURCE_UINT8:
 
 		switch (data->type) {
 		case SMBRR_DATA_1D_UINT32:
@@ -301,7 +301,7 @@ static int get(struct smbrr *data, enum smbrr_adu adu, void **buf)
 	return 0;
 }
 
-static int convert(struct smbrr *data, enum smbrr_type type)
+static int convert(struct smbrr *data, enum smbrr_data_type type)
 {
 	int offset;
 

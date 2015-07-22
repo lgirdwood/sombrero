@@ -39,7 +39,7 @@ static struct smbrr *data_get_A_tilda(struct smbrr_wavelet *w,
 	/* clear sig pixels at scale 0 to lessen artifacts on restored data */
 	sdata = smbrr_wavelet_get_significant(w, 0);
 	if (sdata->sig_pixels)
-		smbrr_significant_set_sig_value(sdata, 0);
+		smbrr_significant_set_svalue(sdata, 0);
 
 	smbrr_wavelet_significant_deconvolution(w, SMBRR_CONV_ATROUS, mask,
 		SMBRR_GAIN_NONE);

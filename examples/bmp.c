@@ -78,11 +78,11 @@ int bmp_stride(struct bitmap *bmp)
 	return bmp->biSizeImage / bmp->biHeight;
 }
 
-enum smbrr_adu bmp_depth(struct bitmap *bmp)
+enum smbrr_source_type bmp_depth(struct bitmap *bmp)
 {
 	switch (bmp->biClrUsed) {
 	case 256:
-		return SMBRR_ADU_8;
+		return SMBRR_SOURCE_UINT8;
 	default:
 		fprintf(stderr, "%d colours not supported yet\n", bmp->biClrUsed);
 		return -EINVAL;
@@ -144,7 +144,7 @@ int bmp_image_save(struct smbrr *image, struct bitmap *bmp,
 	smbrr_find_limits(i, &min, &max);
 	fprintf(stdout, "limit for %s are %f to %f\n", filename, min, max);
 	smbrr_normalise(i, 0.0, 250.0);
-	smbrr_get_data(i, SMBRR_ADU_8, &buf);
+	smbrr_get_data(i, SMBRR_SOURCE_UINT8, &buf);
 	bmp_save(filename, bmp, buf);
 	free(buf);
 	smbrr_free(i);

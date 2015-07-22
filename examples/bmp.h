@@ -63,7 +63,7 @@ struct bitmap
 
 int bmp_width(struct bitmap *bmp);
 int bmp_height(struct bitmap *bmp);
-enum smbrr_adu bmp_depth(struct bitmap *bmp);
+enum smbrr_source_type bmp_depth(struct bitmap *bmp);
 int bmp_stride(struct bitmap *bmp);
 
 void bmp_info(struct bitmap *Header);

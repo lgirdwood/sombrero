@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
 	const void *data;
 	int ret, width, height, stride, i, opt, anscombe = 0, k = 1,
 		a = 0, scales = 9;
-	enum smbrr_adu depth;
+	enum smbrr_source_type depth;
 	float gain = 5.0, bias = 50.0, readout = 100.0, sigma_delta = 0.001;
 	char *ifile = NULL, *ofile = NULL;
 	char outfile[64];
@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
 
 	for (i = 0; i < scales - 1; i++) {
 		simage = smbrr_wavelet_get_significant(w, i);
-		smbrr_reset_value(oimage, 0.0);
+		smbrr_set_value(oimage, 0.0);
 		smbrr_significant_set_value(oimage, simage, 127);
 		sprintf(outfile, "%s-sig-%d", ofile, i);
 		bmp_image_save(oimage, bmp, outfile);

@@ -434,7 +434,7 @@ static int object_create_data(struct smbrr_wavelet *w, struct object *object)
 	height = object->o.maxxY.y - object->o.minxY.y + 1;
 
 	object->data = smbrr_new(w->c[0]->type, width, height, 0,
-		SMBRR_ADU_8, NULL);
+		SMBRR_SOURCE_UINT8, NULL);
 	if (object->data == NULL)
 		return -ENOMEM;
 
@@ -1059,7 +1059,7 @@ int smbrr_wavelet_object_get_data(struct smbrr_wavelet *w,
 	height = object->maxxY.y - object->minxY.y + 1;
 
 	o->data = smbrr_new(w->c[0]->type, width, height, 0,
-		SMBRR_ADU_8, NULL);
+		SMBRR_SOURCE_UINT8, NULL);
 	if (o->data == NULL)
 		return -ENOMEM;
 

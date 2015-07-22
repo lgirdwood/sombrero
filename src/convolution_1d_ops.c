@@ -52,7 +52,7 @@ static void atrous_conv(struct smbrr_wavelet *wavelet)
 	for (scale = 1; scale < wavelet->num_scales; scale++) {
 
 		/* clear each scale */
-		smbrr_reset_value(wavelet->c[scale], 0.0);
+		smbrr_set_value(wavelet->c[scale], 0.0);
 
 		c = wavelet->c[scale]->adu;
 		_c = wavelet->c[scale - 1]->adu;
@@ -98,7 +98,7 @@ static void atrous_conv_sig(struct smbrr_wavelet *wavelet)
 	for (scale = 1; scale < wavelet->num_scales; scale++) {
 
 		/* clear each scale */
-		smbrr_reset_value(wavelet->c[scale], 0.0);
+		smbrr_set_value(wavelet->c[scale], 0.0);
 
 		/* dont run loop if there are no sig pixels at this scale */
 		if (wavelet->s[scale - 1]->sig_pixels == 0)
