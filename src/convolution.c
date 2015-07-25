@@ -47,8 +47,9 @@ static void atrous_deconv_sig(struct smbrr_wavelet *wavelet,
 {
 	int scale;
 
-	/* set initial starting data as C[scales - 1] */
-	smbrr_copy(wavelet->c[0], wavelet->c[wavelet->num_scales - 1]);
+	/* set initial starting data as significant C[scales - 1] */
+	smbrr_significant_copy(wavelet->c[0], wavelet->c[wavelet->num_scales - 1],
+		wavelet->s[wavelet->num_scales - 1]);
 
 	/* add each wavelet scale */
 	for (scale = wavelet->num_scales - 2; scale > 0; scale--) {
