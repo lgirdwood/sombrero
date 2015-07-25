@@ -578,7 +578,7 @@ int smbrr_reconstruct(struct smbrr *O,
 
 /*! \fn struct smbrr_wavelet *smbrr_wavelet_new(struct smbrr *s,
 	unsigned int num_scales);
- * \brief Create new wavelet from data.
+ * \brief Create new wavelet context and load elements from data context.
  * \ingroup wavelet
  */
 struct smbrr_wavelet *smbrr_wavelet_new(struct smbrr *s,
@@ -586,20 +586,20 @@ struct smbrr_wavelet *smbrr_wavelet_new(struct smbrr *s,
 
 /*! \fn struct smbrr_wavelet *smbrr_wavelet_new_from_object(
 	 struct smbrr_object *object);
- * \brief Create new wavelet from object.
+ * \brief Create new wavelet context and load elements from detected object.
  * \ingroup wavelet
  */
 struct smbrr_wavelet *smbrr_wavelet_new_from_object(struct smbrr_object *object);
 
 /*! \fn void smbrr_wavelet_free(struct smbrr_wavelet *w);
- * \brief Free wavelet.
+ * \brief Free wavelet context.
  * \ingroup wavelet
  */
 void smbrr_wavelet_free(struct smbrr_wavelet *w);
 
 /*! \fn int smbrr_wavelet_convolution(struct smbrr_wavelet *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask);
- * \brief Convolve wavelet.
+ * \brief Perform wavelet convolution.
  * \ingroup wavelet
  */
 int smbrr_wavelet_convolution(struct smbrr_wavelet *w, enum smbrr_conv conv,
@@ -607,7 +607,7 @@ int smbrr_wavelet_convolution(struct smbrr_wavelet *w, enum smbrr_conv conv,
 
 /*! \fn int smbrr_wavelet_significant_convolution(struct smbrr_wavelet *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask);
- * \brief Convolve wavelet using significant pixels only
+ * \brief Perform wavelet convolution on significant pixels only.
  * \ingroup wavelet
  */
 int smbrr_wavelet_significant_convolution(struct smbrr_wavelet *w,
@@ -615,7 +615,7 @@ int smbrr_wavelet_significant_convolution(struct smbrr_wavelet *w,
 
 /*! \fn int smbrr_wavelet_deconvolution(struct smbrr_wavelet *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask);
- * \brief Deconvolve wavelet.
+ * \brief Perform wavelet deconvolution.
  * \ingroup wavelet
  */
 int smbrr_wavelet_deconvolution(struct smbrr_wavelet *w,
@@ -623,7 +623,7 @@ int smbrr_wavelet_deconvolution(struct smbrr_wavelet *w,
 
 /*! \fn int smbrr_wavelet_significant_deconvolution(struct smbrr_wavelet *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask, enum smbrr_gain gain);
- * \brief Deconvolve wavelet using significant pixels.
+ * \brief Perform wavelet deconvolution using significant pixels only.
  * \ingroup wavelet
  */
 int smbrr_wavelet_significant_deconvolution(struct smbrr_wavelet *w,
@@ -632,7 +632,7 @@ int smbrr_wavelet_significant_deconvolution(struct smbrr_wavelet *w,
 /*! \fn int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet *w,
 	enum smbrr_conv conv, enum smbrr_wavelet_mask mask,
 	struct smbrr_object *object);
- * \brief Deconvolve wavelet object using significant pixels.
+ * \brief Perform wavelet deconvolution on object using significant pixels only.
  * \ingroup wavelet
  */
 int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet *w,
@@ -641,7 +641,7 @@ int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet *w,
 
 /*! \fn struct smbrr *smbrr_wavelet_get_scale(
 	struct smbrr_wavelet *w, unsigned int scale);
- * \brief Get scale data from wavelet at scale.
+ * \brief Get scale data elements from wavelet at scale.
  * \ingroup wavelet
  */
 struct smbrr *smbrr_wavelet_get_scale(struct smbrr_wavelet *w,
@@ -649,7 +649,7 @@ struct smbrr *smbrr_wavelet_get_scale(struct smbrr_wavelet *w,
 
 /*! \fn struct smbrr *smbrr_wavelet_get_wavelet(
 	struct smbrr_wavelet *w, unsigned int scale);
- * \brief Get wavelet data from wavelet at scale.
+ * \brief Get wavelet data elements from wavelet at scale.
  * \ingroup wavelet
  */
 struct smbrr *smbrr_wavelet_get_wavelet(struct smbrr_wavelet *w,
@@ -657,7 +657,7 @@ struct smbrr *smbrr_wavelet_get_wavelet(struct smbrr_wavelet *w,
 
 /*! \fn struct smbrr *smbrr_wavelet_get_significant(
 	struct smbrr_wavelet *w, unsigned int scale);
- * \brief Get significant data from wavelet at scale.
+ * \brief Get significant data elements from wavelet at scale.
  * \ingroup wavelet
  */
 struct smbrr *smbrr_wavelet_get_significant(struct smbrr_wavelet *w,
@@ -665,7 +665,7 @@ struct smbrr *smbrr_wavelet_get_significant(struct smbrr_wavelet *w,
 
 /*! \fn void smbrr_wavelet_add(struct smbrr_wavelet *a,
     struct smbrr_wavelet *b, struct smbrr_wavelet *c);
- * \brief Wavelet A = B + C.
+ * \brief Add wavelet contexts.  A = B + C.
  * \ingroup wavelet
  */
 void smbrr_wavelet_add(struct smbrr_wavelet *a, struct smbrr_wavelet *b,
