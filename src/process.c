@@ -431,6 +431,28 @@ int smbrr_copy(struct smbrr *dest, struct smbrr *src)
 	return 0;
 }
 
+/*! \fn int smbrr_significant_copy(struct smbrr *dest, struct smbrr *src,
+ * 	struct smbrr *sig)
+* \param src Source data
+* \param dest Destination data.
+* \param sig Significance data
+* \return 0 on success.
+*
+* Copy the source data elements to destination elements if significant. Otherwise
+* set element to 0.
+*/
+int smbrr_significant_copy(struct smbrr *dest, struct smbrr *src,
+	struct smbrr *sig)
+{
+	if (dest->width != src->width && dest->width != sig->width)
+		return -EINVAL;
+	if (dest->height != src->height && dest->width != sig->width)
+		return -EINVAL;
+
+	dest->ops->copy_sig(dest, src, sig);
+	return 0;
+}
+
 /*! \fn int smbrr_convert(struct smbrr *data,
 	enum smbrr_type type)
 * \param s Data Context

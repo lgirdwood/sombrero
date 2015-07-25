@@ -640,6 +640,18 @@ static float get_norm(struct smbrr *data)
 	return sqrtf(norm);
 }
 
+static void copy_sig(struct smbrr *dest, struct smbrr *src, struct smbrr *sig)
+{
+	int i;
+
+	for (i = 0; i < dest->elems; i++) {
+		if (sig->s[i])
+			dest->adu[i] = src->adu[i];
+		else
+			dest->adu[i] = 0.0;
+	}
+}
+
 static float get_sigma_sig(struct smbrr *data,
 	struct smbrr *sdata, float mean_sig)
 {
@@ -822,6 +834,7 @@ const struct data_ops OPS(data_ops_1d) = {
 	.mult_subtract = mult_subtract,
 	.anscombe = anscombe,
 	.new_significance = new_significance,
+	.copy_sig = copy_sig,
 	.get = get,
 	.psf = psf_1d,
 
@@ -863,6 +876,7 @@ const struct data_ops OPS(data_ops_2d) = {
 	.mult_subtract = mult_subtract,
 	.anscombe = anscombe,
 	.new_significance = new_significance,
+	.copy_sig = copy_sig,
 	.get = get,
 	.psf = psf_2d,
 

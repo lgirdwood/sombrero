@@ -500,6 +500,14 @@ void smbrr_abs(struct smbrr *a);
  */
 int smbrr_copy(struct smbrr *dest, struct smbrr *src);
 
+/*! \fn int smsmbrr_significant_copy(struct smbrr *dest, struct smbrr *src,
+	struct smbrr *sig);
+ * \brief Copy data significant elements from one context to another.
+ * \ingroup data
+ */
+int smbrr_significant_copy(struct smbrr *dest, struct smbrr *src,
+	struct smbrr *sig);
+
 /*! \fn void smbrr_mult_add(struct smbrr *dest, struct smbrr *a,
 	struct smbrr *b, float c)
  * \brief Image A = A + B * value C

@@ -54,7 +54,7 @@ struct data_ops {
 	void (*set_sig_value)(struct smbrr *a, uint32_t value);
 	void (*clear_negative)(struct smbrr *a);
 	void (*abs)(struct smbrr *a);
-	int (*copy)(struct smbrr *dest, struct smbrr *src);
+	void (*copy_sig)(struct smbrr *dest, struct smbrr *src, struct smbrr *sig);
 	void (*mult_add)(struct smbrr *dest, struct smbrr *a,
 		struct smbrr *b, float c);
 	void (*mult_subtract)(struct smbrr *dest, struct smbrr *a,
