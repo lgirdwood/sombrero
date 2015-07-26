@@ -780,4 +780,10 @@ int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet *w,
 void smbrr_wavelet_set_ccd(struct smbrr_wavelet *w, float gain, float bias,
 	float readout);
 
+/*! \fn int smbrr_wavelet_set_elems(struct smbrr_wavelet *w, struct smbrr *s);
+* \brief Set wavelent data elements
+* \ingroup wavelet
+*/
+int smbrr_wavelet_set_elems(struct smbrr_wavelet *w, struct smbrr *s);
+
 #endif

@@ -343,3 +343,21 @@ void smbrr_wavelet_significant_subtract(struct smbrr_wavelet *a,
 		smbrr_significant_subtract(A, B, C, S);
 	}
 }
+
+/*! \fn int smbrr_wavelet_set_elems(struct smbrr_wavelet *w, struct smbrr *s)
+* \param w Wavelet
+* \param s dat element context
+*
+* Set data elements fow wavelet. This is useful for changing elements without
+* re-creating the wavelet.
+*/
+int smbrr_wavelet_set_elems(struct smbrr_wavelet *w, struct smbrr *s)
+{
+	if (s->height != w->height)
+		return -EINVAL;
+	if (s->width != w->width)
+		return -EINVAL;
+
+	memcpy(w->c[0]->adu, s->adu, s->elems * sizeof(float));
+	return 0;
+}
