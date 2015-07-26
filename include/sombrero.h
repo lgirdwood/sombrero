@@ -679,6 +679,22 @@ void smbrr_wavelet_add(struct smbrr_wavelet *a, struct smbrr_wavelet *b,
 void smbrr_wavelet_subtract(struct smbrr_wavelet *a, struct smbrr_wavelet *b,
 	struct smbrr_wavelet *c);
 
+/*! \fn void smbrr_wavelet_significant_subtract(struct smbrr_wavelet *a,
+	struct smbrr_wavelet *b, struct smbrr_wavelet *c);
+ * \brief Wavelet A = B - sig(C).
+ * \ingroup wavelet
+ */
+void smbrr_wavelet_significant_subtract(struct smbrr_wavelet *a,
+	struct smbrr_wavelet *b, struct smbrr_wavelet *c);
+
+/*! \fn void smbrr_wavelet_significant_add(struct smbrr_wavelet *a,
+    struct smbrr_wavelet *b, struct smbrr_wavelet *c);
+ * \brief Add wavelet contexts.  A = B + (sig)C.
+ * \ingroup wavelet
+ */
+void smbrr_wavelet_significant_add(struct smbrr_wavelet *a,
+	struct smbrr_wavelet *b, struct smbrr_wavelet *c);
+
 /*! \fn int smbrr_wavelet_new_significant(struct smbrr_wavelet *w,
 	enum smbrr_clip sigma_clip);
  * \brief Create new significance scales for wavlet.

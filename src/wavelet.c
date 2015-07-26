@@ -297,3 +297,49 @@ void smbrr_wavelet_subtract(struct smbrr_wavelet *a, struct smbrr_wavelet *b,
 		smbrr_subtract(A, B, C);
 	}
 }
+
+/*! \fn void smbrr_wavelet_significant_add(struct smbrr_wavelet *a,
+	 struct smbrr_wavelet *b, struct smbrr_wavelet *c)
+* \param a Wavelet A
+* \param b Wavelet B
+* \param c Wavelet C
+*
+* Wavelet A = B + C.
+*/
+void smbrr_wavelet_significant_add(struct smbrr_wavelet *a,
+	struct smbrr_wavelet *b, struct smbrr_wavelet *c)
+{
+	struct smbrr *A, *B, *C, *S;
+	int i;
+
+	for (i = 0; i < a->num_scales - 1; i++) {
+		A = smbrr_wavelet_get_wavelet(a, i);
+		B = smbrr_wavelet_get_wavelet(b, i);
+		C = smbrr_wavelet_get_wavelet(c, i);
+		S = smbrr_wavelet_get_significant(c, i);
+		smbrr_significant_add(A, B, C, S);
+	}
+}
+
+/*! \fn void smbrr_wavelet_significant_subtract(struct smbrr_wavelet *a,
+	 struct smbrr_wavelet *b, struct smbrr_wavelet *c)
+* \param a Wavelet A
+* \param b Wavelet B
+* \param c Wavelet C
+*
+* Wavelet A = B - C.
+*/
+void smbrr_wavelet_significant_subtract(struct smbrr_wavelet *a,
+	struct smbrr_wavelet *b, struct smbrr_wavelet *c)
+{
+	struct smbrr *A, *B, *C, *S;
+	int i;
+
+	for (i = 0; i < a->num_scales - 1; i++) {
+		A = smbrr_wavelet_get_wavelet(a, i);
+		B = smbrr_wavelet_get_wavelet(b, i);
+		C = smbrr_wavelet_get_wavelet(c, i);
+		S = smbrr_wavelet_get_significant(c, i);
+		smbrr_significant_subtract(A, B, C, S);
+	}
+}
