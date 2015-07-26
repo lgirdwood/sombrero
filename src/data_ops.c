@@ -658,6 +658,21 @@ static void copy_sig(struct smbrr *dest, struct smbrr *src, struct smbrr *sig)
 	}
 }
 
+static int sign(struct smbrr *s, struct smbrr *n)
+{
+	int i;
+
+	if (s->elems != n->elems)
+		return;
+
+	for (i = 0; i < s->elems; i++) {
+		if (n->adu[i] < 0.0)
+			s->adu[i] = -s->adu[i];
+	}
+
+	return 0;
+}
+
 static float get_sigma_sig(struct smbrr *data,
 	struct smbrr *sdata, float mean_sig)
 {
@@ -816,6 +831,7 @@ static int psf_2d(struct smbrr *src, struct smbrr *dest,
 
 const struct data_ops OPS(data_ops_1d) = {
 	.abs = sabs,
+	.sign =  sign,
 	.find_limits =find_limits,
 	.get_mean = get_mean,
 	.get_sigma = get_sigma,
@@ -858,6 +874,7 @@ const struct data_ops OPS(data_ops_1d) = {
 
 const struct data_ops OPS(data_ops_2d) = {
 	.abs = sabs,
+	.sign =  sign,
 	.find_limits = find_limits,
 	.get_mean = get_mean,
 	.get_sigma = get_sigma,

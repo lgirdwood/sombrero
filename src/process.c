@@ -687,6 +687,17 @@ void smbrr_abs(struct smbrr *s)
 	s->ops->abs(s);
 }
 
+/*! \fn void smbrr_signed(struct smbrr *s, struct smbrr *n)
+* \param s element context
+* \param s element context with sign information
+*
+* Set each element in s to the same sign as each elements in n
+*/
+void smbrr_signed(struct smbrr *s, struct smbrr *n)
+{
+	s->ops->sign(s, n);
+}
+
 /*! \fn int smbrr_psf(struct smbrr *src, struct smbrr *dest,
 	enum smbrr_wavelet_mask mask)
 * \param src Source s

@@ -30,6 +30,7 @@ struct data_ops {
 	float (*get_sigma)(struct smbrr *data, float mean);
 	float (*get_mean_sig)(struct smbrr *data,
 		struct smbrr *sdata);
+	int (*sign)(struct smbrr *s, struct smbrr *n);
 	float (*get_sigma_sig)(struct smbrr *data,
 		struct smbrr *sdata, float mean);
 	float (*get_norm)(struct smbrr *data);

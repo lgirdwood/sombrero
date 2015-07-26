@@ -494,6 +494,12 @@ void smbrr_zero_negative(struct smbrr *a);
  */
 void smbrr_abs(struct smbrr *a);
 
+/*! \fn int smbrr_signed(struct smbrr *s, struct smbrr *n);
+* \brief Set sign of elements in s to match sign in n
+* \ingroup data
+*/
+int smbrr_signed(struct smbrr *s, struct smbrr *n);
+
 /*! \fn int smbrr_copy(struct smbrr *dest, struct smbrr *src);
  * \brief Copy data elements from one context to another.
  * \ingroup data
