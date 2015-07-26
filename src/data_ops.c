@@ -644,6 +644,12 @@ static void copy_sig(struct smbrr *dest, struct smbrr *src, struct smbrr *sig)
 {
 	int i;
 
+	/* bottom scale has not sig data */
+	if (sig == NULL) {
+		memcpy(dest->adu, src->adu, src->elems * sizeof(float));
+		return;
+	}
+
 	for (i = 0; i < dest->elems; i++) {
 		if (sig->s[i])
 			dest->adu[i] = src->adu[i];
