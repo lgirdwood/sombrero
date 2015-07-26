@@ -123,14 +123,13 @@ struct smbrr_wavelet *smbrr_wavelet_new(struct smbrr *src,
 	w->height = src->height;
 	w->width = src->width;
 	w->num_scales = num_scales;
-	w->c[0] = src;
 	w->ops = ops;
 
 	w->object_map = calloc(w->height * w->width, sizeof(struct object*));
 	if (w->object_map == NULL)
 		goto m_err;
 
-	for (i = 1; i < num_scales; i++) {
+	for (i = 0; i < num_scales; i++) {
 		w->c[i] = smbrr_new(wtype, w->width, w->height, src->stride, 0, NULL);
 		if (w->c[i] == NULL)
 			goto c_err;
@@ -148,6 +147,9 @@ struct smbrr_wavelet *smbrr_wavelet_new(struct smbrr *src,
 			goto s_err;
 	}
 
+	/* copy src data elements to c0 */
+	memcpy(w->c[0]->adu, src->adu, src->elems * sizeof(float));
+
 	return w;
 
 s_err:
@@ -161,7 +163,7 @@ w_err:
 	i = num_scales - 1;
 
 c_err:
-	for (--i; i >= 1; i--)
+	for (--i; i >= 0; i--)
 		smbrr_free(w->c[i]);
 
 m_err:
@@ -196,7 +198,7 @@ void smbrr_wavelet_free(struct smbrr_wavelet *w)
 	for (i = 0; i < w->num_scales - 1; i++)
 		smbrr_free(w->w[i]);
 
-	for (i = 1; i < w->num_scales; i++)
+	for (i = 0; i < w->num_scales; i++)
 		smbrr_free(w->c[i]);
 
 	free(w->object_map);
