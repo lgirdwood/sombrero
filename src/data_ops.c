@@ -663,7 +663,7 @@ static int sign(struct smbrr *s, struct smbrr *n)
 	int i;
 
 	if (s->elems != n->elems)
-		return;
+		return -EINVAL;
 
 	for (i = 0; i < s->elems; i++) {
 		if (n->adu[i] < 0.0)
