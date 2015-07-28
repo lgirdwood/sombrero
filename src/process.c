@@ -137,7 +137,7 @@ struct smbrr *smbrr_new(enum smbrr_data_type type,
 	default:
 		return NULL;
 	}
-
+;
 	s = calloc(1, sizeof(*s));
 	if (s == NULL)
 		return NULL;
@@ -320,7 +320,7 @@ struct smbrr *smbrr_new_from_section(struct smbrr *src,
 
 	width = end - start;
 
-	if (width <= 0 || width + start >= src->width)
+	if (width <= 0 || width + start > src->width)
 		return NULL;
 
 	switch (src->type) {
