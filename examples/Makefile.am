@@ -6,7 +6,8 @@ bin_PROGRAMS = \
 	smbrr-atrous \
 	smbrr-structures \
 	smbrr-objects \
-	smbrr-reconstruct
+	smbrr-reconstruct \
+	smbrr-reconstruct-1d
 	
 smbrr_atrous_SOURCES = \
 	atrous.c \
@@ -23,6 +24,9 @@ smbrr_objects_SOURCES = \
 smbrr_reconstruct_SOURCES = \
 	reconstruct.c \
 	bmp.c
+
+smbrr_reconstruct_1d_SOURCES = \
+	reconstruct-1d.c
 	
 AM_CFLAGS = -I$(top_srcdir)/include
 
@@ -38,3 +42,5 @@ smbrr_objects_LDADD = \
 smbrr_reconstruct_LDADD = \
 	../src/libsombrero.la
 
+smbrr_reconstruct_1d_LDADD = \
+	../src/libsombrero.la
