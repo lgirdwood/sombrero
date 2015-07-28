@@ -78,6 +78,15 @@ static void float_to_uchar_1d(struct smbrr *i, unsigned char *c)
 			c[x] = (unsigned char)f[x];
 }
 
+static void float_to_ushort_1d(struct smbrr *i, unsigned short *c)
+{
+	int x;
+	float *f = i->adu;
+
+	for (x = 0; x < i->width; x++)
+			c[x] = (unsigned short)f[x];
+}
+
 static void uint_to_uint_1d(struct smbrr *i, const unsigned int *c)
 {
 	int x;
@@ -130,6 +139,14 @@ static void uint_to_uchar_1d(struct smbrr *i, unsigned char *c)
 			c[x] = (unsigned char)f[x];
 }
 
+static void uint_to_ushort_1d(struct smbrr *i, unsigned short *c)
+{
+	int x;
+	uint32_t *f = i->s;
+
+	for (x = 0; x < i->width; x++)
+			c[x] = (unsigned short)f[x];
+}
 
 static void uchar_to_float_2d(struct smbrr *i, const unsigned char *c)
 {
@@ -183,6 +200,20 @@ static void float_to_uchar_2d(struct smbrr *i, unsigned char *c)
 			coffset = y * i->stride + x;
 			foffset = y * i->width + x;
 			c[coffset] = (unsigned char)f[foffset];
+		}
+	}
+}
+
+static void float_to_ushort_2d(struct smbrr *i, unsigned short *c)
+{
+	int x, y, coffset, foffset;
+	float *f = i->adu;
+
+	for (x = 0; x < i->width; x++) {
+		for (y = 0; y < i->height; y++) {
+			coffset = y * i->stride + x;
+			foffset = y * i->width + x;
+			c[coffset] = (unsigned short)f[foffset];
 		}
 	}
 }
@@ -271,6 +302,20 @@ static void uint_to_uchar_2d(struct smbrr *i, unsigned char *c)
 	}
 }
 
+static void uint_to_ushort_2d(struct smbrr *i, unsigned short *c)
+{
+	int x, y, coffset, foffset;
+	uint32_t *f = i->s;
+
+	for (x = 0; x < i->width; x++) {
+		for (y = 0; y < i->height; y++) {
+			coffset = y * i->stride + x;
+			foffset = y * i->width + x;
+			c[coffset] = (unsigned short)f[foffset];
+		}
+	}
+}
+
 static int get(struct smbrr *data, enum smbrr_source_type adu, void **buf)
 {
 	if (buf == NULL)
@@ -291,6 +336,24 @@ static int get(struct smbrr *data, enum smbrr_source_type adu, void **buf)
 			break;
 		case SMBRR_DATA_2D_FLOAT:
 			float_to_uchar_2d(data, *buf);
+			break;
+		}
+		break;
+
+	case SMBRR_SOURCE_UINT16:
+
+		switch (data->type) {
+		case SMBRR_DATA_1D_UINT32:
+			uint_to_ushort_1d(data, *buf);
+			break;
+		case SMBRR_DATA_2D_UINT32:
+			uint_to_ushort_2d(data, *buf);
+			break;
+		case SMBRR_DATA_1D_FLOAT:
+			float_to_ushort_1d(data, *buf);
+			break;
+		case SMBRR_DATA_2D_FLOAT:
+			float_to_ushort_2d(data, *buf);
 			break;
 		}
 		break;
