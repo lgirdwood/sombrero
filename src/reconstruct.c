@@ -36,31 +36,17 @@ static struct smbrr *data_get_A_tilda(struct smbrr_wavelet *w,
 }
 
 /* deconvolve data where wavelet are significant at all scales */
-static float data_get_A(struct smbrr *data,
-	enum smbrr_wavelet_mask mask, int scales, enum smbrr_clip sigma_clip)
+static void calc_A(struct smbrr_wavelet *w,
+	enum smbrr_wavelet_mask mask, enum smbrr_clip sigma_clip)
 {
-	struct smbrr_wavelet *w;
-	struct smbrr *i;
-	float norm;
-
-	w = smbrr_wavelet_new(data, scales);
-	if (w == NULL)
-		return 0;
-
 	/* convolve each scale */
 	smbrr_wavelet_convolution(w, SMBRR_CONV_ATROUS, mask);
 
 	/* convolve each scale using sig vales from previous convolve at each scale */
 	smbrr_wavelet_new_significant(w, sigma_clip);
 
-	smbrr_wavelet_significant_convolution(w, SMBRR_CONV_ATROUS, mask);
 	smbrr_wavelet_significant_deconvolution(w, SMBRR_CONV_ATROUS, mask,
 		SMBRR_GAIN_NONE);
-	i = smbrr_wavelet_get_scale(w, 0);
-
-	norm = smbrr_get_norm(i);
-	smbrr_wavelet_free(w);
-	return norm;
 }
 
 static float calc_residual_thres(struct smbrr_wavelet *w)
@@ -81,8 +67,7 @@ static float calc_residual_wavelet(struct smbrr_wavelet *w0,
 	enum smbrr_wavelet_mask mask)
 {
 	/* A0 */
-	smbrr_wavelet_convolution(w0, SMBRR_CONV_ATROUS, mask);
-	smbrr_wavelet_new_significant(w0, sigma_clip);
+	calc_A(w0, mask, sigma_clip);
 
 	/* w1 = w1 - w0 */
 	smbrr_wavelet_significant_subtract(w1, w1, w0);
@@ -101,7 +86,8 @@ static float calc_alphaN(struct smbrr *R, struct smbrr_wavelet *w,
 	nAw *= nAw;
 
 	/* sqr of norm of data Ar */
-	nAr = data_get_A(R, mask, scales, sigma_clip);
+	calc_A(w, mask, sigma_clip);
+	nAr = smbrr_get_norm(smbrr_wavelet_get_scale(w, 0));
 	nAr *= nAr;
 
 	return nAw / nAr;
@@ -117,28 +103,27 @@ int smbrr_reconstruct(struct smbrr *O,
 	int ret = -ENOMEM, tries = 10;
 
 	/* diff data O0 */
-	O0 = smbrr_new(O->type, O->width, O->height, 0, 0, NULL);
-	if (O0 == NULL)
+	R = smbrr_new(O->type, O->width, O->height, 0, 0, NULL);
+	if (R == NULL)
 		return -ENOMEM;
-	smbrr_copy(O0, O);
-
-	/* diff data O1 */
-	O1 = smbrr_new(O->type, O->width, O->height, 0, 0, NULL);
-	if (O1 == NULL)
-		goto err_O1;
-	smbrr_copy(O1, O);
 
 	/* Residual wavelet 0 */
-	wr0 = smbrr_wavelet_new(O0, scales);
+	wr0 = smbrr_wavelet_new(O, scales);
 	if (wr0 == NULL)
 		goto err_wr0;
 
 	/* Residual wavelet 1 */
-	wr1 = smbrr_wavelet_new(O1, scales);
+	wr1 = smbrr_wavelet_new(O, scales);
 	if (wr1 == NULL)
 		goto err_wr1;
 
-	while (tries--) {
+	smbrr_wavelet_convolution(wr1, SMBRR_CONV_ATROUS, mask);
+	smbrr_wavelet_new_significant(wr1, sigma_clip);
+
+	O0 = smbrr_wavelet_get_scale(wr0, 0);
+	O1 = smbrr_wavelet_get_scale(wr1, 0);
+
+	while (tries-- > 0) {
 		/* wr 1 is residual */
 		thresh = calc_residual_wavelet(wr0, wr1, sigma_clip, mask);
 
@@ -149,8 +134,9 @@ int smbrr_reconstruct(struct smbrr *O,
 		thresh_old = thresh;
 
 		/* get residual image from wr 1*/
-		R = data_get_A_tilda(wr1, mask, sigma_clip);
+		smbrr_copy(R, data_get_A_tilda(wr1, mask, sigma_clip));
 
+		/* get sig image from O0 */
 		alpha = calc_alphaN(R, wr1, mask, scales, sigma_clip);
 
 		/* step 3 - calculate new data O - add correction to O */
@@ -161,18 +147,18 @@ int smbrr_reconstruct(struct smbrr *O,
 		smbrr_zero_negative(O1);
 
 		/* step 5 - wr 1 is residual, O1 is image */
-		smbrr_wavelet_set_elems(wr0, O1);
+		smbrr_copy(O0, O1);
+		smbrr_wavelet_convolution(wr1, SMBRR_CONV_ATROUS, mask);
+		smbrr_wavelet_new_significant(wr1, sigma_clip);
 	}
 
-	smbrr_copy(O1, O);
+	smbrr_copy(O, O1);
 	ret = 0;
 
 	smbrr_wavelet_free(wr1);
 err_wr1:
 	smbrr_wavelet_free(wr0);
 err_wr0:
-	smbrr_free(O1);
-err_O1:
-	smbrr_free(O0);
+	smbrr_free(R);
 	return ret;
 }
