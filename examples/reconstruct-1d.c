@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
 		exit(ret);
 
 	s.signal_orig = smbrr_new(SMBRR_DATA_1D_FLOAT, s.width, 0, 0,
-		SMBRR_SOURCE_INT16, s.data);
+		SMBRR_SOURCE_UINT16, s.data);
 	if (s.signal_orig == NULL) {
 		fprintf(stderr, "cant create new signal\n");
 		return -EINVAL;
