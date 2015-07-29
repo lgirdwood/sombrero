@@ -137,7 +137,7 @@ struct smbrr *smbrr_new(enum smbrr_data_type type,
 	default:
 		return NULL;
 	}
-;
+
 	s = calloc(1, sizeof(*s));
 	if (s == NULL)
 		return NULL;

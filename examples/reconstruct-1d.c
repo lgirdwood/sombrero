@@ -26,125 +26,109 @@
 
 #define	SCALES		8
 
-struct wav_hdr {
-	char buf[44];		/* tmp hack for wav header */
-};
-
-struct audio_recon {
+struct signal {
 	struct smbrr *signal;
 	struct smbrr *signal_orig;
 	int width;
 	const char *file;
-	struct wav_hdr wav_hdr;
 	short *data;
 	FILE *in_file;
 	FILE *out_file;
 };
 
-static int wav_read(struct audio_recon *ar)
+static int signal_read(struct signal *s)
 {
 	int size, err;
 
 	/* open input file */
-	ar->in_file = fopen(ar->file, "r");
-	if (ar->in_file == NULL)
+	s->in_file = fopen(s->file, "r");
+	if (s->in_file == NULL)
 		return -errno;
 
-	/* parse input header for sizes */
-	fseek(ar->in_file, 0, SEEK_END);
-	size = ftell(ar->in_file);
-	fseek(ar->in_file, 0, SEEK_SET);
-
-	err = fread(&ar->wav_hdr, 44, 1, ar->in_file);
+	/* psse input header for sizes */
+	fseek(s->in_file, 0, SEEK_END);
+	size = ftell(s->in_file);
+	fseek(s->in_file, 0, SEEK_SET);
 
 	/* read input file into buffer */
-	ar->data = calloc(1, size);
-	if (ar->data == NULL)
+	s->data = calloc(1, size);
+	if (s->data == NULL)
 		return -ENOMEM;
-	err = fread(ar->data, size - 44, 1, ar->in_file);
+	err = fread(s->data, size, 1, s->in_file);
 
-	ar->width = size / 2;
+	s->width = size / 2;
 	/* close input file */
-	fclose(ar->in_file);
+	fclose(s->in_file);
 	return err;
 }
 
-static int wav_write(struct audio_recon *ar)
+static int signal_write(struct signal *s)
 {
 	char file[256];
 	int err;
 
 	/* open output file */
-	sprintf(file, "%s.r", ar->file);
-	ar->out_file = fopen(file, "w");
-	if (ar->out_file == NULL)
+	sprintf(file, "%s.r", s->file);
+	s->out_file = fopen(file, "w");
+	if (s->out_file == NULL)
 		return -errno;
 
-	/* reuse input file wav header */
-	err = fwrite(&ar->wav_hdr, 44, 1, ar->out_file);
-
 	/* write output file using buffer */
-	err = fwrite(ar->data, ar->width * 2, 1, ar->out_file);
+	err = fwrite(s->data, s->width * 2, 1, s->out_file);
 
 	/* close output file */
-	fclose(ar->out_file);
+	fclose(s->out_file);
 	return err;
 }
 
 int main(int argc, char *argv[])
 {
-	struct audio_recon ar;
+	struct signal s;
 	int ret;
 	float mean, sigma;
 
-	memset(&ar, 0, sizeof(ar));
+	memset(&s, 0, sizeof(s));
 
 	if (argc == 2)
-		ar.file = argv[1];
+		s.file = argv[1];
 	else
 		fprintf(stderr, "usage: %s file.wav\n", argv[0]);
 
-	ret = wav_read(&ar);
+	ret = signal_read(&s);
 	if (ret < 0)
 		exit(ret);
 
-	ar.signal_orig = smbrr_new(SMBRR_DATA_1D_FLOAT, ar.width, 0, 0,
-		SMBRR_SOURCE_UINT16, ar.data);
-	if (ar.signal_orig == NULL) {
+	s.signal_orig = smbrr_new(SMBRR_DATA_1D_FLOAT, s.width, 0, 0,
+		SMBRR_SOURCE_INT16, s.data);
+	if (s.signal_orig == NULL) {
 		fprintf(stderr, "cant create new signal\n");
 		return -EINVAL;
 	}
 
-	ar.signal = smbrr_new_copy(ar.signal_orig);
-	if (ar.signal == NULL) {
+	s.signal = smbrr_new_copy(s.signal_orig);
+	if (s.signal == NULL) {
 		fprintf(stderr, "cant create new signal\n");
 		return -EINVAL;
 	}
 
-	/* convert audio signal to absolute values */
-	smbrr_abs(ar.signal);
-
-	mean = smbrr_get_mean(ar.signal);
-	sigma = smbrr_get_sigma(ar.signal, mean);
+	mean = smbrr_get_mean(s.signal);
+	sigma = smbrr_get_sigma(s.signal, mean);
 	fprintf(stdout, "Signal before mean %f sigma %f\n", mean, sigma);
 
-	smbrr_reconstruct(ar.signal, SMBRR_WAVELET_MASK_LINEAR, 1.0e-4, 8,
+	smbrr_reconstruct(s.signal, SMBRR_WAVELET_MASK_LINEAR, 1.0e-4, 8,
 		SMBRR_CLIP_VGENTLE);
 
-	mean = smbrr_get_mean(ar.signal);
-	sigma = smbrr_get_sigma(ar.signal, mean);
+	mean = smbrr_get_mean(s.signal);
+	sigma = smbrr_get_sigma(s.signal, mean);
 	fprintf(stdout, "Signal after mean %f sigma %f\n", mean, sigma);
 
-	/* covert reconstructed signal back to signed values */
-	smbrr_signed(ar.signal, ar.signal_orig);
-
-	smbrr_get_data(ar.signal, SMBRR_SOURCE_UINT16, (void **)&ar.data);
+	smbrr_get_data(s.signal, SMBRR_SOURCE_UINT16, (void **)&s.data);
 
 	/* write to file */
-	wav_write(&ar);
+	signal_write(&s);
 
-	smbrr_free(ar.signal);
-	smbrr_free(ar.signal_orig);
+	smbrr_free(s.signal);
+	smbrr_free(s.signal_orig);
 
 	return 0;
 }
