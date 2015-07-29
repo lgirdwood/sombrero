@@ -83,9 +83,9 @@ static const struct data_ops* get_2d_ops(void)
 	unsigned int width, unsigned int height, unsigned int stride,
 	enum smbrr_adu adu, const void *src_data);
 * \param type New data type
-* \param width Image width in pixels
-* \param height Image height in pixels
-* \param stride Image stride in pixels. width += %4
+* \param width element context width in pixels
+* \param height element context height in pixels
+* \param stride element context stride in pixels. width += %4
 * \param adu Source data ADU type
 * \param src_data source data raw data
 * \return Pointer to new data or NULL on failure
@@ -385,7 +385,7 @@ struct smbrr *smbrr_new_copy(struct smbrr *src)
 }
 
 /*! \fn void smbrr_free(struct smbrr *s)
-* \param s Image to be freed
+* \param s element context to be freed
 *
 * Free data resources.
 */
@@ -400,7 +400,7 @@ void smbrr_free(struct smbrr *s)
 
 /*! \fn int smbrr_get_data(struct smbrr *data, enum smbrr_adu adu,
 	void **buf)
-* \param s Data Context
+* \param s element context
 * \param adu ADU type of raw data
 * \param buf Pointer to raw data buffer.
 * \return 0 on success.
@@ -455,7 +455,7 @@ int smbrr_significant_copy(struct smbrr *dest, struct smbrr *src,
 
 /*! \fn int smbrr_convert(struct smbrr *data,
 	enum smbrr_type type)
-* \param s Data Context
+* \param s element context
 * \param type target destination type
 * \return 0 on success
 *
@@ -469,7 +469,7 @@ int smbrr_convert(struct smbrr *s,
 
 /*! \fn void smbrr_find_limits(struct smbrr *s,
     float *min, float *max)
-* \param s Data Context
+* \param s element context
 * \param min pointer to store data min pixel value
 * \param max pointer to store data max pixel value
 *
@@ -482,7 +482,7 @@ void smbrr_find_limits(struct smbrr *s, float *min, float *max)
 
 /*! \fn void smbrr_normalise(struct smbrr *s, float min,
 	float max)
-* \param s Data Context
+* \param s element context
 * \param min minimum pixel value
 * \param max maximum pixel value
 *
@@ -496,9 +496,9 @@ void smbrr_normalise(struct smbrr *s, float min, float max)
 
 /*! \fn void smbrr_add(struct smbrr *a, struct smbrr *b,
 	struct smbrr *c)
-* \param a Image A
+* \param a element context A
 * \param b data B
-* \param c Image C
+* \param c element context C
 *
 * Add pixels in data C from data B and store in data A.
 */
@@ -510,9 +510,9 @@ void smbrr_add(struct smbrr *a, struct smbrr *b,
 
 /*! \fn void smbrr_significant_add(struct smbrr *a, struct smbrr *b,
 	struct smbrr *c, struct smbrr *s)
-* \param a Image A
+* \param a element context A
 * \param b data B
-* \param c Image C
+* \param c element context C
 * \param s Significant data.
 *
 * Add significant pixels in data C to data B and store in data A.
@@ -525,8 +525,8 @@ void smbrr_significant_add(struct smbrr *a, struct smbrr *b,
 
 /*! \fn void smbrr_mult_add(struct smbrr *dest, struct smbrr *a,
 	struct smbrr *b, float c)
-* \param dest Destination Image
-* \param a Image A
+* \param dest Destination element context
+* \param a element context A
 * \param b data B
 * \param c value C
 *
@@ -541,8 +541,8 @@ void smbrr_mult_add(struct smbrr *dest, struct smbrr *a,
 
 /*! \fn void smbrr_mult_subtract(struct smbrr *dest, struct smbrr *a,
 	struct smbrr *b, float c)
-* \param dest Destination Image
-* \param a Image A
+* \param dest Destination element context
+* \param a element context A
 * \param b data B
 * \param c value C
 *
@@ -557,9 +557,9 @@ void smbrr_mult_subtract(struct smbrr *dest, struct smbrr *a,
 
 /*! \fn void smbrr_subtract(struct smbrr *a, struct smbrr *b,
 	struct smbrr *c)
-* \param a Image A
+* \param a element context A
 * \param b data B
-* \param c Image C
+* \param c element context C
 *
 * Subtract pixels in data C from data B and store in data A.
 */
@@ -571,9 +571,9 @@ void smbrr_subtract(struct smbrr *a, struct smbrr *b,
 
 /*! \fn void smbrr_significant_subtract(struct smbrr *a, struct smbrr *b,
 	struct smbrr *c, struct smbrr *s)
-* \param a Image A
+* \param a element context A
 * \param b data B
-* \param c Image C
+* \param c element context C
 * \param s Significant data.
 *
 * Subtract significant pixels in data C from data B and store in data A.
@@ -585,7 +585,7 @@ void smbrr_significant_subtract(struct smbrr *a, struct smbrr *b,
 }
 
 /*! \fn void smbrr_add_value(struct smbrr *s, float value)
-* \param s Data Context
+* \param s element context
 * \param value Value
 *
 * Add value to all data pixels.
@@ -597,8 +597,8 @@ void smbrr_add_value(struct smbrr *s, float value)
 
 /*! \fn void smbrr_significant_add_value(struct smbrr *s,
 	struct smbrr *ss, float value)
-* \param s Data Context
-* \param ss Data Context
+* \param s element context
+* \param ss element context
 * \param value Value
 *
 * Add value to all significant data pixels.
@@ -610,7 +610,7 @@ void smbrr_significant_add_value(struct smbrr *s,
 }
 
 /*! \fn void smbrr_subtract_value(struct smbrr *s, float value)
-* \param s Data Context
+* \param s element context
 * \param value Value
 *
 * Subtract value from all data pixels.
@@ -621,7 +621,7 @@ void smbrr_subtract_value(struct smbrr *s, float value)
 }
 
 /*! \fn void smbrr_mult_value(struct smbrr *s, float value)
-* \param s Data Context
+* \param s element context
 * \param value Value
 *
 * Multiply all data pixels by value.
@@ -632,7 +632,7 @@ void smbrr_mult_value(struct smbrr *s, float value)
 }
 
 /*! \fn void smbrr_set_value(struct smbrr *s, float value)
-* \param s Data Context
+* \param s element context
 * \param value Value
 *
 * Reset all values in data to value
@@ -643,7 +643,7 @@ void smbrr_set_value(struct smbrr *s, float value)
 }
 
 /*! \fn void smbrr_significant_set_svalue(struct smbrr *s, uint32_t value)
-* \param s Data Context
+* \param s element context
 * \param value reset value
 *
 * Reset all values in significant data to value
@@ -655,8 +655,8 @@ void smbrr_significant_set_svalue(struct smbrr *s, uint32_t value)
 
 /*! \fn void smbrr_significant_set_value(struct smbrr *s,
 	struct smbrr *ss, float sig_value)
-* \param s Image
-* \param ss Significant Image
+* \param s element context
+* \param ss Significant element context
 * \param sig_value Significant value.
 *
 * Set data pixels to value if pixel is significant.
@@ -668,7 +668,7 @@ void smbrr_significant_set_value(struct smbrr *s,
 }
 
 /*! \fn void smbrr_zero_negative(struct smbrr *s)
-* \param s Image
+* \param s element context
 *
 * Clear any data pixels with negative values to zero..
 */
@@ -678,7 +678,7 @@ void smbrr_zero_negative(struct smbrr *s)
 }
 
 /*! \fn void smbrr_abs(struct smbrr *s)
-* \param s Image
+* \param s element context
 *
 * Set all elements to absolute values.
 */
@@ -689,7 +689,7 @@ void smbrr_abs(struct smbrr *s)
 
 /*! \fn void smbrr_signed(struct smbrr *s, struct smbrr *n)
 * \param s element context
-* \param s element context with sign information
+* \param n element context with sign information
 *
 * Set each element in s to the same sign as each elements in n
 */
@@ -701,7 +701,7 @@ int smbrr_signed(struct smbrr *s, struct smbrr *n)
 /*! \fn int smbrr_psf(struct smbrr *src, struct smbrr *dest,
 	enum smbrr_wavelet_mask mask)
 * \param src Source s
-* \param dest Destination Image
+* \param dest Destination element context
 * \param mask PSF convolution mask
 * \return 0 for success.
 *
@@ -715,7 +715,7 @@ int smbrr_psf(struct smbrr *src, struct smbrr *dest,
 }
 
 /*! \fn int smbrr_get_size(struct smbrr *s)
-* \param s Data Context
+* \param s element context
 * \return Number of data elements.
 *
 * Return the number of valid pixels used by data. i.e. width * height.
@@ -726,7 +726,7 @@ int smbrr_get_size(struct smbrr *s)
 }
 
 /*! \fn int smbrr_get_bytes(struct smbrr *s)
-* \param s Image
+* \param s element context
 * \return Number of data bytes.
 *
 * Return the number of raw pixels used by data. i.e. stride * height.
@@ -737,8 +737,8 @@ int smbrr_get_bytes(struct smbrr *s)
 }
 
 /*! \fn int smbrr_get_stride(struct smbrr *s)
-* \param s Image
-* \return Image stride.
+* \param s element context
+* \return element context stride.
 *
 * Return the number of pixels in s stride.
 */
@@ -748,8 +748,8 @@ int smbrr_get_stride(struct smbrr *s)
 }
 
 /*! \fn int smbrr_get_width(struct smbrr *s)
-* \param s Image
-* \return Image stride.
+* \param s element context
+* \return element context stride.
 *
 * Return the number of pixels in data width.
 */
@@ -759,8 +759,8 @@ int smbrr_get_width(struct smbrr *s)
 }
 
 /*! \fn int smbrr_get_height(struct smbrr *s)
-* \param s Image
-* \return Image height.
+* \param s element context
+* \return element context height.
 *
 * Return the number of pixels in s height.
 */
@@ -770,10 +770,10 @@ int smbrr_get_height(struct smbrr *s)
 }
 
 /*! \fn float smbrr_get_adu_at_posn(struct smbrr *s, int x, int y);
- * \param s Image
+ * \param s element context
  * \param x X coordinate
  * \param y Y coordinate
- * \return Image ADU
+ * \return element context ADU
  *
  * Get data ADU value at (x,y)
  */
@@ -791,8 +791,8 @@ float smbrr_get_adu_at_posn(struct smbrr *s, int x, int y)
 }
 
 /*! \fn float smbrr_get_adu_at_offset(struct smbrr *s, int offset);
- * \param s Image
- * \param offset daat offset
+ * \param s element context
+ * \param offset data offset
  * \return data ADU
  *
  * Get data ADU value at (offset)

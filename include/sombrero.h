@@ -506,7 +506,7 @@ int smbrr_signed(struct smbrr *s, struct smbrr *n);
  */
 int smbrr_copy(struct smbrr *dest, struct smbrr *src);
 
-/*! \fn int smsmbrr_significant_copy(struct smbrr *dest, struct smbrr *src,
+/*! \fn int smbrr_significant_copy(struct smbrr *dest, struct smbrr *src,
 	struct smbrr *sig);
  * \brief Copy data significant elements from one context to another.
  * \ingroup data
