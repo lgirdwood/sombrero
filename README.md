@@ -1,5 +1,7 @@
 # Sombrero
 
+[![CI](https://github.com/lgirdwood/sombrero/actions/workflows/ci.yml/badge.svg)](https://github.com/lgirdwood/sombrero/actions/workflows/ci.yml)
+
 Sombrero is a fast wavelet data processing and object detection C library for 1D and 2D data. 
 
 Sombrero is named after the "Mexican Hat" shape of the wavelet masks used in data convolution. It is released under the GNU LGPL library. Initially developed for astronomical work, it can also be used with any other data that can benefit from wavelet processing. Some of the algorithms in this library are derived from "Astronomical Image and Data Analysis" by Jean-Luc Starck and Fionn Murtagh.
