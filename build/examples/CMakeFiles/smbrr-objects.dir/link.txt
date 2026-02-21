@@ -1,1 +1,0 @@
-/usr/bin/cc -O3 -DNDEBUG -Wl,--dependency-file=CMakeFiles/smbrr-objects.dir/link.d "CMakeFiles/smbrr-objects.dir/objects.c.o" "CMakeFiles/smbrr-objects.dir/bmp.c.o" -o smbrr-objects  -Wl,-rpath,/home/lrg/source/libsmbrr/build/src ../src/libsombrero.so.1.0.0 -lm /usr/lib/gcc/x86_64-linux-gnu/15/libgomp.so /usr/lib/x86_64-linux-gnu/libpthread.a
