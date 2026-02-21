@@ -84,9 +84,8 @@ static const struct convolution_ops *get_2d_conv_ops(void) {
   return &conv_ops_2d;
 }
 
-/*! \fn struct smbrr_wavelet *smbrr_wavelet_new(struct smbrr *data,
-        unsigned int num_scales)
-* \param data Image
+/**
+* \param src Image
 * \param num_scales Number of wavelet scales.
 * \return Wavelet pointer on success or NULL on failure..
 *
@@ -182,7 +181,7 @@ smbrr_wavelet_new_from_object(struct smbrr_object *object) {
   return w;
 }
 
-/*! \fn void smbrr_wavelet_free(struct smbrr_wavelet *w)
+/**
  * \param w Wavelet
  *
  * Free wavelet and it's datas.
@@ -208,8 +207,7 @@ void smbrr_wavelet_free(struct smbrr_wavelet *w) {
   free(w);
 }
 
-/*! \fn struct smbrr *smbrr_wavelet_get_scale(struct smbrr_wavelet *w,
-        unsigned int scale)
+/**
 * \param w Wavelet
 * \param scale Wavelet scale.
 * \return Wavelet data
@@ -224,8 +222,7 @@ struct smbrr *smbrr_wavelet_get_scale(struct smbrr_wavelet *w,
   return w->c[scale];
 }
 
-/*! \fn struct smbrr *smbrr_wavelet_get_wavelet(struct smbrr_wavelet *w,
-        unsigned int scale)
+/**
 * \param w Wavelet
 * \param scale Wavelet scale.
 * \return Wavelet data
@@ -240,8 +237,7 @@ struct smbrr *smbrr_wavelet_get_wavelet(struct smbrr_wavelet *w,
   return w->w[scale];
 }
 
-/*! \fn struct smbrr *smbrr_wavelet_get_significant(struct smbrr_wavelet *w,
-        unsigned int scale)
+/**
 * \param w Wavelet
 * \param scale Wavelet scale.
 * \return Wavelet data
@@ -256,8 +252,7 @@ struct smbrr *smbrr_wavelet_get_significant(struct smbrr_wavelet *w,
   return w->s[scale];
 }
 
-/*! \fn void smbrr_wavelet_add(struct smbrr_wavelet *a,
-         struct smbrr_wavelet *b, struct smbrr_wavelet *c)
+/**
 * \param a Wavelet A
 * \param b Wavelet B
 * \param c Wavelet C
@@ -277,8 +272,7 @@ void smbrr_wavelet_add(struct smbrr_wavelet *a, struct smbrr_wavelet *b,
   }
 }
 
-/*! \fn void smbrr_wavelet_subtract(struct smbrr_wavelet *a,
-         struct smbrr_wavelet *b, struct smbrr_wavelet *c)
+/**
 * \param a Wavelet A
 * \param b Wavelet B
 * \param c Wavelet C
@@ -298,8 +292,7 @@ void smbrr_wavelet_subtract(struct smbrr_wavelet *a, struct smbrr_wavelet *b,
   }
 }
 
-/*! \fn void smbrr_wavelet_significant_add(struct smbrr_wavelet *a,
-         struct smbrr_wavelet *b, struct smbrr_wavelet *c)
+/**
 * \param a Wavelet A
 * \param b Wavelet B
 * \param c Wavelet C
@@ -321,8 +314,7 @@ void smbrr_wavelet_significant_add(struct smbrr_wavelet *a,
   }
 }
 
-/*! \fn void smbrr_wavelet_significant_subtract(struct smbrr_wavelet *a,
-         struct smbrr_wavelet *b, struct smbrr_wavelet *c)
+/**
 * \param a Wavelet A
 * \param b Wavelet B
 * \param c Wavelet C
@@ -344,7 +336,7 @@ void smbrr_wavelet_significant_subtract(struct smbrr_wavelet *a,
   }
 }
 
-/*! \fn int smbrr_wavelet_set_elems(struct smbrr_wavelet *w, struct smbrr *s)
+/**
  * \param w Wavelet
  * \param s dat element context
  *
