@@ -23,7 +23,9 @@ FAILED=0
 
 run_test() {
     local test_name="$1"
-    shift
+    local prefix="$2"
+    shift 2
+
     local cmd=("./$test_name" "$@")
     
     echo "============================================================"
@@ -37,8 +39,25 @@ run_test() {
     
     echo "------------------------------------------------------------"
     if [ $status -eq 0 ]; then
-        echo -e "\033[0;32mRESULT: [ PASS ] $test_name\033[0m"
-        ((PASSED++))
+        # Check generated images against ref
+        local image_mismatch=0
+        for ref_img in "$TESTS_DIR/ref/${prefix}"*.bmp; do
+            if [ -f "$ref_img" ]; then
+                local base_img=$(basename "$ref_img")
+                if ! cmp -s "$ref_img" "$TESTS_DIR/$base_img"; then
+                    echo "Image mismatch: $base_img"
+                    image_mismatch=1
+                fi
+            fi
+        done
+        
+        if [ $image_mismatch -eq 0 ]; then
+            echo -e "\033[0;32mRESULT: [ PASS ] $test_name\033[0m"
+            ((PASSED++))
+        else
+            echo -e "\033[0;31mRESULT: [ FAIL ] $test_name (Image Mismatch)\033[0m"
+            ((FAILED++))
+        fi
     else
         echo -e "\033[0;31mRESULT: [ FAIL ] $test_name (Exit code: $status)\033[0m"
         ((FAILED++))
@@ -56,10 +75,10 @@ echo "Using test image: $IMAGE"
 echo ""
 
 # Invoke individual unit tests with their expected arguments
-run_test "test_atrous" "$IMAGE" "test_out_atrous"
-run_test "test_structures" "$IMAGE" "test_out_structures"
-run_test "test_objects" "-i" "$IMAGE" "-o" "test_out_objects"
-run_test "test_reconstruct" "-i" "$IMAGE" "-o" "test_out_reconstruct.bmp"
+run_test "test_atrous" "test_at-" "$IMAGE" "test_at"
+run_test "test_structures" "test_st-" "$IMAGE" "test_st"
+run_test "test_objects" "test_ob-" "-i" "$IMAGE" "-o" "test_ob"
+run_test "test_reconstruct" "test_re" "-i" "$IMAGE" "-o" "test_re.bmp"
 
 echo "============================================================"
 echo "                        TEST SUMMARY                        "

@@ -1,19 +1,22 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "../examples/bmp.h"
+#include "../examples/debug.h"
 #include "sombrero.h"
 
 int main(int argc, char *argv[]) {
-  struct smbrr *image;
+  struct smbrr *image, *simage, *oimage;
   struct smbrr_wavelet *w;
   struct bitmap *bmp;
   const void *data;
   int ret, width, height, stride, scales = 9;
   enum smbrr_source_type depth;
   char *ifile = NULL, *ofile = NULL;
+  char outfile[64];
   int opt, structures;
 
   /* Expected values from examples/objects on wiz-ha-x.bmp */
@@ -50,6 +53,11 @@ int main(int argc, char *argv[]) {
     return -EINVAL;
   }
 
+  oimage = smbrr_new(SMBRR_DATA_2D_FLOAT, width, height, stride, depth, NULL);
+  if (oimage == NULL) {
+    return -EINVAL;
+  }
+
   w = smbrr_wavelet_new(image, scales);
   if (w == NULL) {
     return -EINVAL;
@@ -78,6 +86,12 @@ int main(int argc, char *argv[]) {
               i, expected_structures[i], structures);
       return -EINVAL;
     }
+
+    simage = smbrr_wavelet_get_significant(w, i);
+    smbrr_set_value(oimage, 0.0);
+    smbrr_significant_set_value(oimage, simage, 127);
+    sprintf(outfile, "%s-struct-%d", ofile, i);
+    bmp_image_save(oimage, bmp, outfile);
   }
 
   int objects = smbrr_wavelet_structure_connect(w, 0, scales - 2);
@@ -92,8 +106,20 @@ int main(int argc, char *argv[]) {
     return -EINVAL;
   }
 
+  for (int i = 0; i < objects; i++) {
+    struct smbrr_object *object = smbrr_wavelet_object_get(w, i);
+    if (i < 10) {
+      struct smbrr *oimage_data;
+      smbrr_wavelet_object_get_data(w, object, &oimage_data);
+      if (oimage_data) {
+        smbrr_image_dump(oimage_data, "%s-object-%d", ofile, i);
+      }
+    }
+  }
+
   free(bmp);
   smbrr_wavelet_free(w);
+  smbrr_free(oimage);
   smbrr_free(image);
 
   return 0;

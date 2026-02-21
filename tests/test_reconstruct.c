@@ -77,6 +77,8 @@ int main(int argc, char *argv[]) {
     return -EINVAL;
   }
 
+  bmp_image_save(image, bmp, ofile);
+
   free(bmp);
   smbrr_free(image);
 
