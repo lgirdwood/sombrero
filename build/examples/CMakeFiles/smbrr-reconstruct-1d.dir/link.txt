@@ -1,0 +1,1 @@
+/usr/bin/cc -O3 -DNDEBUG -Wl,--dependency-file=CMakeFiles/smbrr-reconstruct-1d.dir/link.d "CMakeFiles/smbrr-reconstruct-1d.dir/reconstruct-1d.c.o" -o smbrr-reconstruct-1d  -Wl,-rpath,/home/lrg/source/libsmbrr/build/src ../src/libsombrero.so.1.0.0 -lm /usr/lib/gcc/x86_64-linux-gnu/15/libgomp.so /usr/lib/x86_64-linux-gnu/libpthread.a
