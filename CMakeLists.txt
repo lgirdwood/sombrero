@@ -139,3 +139,6 @@ add_subdirectory(src)
 add_subdirectory(include)
 add_subdirectory(examples)
 add_subdirectory(doc)
+
+enable_testing()
+add_subdirectory(tests)
