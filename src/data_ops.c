@@ -28,7 +28,11 @@
 #include "ops.h"
 #include "sombrero.h"
 
-/* function suffixes for SIMD ops */
+/**
+ * \def OPS
+ * \brief Function suffix macro for compile-time SIMD instruction set
+ * optimization switching.
+ */
 #ifdef OPS_SSE42
 #define OPS(a) a##_sse42
 #elif OPS_AVX

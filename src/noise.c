@@ -106,7 +106,18 @@ void smbrr_significant_new(struct smbrr *data, struct smbrr *sdata,
   data->ops->new_significance(data, sdata, sigma);
 }
 
+/**
+ * \def D1(x)
+ * \brief Calculate inverse K-sigma coefficient.
+ * \param x Input multiplier value.
+ */
 #define D1(x) (1.0 / x)
+
+/**
+ * \def M1(x)
+ * \brief Calculate direct K-sigma coefficient.
+ * \param x Input multiplier value.
+ */
 #define M1(x) (1.0 * x)
 
 /* K sigma clip for each wavelet scale */

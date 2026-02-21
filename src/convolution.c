@@ -65,8 +65,7 @@ static void atrous_deconv_sig(struct smbrr_wavelet *wavelet,
 	}
 }
 
-/*! \fn int smbrr_wavelet_convolution(struct smbrr_wavelet *w,
-	enum smbrr_conv conv, enum smbrr_wavelet_mask mask)
+/**
 * \param w wavelet
 * \param conv wavelet convolution type
 * \param mask wavelet convolution mask
@@ -95,8 +94,7 @@ int smbrr_wavelet_convolution(struct smbrr_wavelet *w, enum smbrr_conv conv,
 	return 0;
 }
 
-/*! \fn int smbrr_wavelet_significant_convolution(struct smbrr_wavelet *w,
-	enum smbrr_conv conv, enum smbrr_wavelet_mask mask)
+/**
 * \param w wavelet
 * \param conv wavelet convolution type
 * \param mask wavelet convolution mask
@@ -125,8 +123,7 @@ int smbrr_wavelet_significant_convolution(struct smbrr_wavelet *w,
 	return 0;
 }
 
-/*! \fn int smbrr_wavelet_deconvolution(struct smbrr_wavelet *w,
-	enum smbrr_conv conv, enum smbrr_wavelet_mask mask)
+/**
 * \param w wavelet
 * \param conv wavelet convolution type
 * \param mask wavelet convolution mask
@@ -155,8 +152,7 @@ int smbrr_wavelet_deconvolution(struct smbrr_wavelet *w, enum smbrr_conv conv,
 	return 0;
 }
 
-/*! \fn int smbrr_wavelet_significant_deconvolution(struct smbrr_wavelet *w,
-	enum smbrr_conv conv, enum smbrr_wavelet_mask mask, enum smbrr_gain gain)
+/**
 * \param w wavelet
 * \param conv wavelet convolution type
 * \param mask wavelet convolution mask
@@ -186,9 +182,7 @@ int smbrr_wavelet_significant_deconvolution(struct smbrr_wavelet *w,
 	return 0;
 }
 
-/*! \fn int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet *w,
-	enum smbrr_conv conv, enum smbrr_wavelet_mask mask,
-	struct smbrr_object *object)
+/**
 * \param w wavelet
 * \param conv wavelet convolution type
 * \param mask wavelet convolution mask

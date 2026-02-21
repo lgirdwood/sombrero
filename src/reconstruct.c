@@ -93,9 +93,7 @@ static float calc_alphaN(struct smbrr *R, struct smbrr_wavelet *w,
 	return nAw / nAr;
 }
 
-/*! \fn int smbrr_reconstruct(struct smbrr *O,
-	enum smbrr_wavelet_mask mask, float threshold, int scales,
-	enum smbrr_clip sigma_clip)
+/**
 * \param O data context
 * \param mask wavelet convolution mask.
 * \param threshold continuation convergence threshold

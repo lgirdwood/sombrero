@@ -54,6 +54,11 @@ option(ENABLE_AVX2 "Enable AVX2 optimizations" ON)
 option(ENABLE_AVX512 "Enable AVX512 optimizations" ON)
 option(ENABLE_FMA "Enable FMA optimizations" ON)
 
+# Load Kconfig overrides
+include(kconfig)
+load_kconfig_config()
+add_kconfig_targets()
+
 include(CheckCCompilerFlag)
 
 if(ENABLE_SSE42)
