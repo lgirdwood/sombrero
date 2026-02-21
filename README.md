@@ -41,6 +41,25 @@ By default, CMake will try to enable SIMD optimizations and OpenMP if they are d
 cmake .. -DENABLE_SSE42=OFF -DENABLE_AVX=OFF -DENABLE_AVX2=OFF -DENABLE_AVX512=OFF -DENABLE_FMA=OFF -DENABLE_OPENMP=OFF
 ```
 
+### Advanced Configuration (Menuconfig)
+
+The library supports toggling specific CPU architecture optimizations (SSE, AVX, AVX2, AVX-512, OpenMP) via a Kconfig-based menu interface. You can launch this interactive configuration console before compiling:
+
+```bash
+cd build
+make menuconfig
+make -j$(nproc)
+```
+
+### Generating System Packages
+
+To automatically generate distributable system packages (`.deb` for Debian/Ubuntu and `.rpm` for Fedora/RHEL) integrating the library binaries and headers, ensure you have `rpm` and `dpkg-dev` installed locally, then invoke the CPack target:
+
+```bash
+cd build
+make package
+```
+
 ## Running the Examples and Tests
 
 A few example programs are provided in the `build/examples` directory to demonstrate data processing and object detection algorithms:
