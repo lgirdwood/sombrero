@@ -20,8 +20,8 @@ Sombrero uses CMake as its build system. To build the library and example applic
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/libsmbrr.git
-cd libsmbrr
+git clone https://github.com/lgirdwood/sombrero.git
+cd sombrero
 
 # Create a build directory and configure with CMake
 mkdir build && cd build
