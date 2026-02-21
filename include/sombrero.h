@@ -323,7 +323,7 @@ struct smbrr *smbrr_new(enum smbrr_data_type type, unsigned int width,
  * it into a new context, preserving the original data type.
  * \ingroup process
  */
-*/ struct smbrr *smbrr_new_from_area(struct smbrr *s, unsigned int x_start,
+struct smbrr *smbrr_new_from_area(struct smbrr *s, unsigned int x_start,
                                      unsigned int y_start, unsigned int x_end,
                                      unsigned int y_end);
 
@@ -332,7 +332,7 @@ struct smbrr *smbrr_new(enum smbrr_data_type type, unsigned int width,
  * a new context.
  * \ingroup process
  */
-*/ struct smbrr *smbrr_new_from_section(struct smbrr *s, unsigned int start,
+struct smbrr *smbrr_new_from_section(struct smbrr *s, unsigned int start,
                                         unsigned int end);
 
 /**
@@ -342,14 +342,14 @@ struct smbrr *smbrr_new(enum smbrr_data_type type, unsigned int width,
  * \return struct smbrr* A pointer to the copied sombrero context.
  * \ingroup process
  */
-*/ struct smbrr *smbrr_new_copy(struct smbrr *src);
+struct smbrr *smbrr_new_copy(struct smbrr *src);
 
 /**
  * \brief Safely deallocate the internal ADU pixel buffers and the context
  * structure itself.
  * \ingroup process
  */
-*/ void smbrr_free(struct smbrr *smbrr);
+void smbrr_free(struct smbrr *smbrr);
 
 /*
  * Element information.
@@ -364,41 +364,41 @@ struct smbrr *smbrr_new(enum smbrr_data_type type, unsigned int width,
  * \return 0 on success.
  * \ingroup process
  */
-*/ int smbrr_get_data(struct smbrr *s, enum smbrr_source_type adu, void **data);
+int smbrr_get_data(struct smbrr *s, enum smbrr_source_type adu, void **data);
 
 /**
  * \brief Retrieve the total number of initialized elements (width * height) in
  * the data context.
  * \ingroup process
  */
-*/ int smbrr_get_size(struct smbrr *s);
+int smbrr_get_size(struct smbrr *s);
 
 /**
  * \brief Calculate the total memory footprint in bytes required by the internal
  * elements array.
  * \ingroup process
  */
-*/ int smbrr_get_bytes(struct smbrr *s);
+int smbrr_get_bytes(struct smbrr *s);
 
 /**
  * \brief Retrieve the memory alignment stride for the 2D data context to ensure
  * proper row-by-row memory access.
  * \ingroup process
  */
-*/ int smbrr_get_stride(struct smbrr *s);
+int smbrr_get_stride(struct smbrr *s);
 
 /**
  * \brief Retrieve the horizontal width (in pixels) of the 2D element matrix, or
  * the length of a 1D sequence.
  * \ingroup process
  */
-*/ int smbrr_get_width(struct smbrr *s);
+int smbrr_get_width(struct smbrr *s);
 
 /**
  * \brief Retrieve the vertical height (in pixels) of the 2D element matrix.
  * \ingroup process
  */
-*/ int smbrr_get_height(struct smbrr *s);
+int smbrr_get_height(struct smbrr *s);
 
 /**
  * float *max);
@@ -406,35 +406,35 @@ struct smbrr *smbrr_new(enum smbrr_data_type type, unsigned int width,
  * and maximum floating-point pixel values.
  * \ingroup process
  */
-*/ void smbrr_find_limits(struct smbrr *s, float *min, float *max);
+void smbrr_find_limits(struct smbrr *s, float *min, float *max);
 
 /**
  * \brief Compute the mathematical average (mean) across all pixels in the data
  * context.
  * \ingroup noise
  */
-*/ float smbrr_get_mean(struct smbrr *s);
+float smbrr_get_mean(struct smbrr *s);
 
 /**
  * \brief Compute the standard deviation (sigma) representing the statistical
  * dispersion of pixel values relative to the mean.
  * \ingroup noise
  */
-*/ float smbrr_get_sigma(struct smbrr *s, float mean);
+float smbrr_get_sigma(struct smbrr *s, float mean);
 
 /**
  * \brief Compute the average (mean) across pixels marked as significant (non-
  * zero in the significance map).
  * \ingroup noise
  */
-*/ float smbrr_significant_get_mean(struct smbrr *s, struct smbrr *sdata);
+float smbrr_significant_get_mean(struct smbrr *s, struct smbrr *sdata);
 
 /**
  * \brief Compute the standard deviation across pixels marked as significant
  * (non-zero in the significance map).
  * \ingroup noise
  */
-*/ float smbrr_significant_get_sigma(struct smbrr *s, struct smbrr *sdata,
+float smbrr_significant_get_sigma(struct smbrr *s, struct smbrr *sdata,
                                      float mean);
 
 /**
@@ -442,7 +442,7 @@ struct smbrr *smbrr_new(enum smbrr_data_type type, unsigned int width,
  * elements) of the data context.
  * \ingroup noise
  */
-*/ float smbrr_get_norm(struct smbrr *s);
+float smbrr_get_norm(struct smbrr *s);
 
 /*
  * Data Transformations
@@ -454,20 +454,20 @@ struct smbrr *smbrr_new(enum smbrr_data_type type, unsigned int width,
  * specified min and max bounds.
  * \ingroup process
  */
-*/ void smbrr_normalise(struct smbrr *s, float min, float max);
+void smbrr_normalise(struct smbrr *s, float min, float max);
 
 /**
  * \brief Perform element-wise matrix addition: A = B + C.
  * \ingroup process
  */
-*/ void smbrr_add(struct smbrr *a, struct smbrr *b, struct smbrr *c);
+void smbrr_add(struct smbrr *a, struct smbrr *b, struct smbrr *c);
 
 /**
  * \brief Add a constant scalar value exclusively to pixels that are marked as
  * significant in the significance map.
  * \ingroup process
  */
-*/ void smbrr_significant_add_value(struct smbrr *s, struct smbrr *sdata,
+void smbrr_significant_add_value(struct smbrr *s, struct smbrr *sdata,
                                     float value);
 
 /**
@@ -475,61 +475,61 @@ struct smbrr *smbrr_new(enum smbrr_data_type type, unsigned int width,
  * where C is marked significant.
  * \ingroup process
  */
-*/ void smbrr_significant_add(struct smbrr *a, struct smbrr *b, struct smbrr *c,
+void smbrr_significant_add(struct smbrr *a, struct smbrr *b, struct smbrr *c,
                               struct smbrr *s);
 
 /**
  * \brief Perform element-wise matrix subtraction: A = B - C.
  * \ingroup process
  */
-*/ void smbrr_subtract(struct smbrr *a, struct smbrr *b, struct smbrr *c);
+void smbrr_subtract(struct smbrr *a, struct smbrr *b, struct smbrr *c);
 
 /**
  * \brief Perform conditionally masked subtraction: subtract elements of C from
  * B only where C is marked significant.
  * \ingroup process
  */
-*/ void smbrr_significant_subtract(struct smbrr *a, struct smbrr *b,
+void smbrr_significant_subtract(struct smbrr *a, struct smbrr *b,
                                    struct smbrr *c, struct smbrr *s);
 
 /**
  * \brief Add a constant scalar value to every pixel in the data context.
  * \ingroup process
  */
-*/ void smbrr_add_value(struct smbrr *a, float value);
+void smbrr_add_value(struct smbrr *a, float value);
 
 /**
  * \brief Subtract a constant scalar value from every pixel in the data context.
  * \ingroup process
  */
-*/ void smbrr_subtract_value(struct smbrr *a, float value);
+void smbrr_subtract_value(struct smbrr *a, float value);
 
 /**
  * \brief Multiply every pixel in the data context by a constant scalar value.
  * \ingroup process
  */
-*/ void smbrr_mult_value(struct smbrr *a, float value);
+void smbrr_mult_value(struct smbrr *a, float value);
 
 /**
  * \brief Overwrite every pixel in the data context with a constant scalar
  * value.
  * \ingroup process
  */
-*/ void smbrr_set_value(struct smbrr *a, float value);
+void smbrr_set_value(struct smbrr *a, float value);
 
 /**
  * \brief Overwrite pixels in the data context with a constant scalar value only
  * where marked significant.
  * \ingroup process
  */
-*/ void smbrr_significant_set_value(struct smbrr *a, struct smbrr *s,
+void smbrr_significant_set_value(struct smbrr *a, struct smbrr *s,
                                     float value);
 
 /**
  * \brief Assign a fixed threshold value to all elements in a significance map.
  * \ingroup process
  */
-*/ void smbrr_significant_set_svalue(struct smbrr *a, uint32_t value);
+void smbrr_significant_set_svalue(struct smbrr *a, uint32_t value);
 
 /**
  * \brief Cast the data context between different underlying numerical
@@ -539,41 +539,41 @@ struct smbrr *smbrr_new(enum smbrr_data_type type, unsigned int width,
  * \return 0 on success.
  * \ingroup process
  */
-*/ int smbrr_convert(struct smbrr *a, enum smbrr_data_type type);
+int smbrr_convert(struct smbrr *a, enum smbrr_data_type type);
 
 /**
  * \brief Perform a mathematical ReLU-like operation, clamping all negative
  * pixel values to zero.
  * \ingroup process
  */
-*/ void smbrr_zero_negative(struct smbrr *a);
+void smbrr_zero_negative(struct smbrr *a);
 
 /**
  * \brief Convert all pixel values in the context to their absolute magnitudes.
  * \ingroup process
  */
-*/ void smbrr_abs(struct smbrr *a);
+void smbrr_abs(struct smbrr *a);
 
 /**
  * \brief Transfer the mathematical sign bit from elements in context N to
  * corresponding elements in context S.
  * \ingroup process
  */
-*/ int smbrr_signed(struct smbrr *s, struct smbrr *n);
+int smbrr_signed(struct smbrr *s, struct smbrr *n);
 
 /**
  * \brief Perform a block memory copy of pixel data between two identical
  * contexts.
  * \ingroup process
  */
-*/ int smbrr_copy(struct smbrr *dest, struct smbrr *src);
+int smbrr_copy(struct smbrr *dest, struct smbrr *src);
 
 /**
  * \brief Copy pixels from the source context to the destination context
  * exclusively where the significance map is non-zero.
  * \ingroup process
  */
-*/ int smbrr_significant_copy(struct smbrr *dest, struct smbrr *src,
+int smbrr_significant_copy(struct smbrr *dest, struct smbrr *src,
                               struct smbrr *sig);
 
 /**
@@ -581,7 +581,7 @@ struct smbrr *smbrr_new(enum smbrr_data_type type, unsigned int width,
  * and scalar C to context A.
  * \ingroup process
  */
-*/ void smbrr_mult_add(struct smbrr *dest, struct smbrr *a, struct smbrr *b,
+void smbrr_mult_add(struct smbrr *dest, struct smbrr *a, struct smbrr *b,
                        float c);
 
 /**
@@ -589,7 +589,7 @@ struct smbrr *smbrr_new(enum smbrr_data_type type, unsigned int width,
  * context B and scalar C from context A.
  * \ingroup process
  */
-*/ void smbrr_mult_subtract(struct smbrr *dest, struct smbrr *a,
+void smbrr_mult_subtract(struct smbrr *dest, struct smbrr *a,
                             struct smbrr *b, float c);
 
 /**
@@ -598,21 +598,21 @@ struct smbrr *smbrr_new(enum smbrr_data_type type, unsigned int width,
  * Poisson noise into approximately Gaussian noise.
  * \ingroup noise
  */
-*/ void smbrr_anscombe(struct smbrr *s, float gain, float bias, float readout);
+void smbrr_anscombe(struct smbrr *s, float gain, float bias, float readout);
 
 /**
  * \brief Generate a boolean significance map S by thresholding context A
  * against a given sigma value.
  * \ingroup noise
  */
-*/ void smbrr_significant_new(struct smbrr *a, struct smbrr *s, float sigma);
+void smbrr_significant_new(struct smbrr *a, struct smbrr *s, float sigma);
 
 /**
  * \brief Apply a Point Spread Function (PSF) convolution to the source data to
  * simulate or correct optical blurring.
  * \ingroup process
  */
-*/ int smbrr_psf(struct smbrr *src, struct smbrr *dest,
+int smbrr_psf(struct smbrr *src, struct smbrr *dest,
                  enum smbrr_wavelet_mask mask);
 
 /**
@@ -620,21 +620,21 @@ struct smbrr *smbrr_new(enum smbrr_data_type type, unsigned int width,
  * Cartesian coordinate.
  * \ingroup process
  */
-*/ float smbrr_get_adu_at_posn(struct smbrr *s, int x, int y);
+float smbrr_get_adu_at_posn(struct smbrr *s, int x, int y);
 
 /**
  * \brief Extract the pixel value computationally at a specific 1D linear
  * offset.
  * \ingroup process
  */
-*/ float smbrr_get_adu_at_offset(struct smbrr *s, int offset);
+float smbrr_get_adu_at_offset(struct smbrr *s, int offset);
 
 /**
  * \brief Iteratively rebuild the data context using wavelet convolutions
  * targeting noise-free threshold limits.
  * \ingroup reconstruct
  */
-*/ int smbrr_reconstruct(struct smbrr *O, enum smbrr_wavelet_mask mask,
+int smbrr_reconstruct(struct smbrr *O, enum smbrr_wavelet_mask mask,
                          float threshold, int scales,
                          enum smbrr_clip sigma_clip);
 
@@ -643,7 +643,7 @@ struct smbrr *smbrr_new(enum smbrr_data_type type, unsigned int width,
  * scales decomposed from the original data.
  * \ingroup wavelet
  */
-*/ struct smbrr_wavelet *smbrr_wavelet_new(struct smbrr *s,
+struct smbrr_wavelet *smbrr_wavelet_new(struct smbrr *s,
                                            unsigned int num_scales);
 
 /**
@@ -653,7 +653,7 @@ struct smbrr *smbrr_new(enum smbrr_data_type type, unsigned int width,
  * \return struct smbrr_wavelet* New Wavelet scale representation.
  * \ingroup wavelet
  */
-*/ struct smbrr_wavelet *
+struct smbrr_wavelet *
     smbrr_wavelet_new_from_object(struct smbrr_object *object);
 
 /**
@@ -661,7 +661,7 @@ struct smbrr *smbrr_new(enum smbrr_data_type type, unsigned int width,
  * dynamically linked scale objects.
  * \ingroup wavelet
  */
-*/ void smbrr_wavelet_free(struct smbrr_wavelet *w);
+void smbrr_wavelet_free(struct smbrr_wavelet *w);
 
 /**
  * \brief Execute an A'trous or PSF smoothing convolution recursively across the
@@ -713,7 +713,7 @@ int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet *w,
  * resolution level (scale) within the wavelet hierarchy.
  * \ingroup wavelet
  */
-*/ struct smbrr *smbrr_wavelet_get_scale(struct smbrr_wavelet *w,
+struct smbrr *smbrr_wavelet_get_scale(struct smbrr_wavelet *w,
                                          unsigned int scale);
 
 /**
@@ -721,7 +721,7 @@ int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet *w,
  * (wavelet difference) at a specific hierarchical scale.
  * \ingroup wavelet
  */
-*/ struct smbrr *smbrr_wavelet_get_wavelet(struct smbrr_wavelet *w,
+struct smbrr *smbrr_wavelet_get_wavelet(struct smbrr_wavelet *w,
                                            unsigned int scale);
 
 /**
@@ -729,7 +729,7 @@ int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet *w,
  * background noise at a specific wavelet scale.
  * \ingroup wavelet
  */
-*/ struct smbrr *smbrr_wavelet_get_significant(struct smbrr_wavelet *w,
+struct smbrr *smbrr_wavelet_get_significant(struct smbrr_wavelet *w,
                                                unsigned int scale);
 
 /**
@@ -737,7 +737,7 @@ int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet *w,
  * scales of the wavelet structures.
  * \ingroup wavelet
  */
-*/ void smbrr_wavelet_add(struct smbrr_wavelet *a, struct smbrr_wavelet *b,
+void smbrr_wavelet_add(struct smbrr_wavelet *a, struct smbrr_wavelet *b,
                           struct smbrr_wavelet *c);
 
 /**
@@ -745,7 +745,7 @@ int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet *w,
  * scales of the wavelet structures.
  * \ingroup wavelet
  */
-*/ void smbrr_wavelet_subtract(struct smbrr_wavelet *a, struct smbrr_wavelet *b,
+void smbrr_wavelet_subtract(struct smbrr_wavelet *a, struct smbrr_wavelet *b,
                                struct smbrr_wavelet *c);
 
 /**
@@ -753,7 +753,7 @@ int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet *w,
  * masked by the significance mapping of C.
  * \ingroup wavelet
  */
-*/ void smbrr_wavelet_significant_subtract(struct smbrr_wavelet *a,
+void smbrr_wavelet_significant_subtract(struct smbrr_wavelet *a,
                                            struct smbrr_wavelet *b,
                                            struct smbrr_wavelet *c);
 
@@ -762,7 +762,7 @@ int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet *w,
  * by the significance mapping of C.
  * \ingroup wavelet
  */
-*/ void smbrr_wavelet_significant_add(struct smbrr_wavelet *a,
+void smbrr_wavelet_significant_add(struct smbrr_wavelet *a,
                                       struct smbrr_wavelet *b,
                                       struct smbrr_wavelet *c);
 
@@ -771,7 +771,7 @@ int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet *w,
  * map statistically significant structures.
  * \ingroup noise
  */
-*/ int smbrr_wavelet_new_significant(struct smbrr_wavelet *w,
+int smbrr_wavelet_new_significant(struct smbrr_wavelet *w,
                                      enum smbrr_clip sigma_clip);
 
 /**
@@ -779,7 +779,7 @@ int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet *w,
  * K-sigma deviation coefficients until convergence.
  * \ingroup noise
  */
-*/ int smbrr_wavelet_ksigma_clip(struct smbrr_wavelet *w, enum smbrr_clip clip,
+int smbrr_wavelet_ksigma_clip(struct smbrr_wavelet *w, enum smbrr_clip clip,
                                  float sig_delta);
 
 /**
@@ -791,7 +791,7 @@ int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet *w,
  * \return 0 on success.
  * \ingroup noise
  */
-*/ int smbrr_wavelet_ksigma_clip_custom(struct smbrr_wavelet *w,
+int smbrr_wavelet_ksigma_clip_custom(struct smbrr_wavelet *w,
                                         struct smbrr_clip_coeff *coeff,
                                         float sig_delta);
 
@@ -800,7 +800,7 @@ int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet *w,
  * specific scale to logically group contiguous structural pixels.
  * \ingroup object
  */
-*/ int smbrr_wavelet_structure_find(struct smbrr_wavelet *w,
+int smbrr_wavelet_structure_find(struct smbrr_wavelet *w,
                                     unsigned int scale);
 
 /**
@@ -808,7 +808,7 @@ int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet *w,
  * consecutive wavelet layers to classify multi-scale objects.
  * \ingroup object
  */
-*/ int smbrr_wavelet_structure_connect(struct smbrr_wavelet *w,
+int smbrr_wavelet_structure_connect(struct smbrr_wavelet *w,
                                        unsigned int start_scale,
                                        unsigned int end_scale);
 
@@ -817,7 +817,7 @@ int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet *w,
  * identified structural object by its ID.
  * \ingroup object
  */
-*/ struct smbrr_object *smbrr_wavelet_object_get(struct smbrr_wavelet *w,
+struct smbrr_object *smbrr_wavelet_object_get(struct smbrr_wavelet *w,
                                                  unsigned int object_id);
 
 /**
@@ -825,14 +825,14 @@ int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet *w,
  * mathematical objects mapped within the wavelet context.
  * \ingroup object
  */
-*/ void smbrr_wavelet_object_free_all(struct smbrr_wavelet *w);
+void smbrr_wavelet_object_free_all(struct smbrr_wavelet *w);
 
 /**
  * \brief Extract the reconstructed pixel values isolated specifically within
  * the confines of the detected object.
  * \ingroup object
  */
-*/ int smbrr_wavelet_object_get_data(struct smbrr_wavelet *w,
+int smbrr_wavelet_object_get_data(struct smbrr_wavelet *w,
                                      struct smbrr_object *object,
                                      struct smbrr **data);
 
@@ -841,7 +841,7 @@ int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet *w,
  * constraints overlap the given 2D coordinates.
  * \ingroup object
  */
-*/ struct smbrr_object *
+struct smbrr_object *
     smbrr_wavelet_get_object_at_posn(struct smbrr_wavelet *w, int x, int y);
 
 /**
@@ -850,14 +850,14 @@ int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet *w,
  * object SNR logic.
  * \ingroup noise
  */
-*/ int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet *w, float dark);
+int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet *w, float dark);
 
 /**
  * \brief Define device-specific physical parameters (gain, bias, readout
  * constraints) for precise Anscombe variance transformations.
  * \ingroup noise
  */
-*/ void smbrr_wavelet_set_ccd(struct smbrr_wavelet *w, float gain, float bias,
+void smbrr_wavelet_set_ccd(struct smbrr_wavelet *w, float gain, float bias,
                               float readout);
 
 /**
@@ -865,6 +865,6 @@ int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet *w,
  * raw input signal data.
  * \ingroup wavelet
  */
-*/ int smbrr_wavelet_set_elems(struct smbrr_wavelet *w, struct smbrr *s);
+int smbrr_wavelet_set_elems(struct smbrr_wavelet *w, struct smbrr *s);
 
 #endif
