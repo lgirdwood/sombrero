@@ -18,7 +18,7 @@ Sombrero is named after the "Mexican Hat" shape of the wavelet masks used in dat
 
 ## Building from Source
 
-Sombrero uses CMake as its build system. To build the library and example applications, ensure you have CMake installed and a C compiler supporting C99. OpenMP and SIMD support (SSE4.2, AVX, AVX2, FMA) will be automatically detected and enabled if supported by your system and compiler.
+Sombrero uses CMake as its build system. To build the library and example applications, ensure you have CMake installed, a C compiler supporting C99, and the CFITSIO library (`libcfitsio-dev` or equivalent) for FITS image support. OpenMP and SIMD support (SSE4.2, AVX, AVX2, AVX-512, FMA) will be automatically detected and enabled if supported by your system and compiler.
 
 ```bash
 # Clone the repository
@@ -41,7 +41,7 @@ By default, CMake will try to enable SIMD optimizations and OpenMP if they are d
 cmake .. -DENABLE_SSE42=OFF -DENABLE_AVX=OFF -DENABLE_AVX2=OFF -DENABLE_AVX512=OFF -DENABLE_FMA=OFF -DENABLE_OPENMP=OFF
 ```
 
-## Running the Examples
+## Running the Examples and Tests
 
 A few example programs are provided in the `build/examples` directory to demonstrate data processing and object detection algorithms:
 
@@ -51,7 +51,7 @@ A few example programs are provided in the `build/examples` directory to demonst
 - `smbrr-reconstruct`
 - `smbrr-reconstruct-1d`
 
-The examples include simple Bitmap (.bmp) data support for working with image data.
+The examples include simple Bitmap (.bmp) and FITS (.fit, .fits) data support for working with image data.
 
 Example usage for `smbrr-atrous`:
 ```bash
@@ -61,6 +61,21 @@ Example usage for `smbrr-atrous`:
 You can view available options for each command using the tool directly:
 ```bash
 ./examples/smbrr-atrous -h
+```
+
+### Running Tests
+
+A unit test suite validates execution and mathematical correctness of operations. Tests can be executed via CTest after building:
+
+```bash
+cd build
+make test
+```
+
+Alternatively, a high-level test script runs all binaries and compares output images against verified baselines:
+```bash
+cd build/tests
+./run_tests.sh
 ```
 
 ## Generating Documentation
