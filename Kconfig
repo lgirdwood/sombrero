@@ -1,0 +1,25 @@
+mainmenu "Sombrero SIMD Configuration"
+
+config ENABLE_SSE42
+    bool "Enable SSE42 optimizations"
+    default y
+
+config ENABLE_AVX
+    bool "Enable AVX optimizations"
+    default y
+
+config ENABLE_AVX2
+    bool "Enable AVX2 optimizations"
+    default y
+
+config ENABLE_AVX512
+    bool "Enable AVX512 optimizations"
+    default y
+
+config ENABLE_FMA
+    bool "Enable FMA optimizations"
+    default y
+
+config ENABLE_OPENMP
+    bool "Enable OpenMP"
+    default y
