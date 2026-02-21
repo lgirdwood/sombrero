@@ -27,12 +27,20 @@ libtool
 ltmain.sh
 *.gz
 
-examples/smbrr-atrous
-examples/smbrr-structures
-examples/smbrr-objects
+# CMake build directories
+build/
+CMakeCache.txt
+CMakeFiles/
+compile_commands.json
+
+# Examples output
+examples/smbrr-*
+!examples/*.c
+!examples/*.h
 examples/output/*.bmp
 examples/debug/*.bmp
 examples/*.bmp
 
+# Documentation
 doc/man*
 doc/html*

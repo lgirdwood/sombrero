@@ -16,58 +16,53 @@
  *  Copyright (C) 2015 Liam Girdwood
  */
 
-#include <stdlib.h>
 #include "local.h"
+#include <stdlib.h>
 
-#if defined (__i386__) || defined (__amd64__)
+#if defined(__i386__) || defined(__amd64__)
 static void x86_cpuid(unsigned int *eax, unsigned int *ebx, unsigned int *ecx,
-	          unsigned int *edx, unsigned int op)
-{
-	__asm__ __volatile__ (
-		"cpuid"
-		: "=a" (*eax),
-		  "=b" (*ebx),
-		  "=c" (*ecx),
-		  "=d" (*edx)
-		: "a" (op), "c" (0)
-    );
+                      unsigned int *edx, unsigned int op) {
+  __asm__ __volatile__("cpuid"
+                       : "=a"(*eax), "=b"(*ebx), "=c"(*ecx), "=d"(*edx)
+                       : "a"(op), "c"(0));
 }
 
-static unsigned int cpu_x86_flags(void)
-{
-	unsigned int eax, ebx, ecx, edx, id;
-	unsigned int cpu_flags = 0;
+static unsigned int cpu_x86_flags(void) {
+  unsigned int eax, ebx, ecx, edx, id;
+  unsigned int cpu_flags = 0;
 
-	x86_cpuid(&id, &ebx, &ecx, &edx, 0);
+  x86_cpuid(&id, &ebx, &ecx, &edx, 0);
 
-	if (id >= 1) {
-		x86_cpuid(&eax, &ebx, &ecx, &edx, 1);
+  if (id >= 1) {
+    x86_cpuid(&eax, &ebx, &ecx, &edx, 1);
 
-		if (ecx & (1 << 20))
-			cpu_flags |= CPU_X86_SSE4_2;
+    if (ecx & (1 << 20))
+      cpu_flags |= CPU_X86_SSE4_2;
 
-		if (ecx & (1 << 28))
-			cpu_flags |= CPU_X86_AVX;
+    if (ecx & (1 << 28))
+      cpu_flags |= CPU_X86_AVX;
 
-		if (ecx & (1 << 12))
-			cpu_flags |= CPU_X86_FMA;
-	}
+    if (ecx & (1 << 12))
+      cpu_flags |= CPU_X86_FMA;
+  }
 
-	if (id >= 7) {
-		x86_cpuid(&eax, &ebx, &ecx, &edx, 7);
+  if (id >= 7) {
+    x86_cpuid(&eax, &ebx, &ecx, &edx, 7);
 
-		if (ebx & (1 << 5))
-			cpu_flags |= CPU_X86_AVX2;
-	}
+    if (ebx & (1 << 5))
+      cpu_flags |= CPU_X86_AVX2;
 
-	return cpu_flags;
+    if (ebx & (1 << 16))
+      cpu_flags |= CPU_X86_AVX512;
+  }
+
+  return cpu_flags;
 }
 #endif
 
-int cpu_get_flags(void)
-{
-#if defined (__i386__) || defined (__amd64__)
-	return cpu_x86_flags();
+int cpu_get_flags(void) {
+#if defined(__i386__) || defined(__amd64__)
+  return cpu_x86_flags();
 #endif
-	return 0;
+  return 0;
 }

@@ -11,7 +11,7 @@ Sombrero is named after the "Mexican Hat" shape of the wavelet masks used in dat
 - A'trous Wavelet convolution and deconvolution of data elements. The A'trous "with holes" data convolution is supported with either a linear or bicubic mask.
 - Data transformations (e.g., add, subtract, multiply). General operators are supported and can be used for stacking, flats, dark frames, etc.
 - Detection of structures and objects within data elements, alongside properties like max element values, brightness, average element values, position, and size. Simple object de-blending is also performed.
-- SIMD optimizations for element and wavelet operations using SSE, AVX, AVX2, and FMA on x86 CPUs.
+- SIMD optimizations for element and wavelet operations using SSE, AVX, AVX2, AVX-512, and FMA on x86 CPUs.
 - OpenMP support for parallelism within wavelet operations.
 
 ## Building from Source
@@ -36,7 +36,7 @@ make -j$(nproc)
 By default, CMake will try to enable SIMD optimizations and OpenMP if they are detected. You can explicitly turn them off during CMake configuration:
 
 ```bash
-cmake .. -DENABLE_SSE42=OFF -DENABLE_AVX=OFF -DENABLE_AVX2=OFF -DENABLE_FMA=OFF -DENABLE_OPENMP=OFF
+cmake .. -DENABLE_SSE42=OFF -DENABLE_AVX=OFF -DENABLE_AVX2=OFF -DENABLE_AVX512=OFF -DENABLE_FMA=OFF -DENABLE_OPENMP=OFF
 ```
 
 ## Running the Examples

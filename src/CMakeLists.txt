@@ -52,6 +52,20 @@ if(HAVE_AVX2)
     list(APPEND LIBSOMBRERO_OBJECTS $<TARGET_OBJECTS:ops_avx2>)
 endif()
 
+if(HAVE_AVX512)
+    add_library(ops_avx512 OBJECT
+        data_ops.c
+        convolution_2d_ops.c
+        convolution_1d_ops.c
+    )
+    target_include_directories(ops_avx512 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
+    set_target_properties(ops_avx512 PROPERTIES COMPILE_FLAGS "${AVX512_CFLAGS}")
+    if(HAVE_OPENMP)
+        target_link_libraries(ops_avx512 PUBLIC OpenMP::OpenMP_C)
+    endif()
+    list(APPEND LIBSOMBRERO_OBJECTS $<TARGET_OBJECTS:ops_avx512>)
+endif()
+
 if(HAVE_FMA)
     add_library(ops_fma OBJECT
         data_ops.c

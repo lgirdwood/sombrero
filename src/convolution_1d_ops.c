@@ -16,182 +16,172 @@
  *  Copyright (C) 2012 Liam Girdwood
  */
 
-
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include <errno.h>
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include "sombrero.h"
-#include "local.h"
-#include "ops.h"
-#include "mask.h"
 #include "config.h"
+#include "local.h"
+#include "mask.h"
+#include "ops.h"
+#include "sombrero.h"
 
 /* function suffixes for SIMD ops */
 #ifdef OPS_SSE42
-	#define OPS(a) a ## _sse42
+#define OPS(a) a##_sse42
 #elif OPS_AVX
-	#define OPS(a) a ## _avx
+#define OPS(a) a##_avx
 #elif OPS_AVX2
-	#define OPS(a) a ## _avx2
+#define OPS(a) a##_avx2
 #elif OPS_FMA
-	#define OPS(a) a ## _fma
+#define OPS(a) a##_fma
+#elif OPS_AVX512
+#define OPS(a) a##_avx512
 #else
-	#define OPS(a) a
+#define OPS(a) a
 #endif
 
 /* create Wi and Ci from C0 */
-static void atrous_conv(struct smbrr_wavelet *wavelet)
-{
-	int scale, scale2, width;
-	float *c, *_c;
+static void atrous_conv(struct smbrr_wavelet *wavelet) {
+  int scale, scale2, width;
+  float *c, *_c;
 
-	/* scale loop */
-	for (scale = 1; scale < wavelet->num_scales; scale++) {
+  /* scale loop */
+  for (scale = 1; scale < wavelet->num_scales; scale++) {
 
-		/* clear each scale */
-		smbrr_set_value(wavelet->c[scale], 0.0);
+    /* clear each scale */
+    smbrr_set_value(wavelet->c[scale], 0.0);
 
-		c = wavelet->c[scale]->adu;
-		_c = wavelet->c[scale - 1]->adu;
-		scale2 = 1 << (scale - 1);
+    c = wavelet->c[scale]->adu;
+    _c = wavelet->c[scale - 1]->adu;
+    scale2 = 1 << (scale - 1);
 
-		/* data loop */
-#pragma omp parallel for \
-		firstprivate(c, _c, scale, scale2, wavelet) \
-		schedule(static, 50)
+    /* data loop */
+#pragma omp parallel for firstprivate(c, _c, scale, scale2, wavelet)           \
+    schedule(static, 50)
 
-		for (width = 0; width < wavelet->width; width++) {
+    for (width = 0; width < wavelet->width; width++) {
 
-			int offx, x,  xc;
+      int offx, x, xc;
 
-			xc = wavelet->mask.width >> 1;
+      xc = wavelet->mask.width >> 1;
 
-			/* mask x loop */
-			for (x = 0; x < wavelet->mask.width; x++) {
+      /* mask x loop */
+      for (x = 0; x < wavelet->mask.width; x++) {
 
-				offx = x_boundary(wavelet->width,
-					width + ((x - xc) * scale2));
+        offx = x_boundary(wavelet->width, width + ((x - xc) * scale2));
 
-				c[width] += _c[offx] * wavelet->mask.data[x];
-			}
-		}
-	}
+        c[width] += _c[offx] * wavelet->mask.data[x];
+      }
+    }
+  }
 
-	/* create wavelet */
+  /* create wavelet */
 #pragma omp parallel for schedule(static, 1)
-	for (scale = 1; scale < wavelet->num_scales; scale++)
-		smbrr_subtract(wavelet->w[scale - 1], wavelet->c[scale - 1],
-				wavelet->c[scale]);
-
+  for (scale = 1; scale < wavelet->num_scales; scale++)
+    smbrr_subtract(wavelet->w[scale - 1], wavelet->c[scale - 1],
+                   wavelet->c[scale]);
 }
 
 /* create Wi and Ci from C0 if S */
-static void atrous_conv_sig(struct smbrr_wavelet *wavelet)
-{
-	int scale,  scale2, width;
-	float *c, *_c;
+static void atrous_conv_sig(struct smbrr_wavelet *wavelet) {
+  int scale, scale2, width;
+  float *c, *_c;
 
-	/* scale loop */
-	for (scale = 1; scale < wavelet->num_scales; scale++) {
+  /* scale loop */
+  for (scale = 1; scale < wavelet->num_scales; scale++) {
 
-		/* clear each scale */
-		smbrr_set_value(wavelet->c[scale], 0.0);
+    /* clear each scale */
+    smbrr_set_value(wavelet->c[scale], 0.0);
 
-		/* dont run loop if there are no sig pixels at this scale */
-		if (wavelet->s[scale - 1]->sig_pixels == 0)
-			continue;
+    /* dont run loop if there are no sig pixels at this scale */
+    if (wavelet->s[scale - 1]->sig_pixels == 0)
+      continue;
 
-		c = wavelet->c[scale]->adu;
-		_c = wavelet->c[scale - 1]->adu;
-		scale2 = 1 << (scale - 1);
+    c = wavelet->c[scale]->adu;
+    _c = wavelet->c[scale - 1]->adu;
+    scale2 = 1 << (scale - 1);
 
-		/* data width loop */
-#pragma omp parallel for \
-		firstprivate(c, _c, scale, scale2, wavelet) \
-		schedule(static, 50)
+    /* data width loop */
+#pragma omp parallel for firstprivate(c, _c, scale, scale2, wavelet)           \
+    schedule(static, 50)
 
-		for (width = 0; width < wavelet->width; width++) {
+    for (width = 0; width < wavelet->width; width++) {
 
-			int offx, x, xc;
+      int offx, x, xc;
 
-			xc = wavelet->mask.width >> 1;
+      xc = wavelet->mask.width >> 1;
 
-			/* mask x loop */
-			for (x = 0; x < wavelet->mask.width; x++) {
+      /* mask x loop */
+      for (x = 0; x < wavelet->mask.width; x++) {
 
-				offx = x_boundary(wavelet->width,
-					width + ((x - xc) * scale2));
+        offx = x_boundary(wavelet->width, width + ((x - xc) * scale2));
 
-				/* only apply wavelet if sig */
-				if (!wavelet->s[scale - 1]->s[offx])
-					continue;
+        /* only apply wavelet if sig */
+        if (!wavelet->s[scale - 1]->s[offx])
+          continue;
 
-				c[width] += _c[offx] * wavelet->mask.data[x];
-			}
-		}
-	}
-	/* create wavelet */
+        c[width] += _c[offx] * wavelet->mask.data[x];
+      }
+    }
+  }
+  /* create wavelet */
 #pragma omp parallel for schedule(static, 1)
-	for (scale = 1; scale < wavelet->num_scales; scale++)
-		smbrr_subtract(wavelet->w[scale - 1], wavelet->c[scale - 1],
-				wavelet->c[scale]);
-
+  for (scale = 1; scale < wavelet->num_scales; scale++)
+    smbrr_subtract(wavelet->w[scale - 1], wavelet->c[scale - 1],
+                   wavelet->c[scale]);
 }
 
-static void insert_object(struct smbrr_wavelet *w,
-		struct object *object, unsigned int pixel)
-{
-	/* insert object if none or current object at higher scale */
-	if (w->object_map[pixel]  == NULL || w->object_map[pixel] == object )
-		w->object_map[pixel] = object;
-	else {
-		/* other objects exists */
-		struct object *o = w->object_map[pixel];
+static void insert_object(struct smbrr_wavelet *w, struct object *object,
+                          unsigned int pixel) {
+  /* insert object if none or current object at higher scale */
+  if (w->object_map[pixel] == NULL || w->object_map[pixel] == object)
+    w->object_map[pixel] = object;
+  else {
+    /* other objects exists */
+    struct object *o = w->object_map[pixel];
 
-		/* add if new object starts at lower scale */
-		if (object->start_scale < o->start_scale)
-			w->object_map[pixel] = object;
-	}
+    /* add if new object starts at lower scale */
+    if (object->start_scale < o->start_scale)
+      w->object_map[pixel] = object;
+  }
 }
 
 /* C0 = C(scale - 1) + sum of wavelets; */
 static void atrous_deconv_object(struct smbrr_wavelet *w,
-	struct smbrr_object *object)
-{
-	struct structure *s;
-	struct object *o = (struct object *)object;
-	struct smbrr *data = o->data, *sdata, *wdata;
-	int scale, x, id, ix, ipixel, start, end;
+                                 struct smbrr_object *object) {
+  struct structure *s;
+  struct object *o = (struct object *)object;
+  struct smbrr *data = o->data, *sdata, *wdata;
+  int scale, x, id, ix, ipixel, start, end;
 
-	ix = object->minXy.x;
-	start = o->start_scale;
-	end = o->end_scale;
+  ix = object->minXy.x;
+  start = o->start_scale;
+  end = o->end_scale;
 
-	for (scale = end; scale >= start; scale --) {
+  for (scale = end; scale >= start; scale--) {
 
-		s = w->structure[object->scale] +
-			o->structure[object->scale];
+    s = w->structure[object->scale] + o->structure[object->scale];
 
-		id = s->id + 2;
-		sdata = w->s[scale];
-		wdata = w->w[scale];
+    id = s->id + 2;
+    sdata = w->s[scale];
+    wdata = w->w[scale];
 
-		for (x = s->minXy.x; x <= s->maxXy.x; x++) {
+    for (x = s->minXy.x; x <= s->maxXy.x; x++) {
 
-			if (sdata->s[x] == id) {
-				ipixel = x - ix;
-				data->adu[ipixel] += wdata->adu[x];
-				insert_object(w, o, x);
-			}
-		}
-	}
+      if (sdata->s[x] == id) {
+        ipixel = x - ix;
+        data->adu[ipixel] += wdata->adu[x];
+        insert_object(w, o, x);
+      }
+    }
+  }
 }
 
 const struct convolution_ops OPS(conv_ops_1d) = {
-	.atrous_conv = atrous_conv,
-	.atrous_conv_sig = atrous_conv_sig,
-	.atrous_deconv_object = atrous_deconv_object,
+    .atrous_conv = atrous_conv,
+    .atrous_conv_sig = atrous_conv_sig,
+    .atrous_deconv_object = atrous_deconv_object,
 };
