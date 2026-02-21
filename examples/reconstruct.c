@@ -62,6 +62,11 @@ int main(int argc, char *argv[]) {
   if (ifile == NULL || ofile == NULL)
     usage(argv);
 
+  char *ext = strrchr(ofile, '.');
+  if (ext && (strcmp(ext, ".bmp") == 0 || strcmp(ext, ".fit") == 0 ||
+              strcmp(ext, ".fits") == 0))
+    *ext = '\0';
+
   if (strstr(ifile, ".fit") != NULL) {
     use_fits = 1;
     ret = fits_load(ifile, &data, &width, &height, &depth, &stride);

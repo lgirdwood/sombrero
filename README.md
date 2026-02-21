@@ -63,6 +63,16 @@ You can view available options for each command using the tool directly:
 ./examples/smbrr-atrous -h
 ```
 
+### Visual Example: Structure Detection
+
+Here is a visual demonstration running `smbrr-structures` to isolate significant features and structures through wavelet convolution k-sigma clipping.
+
+**Original Input Image:**  
+![Original Image](doc/images/original.png)
+
+**Processed Structures Output:**  
+![Processed Structures](doc/images/processed.png)
+
 ### Running Tests
 
 A unit test suite validates execution and mathematical correctness of operations. Tests can be executed via CTest after building:

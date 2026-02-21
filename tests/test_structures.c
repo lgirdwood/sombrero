@@ -120,7 +120,7 @@ int main(int argc, char *argv[]) {
   }
 
   /* save image with significant structures on it */
-  sprintf(outfile, "%s-ksigma.bmp", ofile);
+  sprintf(outfile, "%s-ksigma", ofile);
   fprintf(stdout, "saving %s\n", outfile);
   if (use_fits)
     fits_image_save(image, outfile); // Changed simage to image as per context
@@ -144,7 +144,7 @@ int main(int argc, char *argv[]) {
     smbrr_add_value(tsimage, 127.0); /* this brings out the detail */
     smbrr_add(tsimage, tsimage, wimage);
 
-    sprintf(outfile, "%s-sig-%d.bmp", ofile, i);
+    sprintf(outfile, "%s-sig-%d", ofile, i);
     float dmin = 0, dmax = 0;
     smbrr_find_limits(tsimage, &dmin, &dmax);
     fprintf(stdout, "limit for %s are %f to %f\n", outfile, dmin, dmax);

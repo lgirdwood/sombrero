@@ -112,6 +112,11 @@ int main(int argc, char *argv[]) {
   if (ifile == NULL || ofile == NULL)
     usage(argv);
 
+  char *ext = strrchr(ofile, '.');
+  if (ext && (strcmp(ext, ".bmp") == 0 || strcmp(ext, ".fit") == 0 ||
+              strcmp(ext, ".fits") == 0))
+    *ext = '\0';
+
   if (strstr(ifile, ".fit") != NULL) {
     use_fits = 1;
     ret = fits_load(ifile, &data, &width, &height, &depth, &stride);
@@ -165,7 +170,7 @@ int main(int argc, char *argv[]) {
   if (ret < 0)
     return ret;
   /* save image with significant structures on it */
-  sprintf(outfile, "%s-ksigma.bmp", ofile);
+  sprintf(outfile, "%s-ksigma", ofile);
   if (use_fits)
     fits_image_save(image, outfile);
   else
@@ -177,7 +182,7 @@ int main(int argc, char *argv[]) {
     smbrr_significant_add_value(oimage, simage, 16 + (1 << ((scales - 1) - i)));
   }
 
-  sprintf(outfile, "%s-sigall.bmp", ofile);
+  sprintf(outfile, "%s-sigall", ofile);
   if (use_fits)
     fits_image_save(oimage, outfile);
   else
@@ -187,7 +192,7 @@ int main(int argc, char *argv[]) {
     simage = smbrr_wavelet_get_significant(w, i);
     smbrr_set_value(oimage, 0.0);
     smbrr_significant_set_value(oimage, simage, 127);
-    sprintf(outfile, "%s-sig-%d.bmp", ofile, i);
+    sprintf(outfile, "%s-sig-%d", ofile, i);
     if (use_fits)
       fits_image_save(oimage, outfile);
     else

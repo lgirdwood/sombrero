@@ -141,6 +141,11 @@ int main(int argc, char *argv[]) {
   if (ifile == NULL || ofile == NULL)
     usage(argv);
 
+  char *ext = strrchr(ofile, '.');
+  if (ext && (strcmp(ext, ".bmp") == 0 || strcmp(ext, ".fit") == 0 ||
+              strcmp(ext, ".fits") == 0))
+    *ext = '\0';
+
   if (strstr(ifile, ".fit") != NULL) {
     use_fits = 1;
     ret = fits_load(ifile, &data, &width, &height, &depth, &stride);
@@ -211,7 +216,7 @@ int main(int argc, char *argv[]) {
     struct smbrr *tsimage = smbrr_wavelet_get_significant(w, i);
     smbrr_set_value(oimage, 0.0);
     smbrr_significant_set_value(oimage, tsimage, 1);
-    sprintf(outfile, "%s-struct-%d.bmp", ofile, i);
+    sprintf(outfile, "%s-struct-%d", ofile, i);
     if (use_fits)
       fits_image_save(tsimage, outfile);
     else
@@ -246,7 +251,7 @@ int main(int argc, char *argv[]) {
       struct smbrr *oimage_data;
       smbrr_wavelet_object_get_data(w, object, &oimage_data);
       if (oimage_data) {
-        sprintf(outfile, "%s-object-%d.bmp", ofile, i);
+        sprintf(outfile, "%s-object-%d", ofile, i);
         if (use_fits)
           fits_image_save(oimage_data, outfile);
         else

@@ -87,6 +87,11 @@ int main(int argc, char *argv[]) {
   if (ifile == NULL || ofile == NULL)
     usage(argv);
 
+  char *ext = strrchr(ofile, '.');
+  if (ext && (strcmp(ext, ".bmp") == 0 || strcmp(ext, ".fit") == 0 ||
+              strcmp(ext, ".fits") == 0))
+    *ext = '\0';
+
   if (strstr(ifile, ".fit") != NULL) {
     use_fits = 1;
     ret = fits_load(ifile, &data, &width, &height, &depth, &stride);
@@ -124,14 +129,7 @@ int main(int argc, char *argv[]) {
     return ret;
   }
 
-  // oimage is no longer used in the new logic, but it's declared.
-  // It's kept for now to avoid changing declarations not explicitly requested.
-  struct smbrr *oimage = NULL; // Initialize to NULL to be safe if not freed.
-
-  if (oimage == NULL) {
-    fprintf(stderr, "can't create new output image\n");
-    return -EINVAL;
-  }
+  // oimage is no longer used in the new logic.
 
   for (i = 0; i < scales; i++) {
 

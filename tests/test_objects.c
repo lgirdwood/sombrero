@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
     tsimage = smbrr_wavelet_get_significant(w, i);
     smbrr_set_value(oimage, 0.0);
     smbrr_significant_add_value(oimage, tsimage, 1.0);
-    sprintf(outfile, "%s-struct-%d.bmp", ofile, i);
+    sprintf(outfile, "%s-struct-%d", ofile, i);
     float dmin = 0, dmax = 0;
     smbrr_find_limits(tsimage, &dmin, &dmax);
     fprintf(stdout, "limit for %s are %f to %f\n", outfile, dmin, dmax);
@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
       if (oimage_data) {
         float omin = 0, omax = 0;
         smbrr_find_limits(oimage_data, &omin, &omax);
-        sprintf(outfile, "%s-object-%d.bmp", ofile, i);
+        sprintf(outfile, "%s-object-%d", ofile, i);
         fprintf(stdout, "limit for %s are %f to %f\n", outfile, omin, omax);
         fprintf(stdout, "saving %s\n", outfile);
         if (use_fits)
