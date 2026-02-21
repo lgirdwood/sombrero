@@ -73,6 +73,40 @@ Here is a visual demonstration running `smbrr-structures` to isolate significant
 **Processed Structures Output:**  
 ![Processed Structures](doc/images/processed.png)
 
+### Example: Object Detection
+
+The `smbrr-objects` example performs structure discovery across wavelet scales and then connects overlapping structures into concrete objects containing aggregated statistics.
+
+**Console Output:**
+```text
+Found 891 structures at scale 0
+Found 703 structures at scale 1
+Found 787 structures at scale 2
+Found 933 structures at scale 3
+Found 841 structures at scale 4
+Found 267 structures at scale 5
+Found 56 structures at scale 6
+Found 12 structures at scale 7
+Found 741 objects
+
+object 0 ID 505
+ Total ADU 0.473022 Mean 0.473022 Sigma 0.000000 Scale 1 Mag delta 9.389793
+ Position 496:150 Area 1
+object 1 ID 399
+ Total ADU 101.009033 Mean 0.490335 Sigma 13.064160 Scale 3 Mag delta 3.562092
+ Position 1635:844 Area 206
+object 2 ID 504
+ Total ADU 113.812500 Mean 0.492695 Sigma 14.502802 Scale 3 Mag delta 3.238640
+ Position 509:150 Area 231
+object 3 ID 517
+ Total ADU 108.492188 Mean 0.495398 Sigma 13.918968 Scale 3 Mag delta 3.327931
+ Position 1162:156 Area 219
+object 4 ID 599
+ Total ADU 113.406250 Mean 0.495224 Sigma 14.654859 Scale 3 Mag delta 3.236967
+ Position 1640:322 Area 229
+...
+```
+
 ### Running Tests
 
 A unit test suite validates execution and mathematical correctness of operations. Tests can be executed via CTest after building:
