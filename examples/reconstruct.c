@@ -24,6 +24,7 @@
 #include <unistd.h>
 
 #include "bmp.h"
+#include "fits.h"
 #include "sombrero.h"
 
 #define SCALES 8
@@ -43,6 +44,7 @@ int main(int argc, char *argv[]) {
   enum smbrr_source_type depth;
   float mean, sigma;
   char *ifile = NULL, *ofile = NULL;
+  int use_fits = 0;
 
   while ((opt = getopt(argc, argv, "i:o:")) != -1) {
     switch (opt) {
@@ -60,14 +62,21 @@ int main(int argc, char *argv[]) {
   if (ifile == NULL || ofile == NULL)
     usage(argv);
 
-  ret = bmp_load(ifile, &bmp, &data);
-  if (ret < 0)
-    return ret;
+  if (strstr(ifile, ".fit") != NULL) {
+    use_fits = 1;
+    ret = fits_load(ifile, &data, &width, &height, &depth, &stride);
+    if (ret < 0)
+      return ret;
+  } else {
+    ret = bmp_load(ifile, &bmp, &data);
+    if (ret < 0)
+      return ret;
 
-  height = bmp_height(bmp);
-  width = bmp_width(bmp);
-  depth = bmp_depth(bmp);
-  stride = bmp_stride(bmp);
+    height = bmp_height(bmp);
+    width = bmp_width(bmp);
+    depth = bmp_depth(bmp);
+    stride = bmp_stride(bmp);
+  }
   fprintf(stdout, "Image width %d height %d stride %d\n", width, height,
           stride);
 
@@ -88,9 +97,14 @@ int main(int argc, char *argv[]) {
   sigma = smbrr_get_sigma(image, mean);
   fprintf(stdout, "Image after mean %f sigma %f\n", mean, sigma);
 
-  bmp_image_save(image, bmp, ofile);
-  free(bmp);
+  if (use_fits)
+    fits_image_save(image, ofile);
+  else
+    bmp_image_save(image, bmp, ofile);
+
   smbrr_free(image);
+  if (!use_fits)
+    free(bmp);
 
   return 0;
 }

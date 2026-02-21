@@ -1,11 +1,12 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string.h> // for strstr
 #include <unistd.h>
 
 #include "../examples/bmp.h"
 #include "../examples/debug.h"
+#include "../examples/fits.h"
 #include "sombrero.h"
 
 int main(int argc, char *argv[]) {
@@ -18,6 +19,7 @@ int main(int argc, char *argv[]) {
   char *ifile = NULL, *ofile = NULL;
   char outfile[64];
   int opt, structures;
+  int use_fits = 0;
 
   /* Expected values from examples/objects on wiz-ha-x.bmp */
   int expected_structures[] = {891, 703, 787, 933, 841, 267, 56, 12};
@@ -39,14 +41,21 @@ int main(int argc, char *argv[]) {
     return -EINVAL;
   }
 
-  ret = bmp_load(ifile, &bmp, &data);
-  if (ret < 0)
-    return ret;
+  if (strstr(ifile, ".fit") != NULL) {
+    use_fits = 1;
+    ret = fits_load(ifile, &data, &width, &height, &depth, &stride);
+    if (ret < 0)
+      return ret;
+  } else {
+    ret = bmp_load(ifile, &bmp, &data);
+    if (ret < 0)
+      return ret;
 
-  height = bmp_height(bmp);
-  width = bmp_width(bmp);
-  depth = bmp_depth(bmp);
-  stride = bmp_stride(bmp);
+    height = bmp_height(bmp);
+    width = bmp_width(bmp);
+    depth = bmp_depth(bmp);
+    stride = bmp_stride(bmp);
+  }
 
   image = smbrr_new(SMBRR_DATA_2D_FLOAT, width, height, stride, depth, data);
   if (image == NULL) {
@@ -80,18 +89,27 @@ int main(int argc, char *argv[]) {
 
     fprintf(stdout, "Found %d structures at scale %d\n", structures, i);
 
-    if (structures != expected_structures[i]) {
+    if (!use_fits && structures != expected_structures[i]) {
       fprintf(stderr,
               "Structures at scale %d validation failed: Expected %d, got %d\n",
               i, expected_structures[i], structures);
       return -EINVAL;
     }
 
-    simage = smbrr_wavelet_get_significant(w, i);
+    /* save each structure scale for visualisation */
+    struct smbrr *tsimage;
+    tsimage = smbrr_wavelet_get_significant(w, i);
     smbrr_set_value(oimage, 0.0);
-    smbrr_significant_set_value(oimage, simage, 127);
-    sprintf(outfile, "%s-struct-%d", ofile, i);
-    bmp_image_save(oimage, bmp, outfile);
+    smbrr_significant_add_value(oimage, tsimage, 1.0);
+    sprintf(outfile, "%s-struct-%d.bmp", ofile, i);
+    float dmin = 0, dmax = 0;
+    smbrr_find_limits(tsimage, &dmin, &dmax);
+    fprintf(stdout, "limit for %s are %f to %f\n", outfile, dmin, dmax);
+    fprintf(stdout, "saving %s\n", outfile);
+    if (use_fits)
+      fits_image_save(tsimage, outfile);
+    else
+      bmp_image_save(tsimage, bmp, outfile);
   }
 
   int objects = smbrr_wavelet_structure_connect(w, 0, scales - 2);
@@ -100,7 +118,7 @@ int main(int argc, char *argv[]) {
   }
 
   fprintf(stdout, "Found %d objects\n", objects);
-  if (objects != expected_objects) {
+  if (!use_fits && objects != expected_objects) {
     fprintf(stderr, "Objects validation failed: Expected %d, got %d\n",
             expected_objects, objects);
     return -EINVAL;
@@ -112,12 +130,21 @@ int main(int argc, char *argv[]) {
       struct smbrr *oimage_data;
       smbrr_wavelet_object_get_data(w, object, &oimage_data);
       if (oimage_data) {
-        smbrr_image_dump(oimage_data, "%s-object-%d", ofile, i);
+        float omin = 0, omax = 0;
+        smbrr_find_limits(oimage_data, &omin, &omax);
+        sprintf(outfile, "%s-object-%d.bmp", ofile, i);
+        fprintf(stdout, "limit for %s are %f to %f\n", outfile, omin, omax);
+        fprintf(stdout, "saving %s\n", outfile);
+        if (use_fits)
+          fits_image_save(oimage_data, outfile);
+        else
+          bmp_image_save(oimage_data, bmp, outfile);
       }
     }
   }
 
-  free(bmp);
+  if (!use_fits)
+    free(bmp);
   smbrr_wavelet_free(w);
   smbrr_free(oimage);
   smbrr_free(image);

@@ -1,17 +1,17 @@
-add_executable(smbrr-atrous atrous.c bmp.c)
-target_link_libraries(smbrr-atrous PRIVATE sombrero)
+add_executable(smbrr-atrous atrous.c bmp.c fits.c)
+target_link_libraries(smbrr-atrous PRIVATE sombrero ${CFITSIO_LIBRARIES})
 target_include_directories(smbrr-atrous PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 
-add_executable(smbrr-structures structures.c bmp.c)
-target_link_libraries(smbrr-structures PRIVATE sombrero)
+add_executable(smbrr-structures structures.c bmp.c fits.c)
+target_link_libraries(smbrr-structures PRIVATE sombrero ${CFITSIO_LIBRARIES})
 target_include_directories(smbrr-structures PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 
-add_executable(smbrr-objects objects.c bmp.c)
-target_link_libraries(smbrr-objects PRIVATE sombrero)
+add_executable(smbrr-objects objects.c bmp.c fits.c)
+target_link_libraries(smbrr-objects PRIVATE sombrero ${CFITSIO_LIBRARIES})
 target_include_directories(smbrr-objects PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 
-add_executable(smbrr-reconstruct reconstruct.c bmp.c)
-target_link_libraries(smbrr-reconstruct PRIVATE sombrero)
+add_executable(smbrr-reconstruct reconstruct.c bmp.c fits.c)
+target_link_libraries(smbrr-reconstruct PRIVATE sombrero ${CFITSIO_LIBRARIES})
 target_include_directories(smbrr-reconstruct PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 
 add_executable(smbrr-reconstruct-1d reconstruct-1d.c)

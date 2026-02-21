@@ -7,6 +7,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 TESTS_DIR="$SCRIPT_DIR"
 IMAGE="${TESTS_DIR}/wiz-ha-x.bmp"
 
+USE_FITS=0
+if [ "$1" == "--fits" ]; then
+    USE_FITS=1
+    IMAGE="${TESTS_DIR}/ngc7380.fit"
+fi
+
 if [ ! -d "$TESTS_DIR" ]; then
     echo "Error: Tests directory $TESTS_DIR not found. Please build the project first."
     exit 1
@@ -29,7 +35,7 @@ run_test() {
     local cmd=("./$test_name" "$@")
     
     echo "============================================================"
-    echo "Running Test: $test_name"
+    echo "Running Test: $test_name (FITS: $USE_FITS)"
     echo "Command: ${cmd[*]}"
     echo "------------------------------------------------------------"
     
@@ -41,15 +47,17 @@ run_test() {
     if [ $status -eq 0 ]; then
         # Check generated images against ref
         local image_mismatch=0
-        for ref_img in "$TESTS_DIR/ref/${prefix}"*.bmp; do
-            if [ -f "$ref_img" ]; then
-                local base_img=$(basename "$ref_img")
-                if ! cmp -s "$ref_img" "$TESTS_DIR/$base_img"; then
-                    echo "Image mismatch: $base_img"
-                    image_mismatch=1
+        if [ $USE_FITS -eq 0 ]; then
+            for ref_img in "$TESTS_DIR/ref/${prefix}"*.bmp; do
+                if [ -f "$ref_img" ]; then
+                    local base_img=$(basename "$ref_img")
+                    if ! cmp -s "$ref_img" "$TESTS_DIR/$base_img"; then
+                        echo "Image mismatch: $base_img"
+                        image_mismatch=1
+                    fi
                 fi
-            fi
-        done
+            done
+        fi
         
         if [ $image_mismatch -eq 0 ]; then
             echo -e "\033[0;32mRESULT: [ PASS ] $test_name\033[0m"

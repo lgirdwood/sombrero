@@ -2,9 +2,11 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h> // string.h here for strstr
 #include <unistd.h>
 
 #include "../examples/bmp.h"
+#include "../examples/fits.h"
 #include "sombrero.h"
 
 int main(int argc, char *argv[]) {
@@ -14,6 +16,7 @@ int main(int argc, char *argv[]) {
   int ret, width, height, stride, opt;
   enum smbrr_source_type depth;
   char *ifile = NULL, *ofile = NULL;
+  int use_fits = 0;
   float mean, sigma;
 
   /* Expected values from examples/reconstruct on wiz-ha-x.bmp */
@@ -38,14 +41,21 @@ int main(int argc, char *argv[]) {
     return -EINVAL;
   }
 
-  ret = bmp_load(ifile, &bmp, &data);
-  if (ret < 0)
-    return ret;
+  if (strstr(ifile, ".fit") != NULL) {
+    use_fits = 1;
+    ret = fits_load(ifile, &data, &width, &height, &depth, &stride);
+    if (ret < 0)
+      return ret;
+  } else {
+    ret = bmp_load(ifile, &bmp, &data);
+    if (ret < 0)
+      return ret;
 
-  height = bmp_height(bmp);
-  width = bmp_width(bmp);
-  depth = bmp_depth(bmp);
-  stride = bmp_stride(bmp);
+    height = bmp_height(bmp);
+    width = bmp_width(bmp);
+    depth = bmp_depth(bmp);
+    stride = bmp_stride(bmp);
+  }
 
   image = smbrr_new(SMBRR_DATA_2D_FLOAT, width, height, stride, depth, data);
   if (image == NULL) {
@@ -56,8 +66,8 @@ int main(int argc, char *argv[]) {
   sigma = smbrr_get_sigma(image, mean);
   fprintf(stdout, "Image before mean %f sigma %f\n", mean, sigma);
 
-  if (fabs(mean - initial_mean) > 0.0001 ||
-      fabs(sigma - initial_sigma) > 0.0001) {
+  if (!use_fits && (fabs(mean - initial_mean) > 0.0001 ||
+                    fabs(sigma - initial_sigma) > 0.0001)) {
     fprintf(stderr, "Initial image validation failed\n");
     return -EINVAL;
   }
@@ -72,14 +82,24 @@ int main(int argc, char *argv[]) {
   sigma = smbrr_get_sigma(image, mean);
   fprintf(stdout, "Image after mean %f sigma %f\n", mean, sigma);
 
-  if (fabs(mean - final_mean) > 0.0001 || fabs(sigma - final_sigma) > 0.0001) {
+  if (!use_fits && (fabs(mean - final_mean) > 0.0001 ||
+                    fabs(sigma - final_sigma) > 0.0001)) {
     fprintf(stderr, "Final image validation failed\n");
     return -EINVAL;
   }
 
-  bmp_image_save(image, bmp, ofile);
+  float rmin = 0, rmax = 0;
+  smbrr_find_limits(image, &rmin, &rmax);
+  fprintf(stdout, "limit for %s are %f to %f\n", ofile, rmin, rmax);
+  fprintf(stdout, "saving %s\n", ofile);
 
-  free(bmp);
+  if (use_fits)
+    fits_image_save(image, ofile);
+  else
+    bmp_image_save(image, bmp, ofile);
+
+  if (!use_fits)
+    free(bmp);
   smbrr_free(image);
 
   return 0;

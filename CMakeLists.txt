@@ -41,6 +41,12 @@ endif()
 
 set(CMAKE_REQUIRED_LIBRARIES m)
 
+# Find cfitsio
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(CFITSIO REQUIRED cfitsio)
+include_directories(${CFITSIO_INCLUDE_DIRS})
+link_directories(${CFITSIO_LIBRARY_DIRS})
+
 # Options for SIMD Optimization
 option(ENABLE_SSE42 "Enable SSE42 optimizations" ON)
 option(ENABLE_AVX "Enable AVX optimizations" ON)
