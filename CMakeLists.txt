@@ -148,3 +148,22 @@ add_subdirectory(doc)
 
 enable_testing()
 add_subdirectory(tests)
+
+# --- CPack Configuration ---
+set(CPACK_PACKAGE_NAME "libsombrero")
+set(CPACK_PACKAGE_VENDOR "Liam Girdwood")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Sombrero is a fast wavelet data processing and object detection C library for 1D and 2D data.")
+set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
+set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
+set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
+
+set(CPACK_GENERATOR "DEB;RPM")
+set(CPACK_PACKAGE_CONTACT "Liam Girdwood")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Liam Girdwood")
+
+# Debian dependencies
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libcfitsio-dev, libc6")
+# RPM dependencies
+set(CPACK_RPM_PACKAGE_REQUIRES "cfitsio-devel, glibc")
+
+include(CPack)
