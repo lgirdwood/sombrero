@@ -1,63 +1,61 @@
 {
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "CMake: Configure",
-            "type": "shell",
-            "command": "mkdir -p build && cd build && cmake ..",
-            "problemMatcher": [],
-            "group": "build"
-        },
-        {
-            "label": "Make: Build All",
-            "type": "shell",
-            "command": "cd build && make -j$(nproc)",
-            "problemMatcher": [
-                "$gcc"
-            ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
-        },
-        {
-            "label": "Make: Test",
-            "type": "shell",
-            "command": "cd build && make test",
-            "problemMatcher": [],
-            "group": "test"
-        },
-        {
-            "label": "Make: Menuconfig",
-            "type": "shell",
-            "command": "cd build && make menuconfig",
-            "problemMatcher": [],
-            "isBackground": false,
-            "presentation": {
-                "reveal": "always",
-                "panel": "new"
-            }
-        },
-        {
-            "label": "Make: Package",
-            "type": "shell",
-            "command": "cd build && make package",
-            "problemMatcher": [],
-            "group": "build"
-        },
-        {
-            "label": "Make: Generate Documentation",
-            "type": "shell",
-            "command": "cd build && make doc",
-            "problemMatcher": [],
-            "group": "build"
-        },
-        {
-            "label": "Run High-Level Tests",
-            "type": "shell",
-            "command": "cd build/tests && ./run_tests.sh",
-            "problemMatcher": [],
-            "group": "test"
-        }
-    ]
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "CMake: Configure",
+			"type": "shell",
+			"command": "mkdir -p build && cd build && cmake ..",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Make: Build All",
+			"type": "shell",
+			"command": "cd build && make -j$(nproc)",
+			"problemMatcher": [],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		},
+		{
+			"label": "Make: Test",
+			"type": "shell",
+			"command": "cd build && make test",
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Make: Menuconfig",
+			"type": "shell",
+			"command": "cd build && make menuconfig",
+			"problemMatcher": [],
+			"isBackground": false,
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			}
+		},
+		{
+			"label": "Make: Package",
+			"type": "shell",
+			"command": "cd build && make package",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Make: Generate Documentation",
+			"type": "shell",
+			"command": "cd build && make doc",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Run High-Level Tests",
+			"type": "shell",
+			"command": "cd build/tests && ./run_tests.sh",
+			"problemMatcher": [],
+			"group": "test"
+		}
+	]
 }

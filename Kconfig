@@ -1,5 +1,35 @@
 mainmenu "Sombrero SIMD Configuration"
 
+choice
+    prompt "Compiler Optimization Level"
+    default OPT_O2
+
+    config OPT_O0
+        bool "-O0 (None)"
+        help
+          Do not optimize.
+
+    config OPT_O1
+        bool "-O1 (Optimize)"
+        help
+          Optimize. Optimizing compilation takes somewhat more time, and a lot more memory for a large function.
+
+    config OPT_O2
+        bool "-O2 (Optimize even more)"
+        help
+          Optimize even more. GCC performs nearly all supported optimizations that do not involve a space-speed tradeoff.
+
+    config OPT_O3
+        bool "-O3 (Optimize yet more)"
+        help
+          Optimize yet more. Turns on all optimizations specified by -O2 and also turns on the -finline-functions, -funswitch-loops, -fpredictive-commoning, -fgcse-after-reload, -ftree-loop-vectorize, -ftree-loop-distribute-patterns, -fsplit-paths, -ftree-slp-vectorize, -fvect-cost-model, -ftree-partial-pre and -fipa-cp-clone options.
+
+    config OPT_OS
+        bool "-Os (Optimize for size)"
+        help
+          Optimize for size. -Os enables all -O2 optimizations that do not typically increase code size.
+endchoice
+
 config ENABLE_SSE42
     bool "Enable SSE42 optimizations"
     default y
