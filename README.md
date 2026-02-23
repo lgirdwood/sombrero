@@ -1,5 +1,7 @@
 # Sombrero
 
+![Sombrero Logo](doc/images/sombrero.png)
+
 [![CI](https://github.com/lgirdwood/sombrero/actions/workflows/ci.yml/badge.svg)](https://github.com/lgirdwood/sombrero/actions/workflows/ci.yml)
 
 Sombrero is a fast wavelet data processing and object detection C library for 1D and 2D data. 
