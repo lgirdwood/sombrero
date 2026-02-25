@@ -139,6 +139,18 @@ if(ENABLE_OPENMP)
     endif()
 endif()
 
+# OpenCL
+option(ENABLE_OPENCL "Enable OpenCL" ON)
+if(ENABLE_OPENCL)
+    find_package(OpenCL)
+    if(OpenCL_FOUND)
+        set(HAVE_OPENCL 1)
+    else()
+        message(FATAL_ERROR "Need OpenCL library and headers")
+    endif()
+endif()
+
+
 # Variables for libsombrero.pc.in
 set(prefix ${CMAKE_INSTALL_PREFIX})
 set(exec_prefix ${CMAKE_INSTALL_PREFIX})

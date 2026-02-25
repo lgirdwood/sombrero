@@ -106,10 +106,10 @@
 * 32-bit floating point buffers.
 */
 enum smbrr_source_type {
-  SMBRR_SOURCE_UINT8 = 0,  /**< 8 bits per data pixel */
-  SMBRR_SOURCE_UINT16 = 1, /**< 16 bits per data pixel */
-  SMBRR_SOURCE_UINT32 = 2, /**< 32 bits per data pixel */
-  SMBRR_SOURCE_FLOAT = 3,  /**< 32 bits float per data pixel */
+	SMBRR_SOURCE_UINT8 = 0, /**< 8 bits per data pixel */
+	SMBRR_SOURCE_UINT16 = 1, /**< 16 bits per data pixel */
+	SMBRR_SOURCE_UINT32 = 2, /**< 32 bits per data pixel */
+	SMBRR_SOURCE_FLOAT = 3, /**< 32 bits float per data pixel */
 };
 
 /**
@@ -123,10 +123,10 @@ enum smbrr_source_type {
 * floats.
 */
 enum smbrr_data_type {
-  SMBRR_DATA_1D_UINT32 = 0, /**< 32 bit uint - used by significant 1D data */
-  SMBRR_DATA_1D_FLOAT = 1,  /**< 32 bit float - used by 1D data */
-  SMBRR_DATA_2D_UINT32 = 2, /**< 32 bit uint - used by significant 2D data */
-  SMBRR_DATA_2D_FLOAT = 3,  /**< 32 bit float - used by 2D data */
+	SMBRR_DATA_1D_UINT32 = 0, /**< 32 bit uint - used by significant 1D data */
+	SMBRR_DATA_1D_FLOAT = 1, /**< 32 bit float - used by 1D data */
+	SMBRR_DATA_2D_UINT32 = 2, /**< 32 bit uint - used by significant 2D data */
+	SMBRR_DATA_2D_FLOAT = 3, /**< 32 bit float - used by 2D data */
 };
 
 /**
@@ -139,8 +139,8 @@ enum smbrr_data_type {
 * standard PSF).
 */
 enum smbrr_conv {
-  SMBRR_CONV_ATROUS = 0, /**< The A-trous "with holes" convolution */
-  SMBRR_CONV_PSF = 1,    /**< The PSF Point Spread Function */
+	SMBRR_CONV_ATROUS = 0, /**< The A-trous "with holes" convolution */
+	SMBRR_CONV_PSF = 1, /**< The PSF Point Spread Function */
 };
 
 /** \enum smbrr_wavelet_mask
@@ -150,8 +150,8 @@ enum smbrr_conv {
  * integration phase of an A'trous decomposition.
  */
 enum smbrr_wavelet_mask {
-  SMBRR_WAVELET_MASK_LINEAR = 0,  /**< Linear wavelet convolution */
-  SMBRR_WAVELET_MASK_BICUBIC = 1, /**< Bi-cubic wavelet convolution */
+	SMBRR_WAVELET_MASK_LINEAR = 0, /**< Linear wavelet convolution */
+	SMBRR_WAVELET_MASK_BICUBIC = 1, /**< Bi-cubic wavelet convolution */
 };
 
 /** \enum smbrr_clip
@@ -162,12 +162,12 @@ enum smbrr_wavelet_mask {
  * isolate predominant structures.
  */
 enum smbrr_clip {
-  SMBRR_CLIP_VGENTLE = 0,  /**< Very gentle clipping */
-  SMBRR_CLIP_GENTLE = 1,   /**< Gentle clipping */
-  SMBRR_CLIP_NORMAL = 2,   /**< Normal clipping */
-  SMBRR_CLIP_STRONG = 3,   /**< Strong clipping */
-  SMBRR_CLIP_VSTRONG = 4,  /**< Very strong clipping */
-  SMBRR_CLIP_VVSTRONG = 5, /**< Very very strong clipping */
+	SMBRR_CLIP_VGENTLE = 0, /**< Very gentle clipping */
+	SMBRR_CLIP_GENTLE = 1, /**< Gentle clipping */
+	SMBRR_CLIP_NORMAL = 2, /**< Normal clipping */
+	SMBRR_CLIP_STRONG = 3, /**< Strong clipping */
+	SMBRR_CLIP_VSTRONG = 4, /**< Very strong clipping */
+	SMBRR_CLIP_VVSTRONG = 5, /**< Very very strong clipping */
 };
 
 /** \enum smbrr_gain
@@ -177,11 +177,11 @@ enum smbrr_clip {
  * structural deconvolution and background flattening operations.
  */
 enum smbrr_gain {
-  SMBRR_GAIN_NONE = 0,   /**< No gain */
-  SMBRR_GAIN_LOW = 1,    /**< Low resolution gain */
-  SMBRR_GAIN_MID = 2,    /**< Mid resolution gain */
-  SMBRR_GAIN_HIGH = 3,   /**< High resolution gain */
-  SMBRR_GAIN_LOWMID = 4, /**< High/Mid resolution gain */
+	SMBRR_GAIN_NONE = 0, /**< No gain */
+	SMBRR_GAIN_LOW = 1, /**< Low resolution gain */
+	SMBRR_GAIN_MID = 2, /**< Mid resolution gain */
+	SMBRR_GAIN_HIGH = 3, /**< High resolution gain */
+	SMBRR_GAIN_LOWMID = 4, /**< High/Mid resolution gain */
 };
 
 /** \enum smbrr_object_type
@@ -192,8 +192,8 @@ enum smbrr_gain {
  * diffuse bodies (e.g. galaxies).
  */
 enum smbrr_object_type {
-  SMBRR_OBJECT_POINT = 0,    /**< Point like object Detected */
-  SMBRR_OBJECT_EXTENDED = 1, /**< Exteded / Diffuse object detected */
+	SMBRR_OBJECT_POINT = 0, /**< Point like object Detected */
+	SMBRR_OBJECT_EXTENDED = 1, /**< Exteded / Diffuse object detected */
 };
 
 /** \struct smbrr
@@ -213,8 +213,8 @@ struct smbrr;
  * Cartesian object dimensions, and marking peak detection matrices.
  */
 struct smbrr_coord {
-  unsigned int x; /**< 2D X coordinate / 1D position offset  */
-  unsigned int y; /**< 2D Y coordinate */
+	unsigned int x; /**< 2D X coordinate / 1D position offset  */
+	unsigned int y; /**< 2D Y coordinate */
 };
 
 /** \struct smbrr_object
@@ -226,34 +226,34 @@ struct smbrr_coord {
  * signatures, and position vectors.
  */
 struct smbrr_object {
-  unsigned int id; /**< Object ID. Incrementing on brightest/largest = 0 */
-  enum smbrr_object_type type; /**< Object classification */
+	unsigned int id; /**< Object ID. Incrementing on brightest/largest = 0 */
+	enum smbrr_object_type type; /**< Object classification */
 
-  /* 2D object positional bounds */
-  struct smbrr_coord pos;   /**< Object data coordinates for max pixel */
-  struct smbrr_coord minXy; /**< Object data min X coordinate */
-  struct smbrr_coord minxY; /**< Object data min Y coordinate */
-  struct smbrr_coord maxXy; /**< Object data max X coordinate */
-  struct smbrr_coord maxxY; /**< Object data max Y coordinate */
-  float pa;                 /**< Position angle  */
+	/* 2D object positional bounds */
+	struct smbrr_coord pos; /**< Object data coordinates for max pixel */
+	struct smbrr_coord minXy; /**< Object data min X coordinate */
+	struct smbrr_coord minxY; /**< Object data min Y coordinate */
+	struct smbrr_coord maxXy; /**< Object data max X coordinate */
+	struct smbrr_coord maxxY; /**< Object data max Y coordinate */
+	float pa; /**< Position angle  */
 
-  /* object aperture */
-  float object_adu;         /**< Sum of all object pixels values */
-  float object_radius;      /**< Object radius in pixels */
-  unsigned int object_area; /**< Object area in pixels */
-  float snr;                /**< Signal to Noise Ration */
-  float error;              /**< Error in SNR */
+	/* object aperture */
+	float object_adu; /**< Sum of all object pixels values */
+	float object_radius; /**< Object radius in pixels */
+	unsigned int object_area; /**< Object area in pixels */
+	float snr; /**< Signal to Noise Ration */
+	float error; /**< Error in SNR */
 
-  /* object anullus (background) */
-  unsigned int background_area; /**< Count of background pixels in annulus */
-  float background_adu;         /**< Total of background pixels in annulus */
+	/* object anullus (background) */
+	unsigned int background_area; /**< Count of background pixels in annulus */
+	float background_adu; /**< Total of background pixels in annulus */
 
-  /* statistical data */
-  float max_adu;      /**< Maximum object pixel value */
-  float mean_adu;     /**< Mean value of pixels */
-  float sigma_adu;    /**< Standard deviation of pixels */
-  float mag_delta;    /**< Magnitude difference to brightest object */
-  unsigned int scale; /**< Object wavelet scale */
+	/* statistical data */
+	float max_adu; /**< Maximum object pixel value */
+	float mean_adu; /**< Mean value of pixels */
+	float sigma_adu; /**< Standard deviation of pixels */
+	float mag_delta; /**< Magnitude difference to brightest object */
+	unsigned int scale; /**< Object wavelet scale */
 };
 
 /** \struct smbrr_clip_coeff
@@ -264,7 +264,7 @@ struct smbrr_object {
  * than relying on standard enumerations.
  */
 struct smbrr_clip_coeff {
-  float coeff[SMBRR_MAX_SCALES - 1]; /**< clipping coefficient for scale */
+	float coeff[SMBRR_MAX_SCALES - 1]; /**< clipping coefficient for scale */
 };
 
 /** \defgroup process Processing 1D and 2D data element arrays.
@@ -315,8 +315,8 @@ struct smbrr_clip_coeff {
  * \ingroup data
  */
 struct smbrr *smbrr_new(enum smbrr_data_type type, unsigned int width,
-                        unsigned int height, unsigned int stride,
-                        enum smbrr_source_type adu, const void *data);
+						unsigned int height, unsigned int stride,
+						enum smbrr_source_type adu, const void *data);
 
 /**
  * \brief Extract a rectangular sub-region from a 2D source context and allocate
@@ -324,8 +324,8 @@ struct smbrr *smbrr_new(enum smbrr_data_type type, unsigned int width,
  * \ingroup process
  */
 struct smbrr *smbrr_new_from_area(struct smbrr *s, unsigned int x_start,
-                                     unsigned int y_start, unsigned int x_end,
-                                     unsigned int y_end);
+								  unsigned int y_start, unsigned int x_end,
+								  unsigned int y_end);
 
 /**
  * \brief Extract a linear segment from a 1D source context and allocate it into
@@ -333,7 +333,7 @@ struct smbrr *smbrr_new_from_area(struct smbrr *s, unsigned int x_start,
  * \ingroup process
  */
 struct smbrr *smbrr_new_from_section(struct smbrr *s, unsigned int start,
-                                        unsigned int end);
+									 unsigned int end);
 
 /**
  * \param src Source data context.
@@ -350,6 +350,20 @@ struct smbrr *smbrr_new_copy(struct smbrr *src);
  * \ingroup process
  */
 void smbrr_free(struct smbrr *smbrr);
+
+/**
+ * \brief Initialize the OpenCL hardware acceleration backend.
+ * \param device_index The index of the OpenCL device to use.
+ * \return 0 on success, <0 on error.
+ * \ingroup process
+ */
+int smbrr_init_opencl(int device_index);
+
+/**
+ * \brief Free OpenCL hardware acceleration backend.
+ * \ingroup process
+ */
+void smbrr_free_opencl(void);
 
 /*
  * Element information.
@@ -435,7 +449,7 @@ float smbrr_significant_get_mean(struct smbrr *s, struct smbrr *sdata);
  * \ingroup noise
  */
 float smbrr_significant_get_sigma(struct smbrr *s, struct smbrr *sdata,
-                                     float mean);
+								  float mean);
 
 /**
  * \brief Compute the Euclidean norm (square root of the sum of squared
@@ -468,7 +482,7 @@ void smbrr_add(struct smbrr *a, struct smbrr *b, struct smbrr *c);
  * \ingroup process
  */
 void smbrr_significant_add_value(struct smbrr *s, struct smbrr *sdata,
-                                    float value);
+								 float value);
 
 /**
  * \brief Perform conditionally masked addition: add elements of C to B only
@@ -476,7 +490,7 @@ void smbrr_significant_add_value(struct smbrr *s, struct smbrr *sdata,
  * \ingroup process
  */
 void smbrr_significant_add(struct smbrr *a, struct smbrr *b, struct smbrr *c,
-                              struct smbrr *s);
+						   struct smbrr *s);
 
 /**
  * \brief Perform element-wise matrix subtraction: A = B - C.
@@ -490,7 +504,7 @@ void smbrr_subtract(struct smbrr *a, struct smbrr *b, struct smbrr *c);
  * \ingroup process
  */
 void smbrr_significant_subtract(struct smbrr *a, struct smbrr *b,
-                                   struct smbrr *c, struct smbrr *s);
+								struct smbrr *c, struct smbrr *s);
 
 /**
  * \brief Add a constant scalar value to every pixel in the data context.
@@ -522,8 +536,7 @@ void smbrr_set_value(struct smbrr *a, float value);
  * where marked significant.
  * \ingroup process
  */
-void smbrr_significant_set_value(struct smbrr *a, struct smbrr *s,
-                                    float value);
+void smbrr_significant_set_value(struct smbrr *a, struct smbrr *s, float value);
 
 /**
  * \brief Assign a fixed threshold value to all elements in a significance map.
@@ -574,7 +587,7 @@ int smbrr_copy(struct smbrr *dest, struct smbrr *src);
  * \ingroup process
  */
 int smbrr_significant_copy(struct smbrr *dest, struct smbrr *src,
-                              struct smbrr *sig);
+						   struct smbrr *sig);
 
 /**
  * \brief Perform a fused multiply-add operation: add the product of context B
@@ -582,15 +595,15 @@ int smbrr_significant_copy(struct smbrr *dest, struct smbrr *src,
  * \ingroup process
  */
 void smbrr_mult_add(struct smbrr *dest, struct smbrr *a, struct smbrr *b,
-                       float c);
+					float c);
 
 /**
  * \brief Perform a fused multiply-subtract operation: subtract the product of
  * context B and scalar C from context A.
  * \ingroup process
  */
-void smbrr_mult_subtract(struct smbrr *dest, struct smbrr *a,
-                            struct smbrr *b, float c);
+void smbrr_mult_subtract(struct smbrr *dest, struct smbrr *a, struct smbrr *b,
+						 float c);
 
 /**
  * float bias, float readout);
@@ -613,7 +626,7 @@ void smbrr_significant_new(struct smbrr *a, struct smbrr *s, float sigma);
  * \ingroup process
  */
 int smbrr_psf(struct smbrr *src, struct smbrr *dest,
-                 enum smbrr_wavelet_mask mask);
+			  enum smbrr_wavelet_mask mask);
 
 /**
  * \brief Extract the pixel value computationally at the specific 2D (x, y)
@@ -635,8 +648,7 @@ float smbrr_get_adu_at_offset(struct smbrr *s, int offset);
  * \ingroup reconstruct
  */
 int smbrr_reconstruct(struct smbrr *O, enum smbrr_wavelet_mask mask,
-                         float threshold, int scales,
-                         enum smbrr_clip sigma_clip);
+					  float threshold, int scales, enum smbrr_clip sigma_clip);
 
 /**
  * \brief Allocate a hierarchical wavelet context comprising multiple resolution
@@ -644,7 +656,7 @@ int smbrr_reconstruct(struct smbrr *O, enum smbrr_wavelet_mask mask,
  * \ingroup wavelet
  */
 struct smbrr_wavelet *smbrr_wavelet_new(struct smbrr *s,
-                                           unsigned int num_scales);
+										unsigned int num_scales);
 
 /**
  * \brief Construct a bounding sub-region wavelet scale hierarchy focused
@@ -654,7 +666,7 @@ struct smbrr_wavelet *smbrr_wavelet_new(struct smbrr *s,
  * \ingroup wavelet
  */
 struct smbrr_wavelet *
-    smbrr_wavelet_new_from_object(struct smbrr_object *object);
+smbrr_wavelet_new_from_object(struct smbrr_object *object);
 
 /**
  * \brief Safely deallocate the wavelet context hierarchy and all its
@@ -669,7 +681,7 @@ void smbrr_wavelet_free(struct smbrr_wavelet *w);
  * \ingroup wavelet
  */
 int smbrr_wavelet_convolution(struct smbrr_wavelet *w, enum smbrr_conv conv,
-                              enum smbrr_wavelet_mask mask);
+							  enum smbrr_wavelet_mask mask);
 
 /**
  * \brief Execute smoothing convolution recursively across scales, masking
@@ -677,8 +689,8 @@ int smbrr_wavelet_convolution(struct smbrr_wavelet *w, enum smbrr_conv conv,
  * \ingroup wavelet
  */
 int smbrr_wavelet_significant_convolution(struct smbrr_wavelet *w,
-                                          enum smbrr_conv conv,
-                                          enum smbrr_wavelet_mask mask);
+										  enum smbrr_conv conv,
+										  enum smbrr_wavelet_mask mask);
 
 /**
  * \brief Recombine detail coefficients across the wavelet scales to reconstruct
@@ -686,7 +698,7 @@ int smbrr_wavelet_significant_convolution(struct smbrr_wavelet *w,
  * \ingroup wavelet
  */
 int smbrr_wavelet_deconvolution(struct smbrr_wavelet *w, enum smbrr_conv conv,
-                                enum smbrr_wavelet_mask mask);
+								enum smbrr_wavelet_mask mask);
 
 /**
  * \brief Recombine detail coefficients across scales to reconstruct a merged
@@ -694,9 +706,9 @@ int smbrr_wavelet_deconvolution(struct smbrr_wavelet *w, enum smbrr_conv conv,
  * \ingroup wavelet
  */
 int smbrr_wavelet_significant_deconvolution(struct smbrr_wavelet *w,
-                                            enum smbrr_conv conv,
-                                            enum smbrr_wavelet_mask mask,
-                                            enum smbrr_gain gain);
+											enum smbrr_conv conv,
+											enum smbrr_wavelet_mask mask,
+											enum smbrr_gain gain);
 
 /**
  * \brief Recombine coefficients spatially restricted to a segmented object's
@@ -704,9 +716,9 @@ int smbrr_wavelet_significant_deconvolution(struct smbrr_wavelet *w,
  * \ingroup wavelet
  */
 int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet *w,
-                                       enum smbrr_conv conv,
-                                       enum smbrr_wavelet_mask mask,
-                                       struct smbrr_object *object);
+									   enum smbrr_conv conv,
+									   enum smbrr_wavelet_mask mask,
+									   struct smbrr_object *object);
 
 /**
  * \brief Retrieve the raw data context representing the specific smoothed
@@ -714,7 +726,7 @@ int smbrr_wavelet_deconvolution_object(struct smbrr_wavelet *w,
  * \ingroup wavelet
  */
 struct smbrr *smbrr_wavelet_get_scale(struct smbrr_wavelet *w,
-                                         unsigned int scale);
+									  unsigned int scale);
 
 /**
  * \brief Retrieve the data context representing the detail coefficients
@@ -722,7 +734,7 @@ struct smbrr *smbrr_wavelet_get_scale(struct smbrr_wavelet *w,
  * \ingroup wavelet
  */
 struct smbrr *smbrr_wavelet_get_wavelet(struct smbrr_wavelet *w,
-                                           unsigned int scale);
+										unsigned int scale);
 
 /**
  * \brief Retrieve the binary significance map distinguishing real signal from
@@ -730,7 +742,7 @@ struct smbrr *smbrr_wavelet_get_wavelet(struct smbrr_wavelet *w,
  * \ingroup wavelet
  */
 struct smbrr *smbrr_wavelet_get_significant(struct smbrr_wavelet *w,
-                                               unsigned int scale);
+											unsigned int scale);
 
 /**
  * \brief Perform element-wise addition recursively across all corresponding
@@ -738,7 +750,7 @@ struct smbrr *smbrr_wavelet_get_significant(struct smbrr_wavelet *w,
  * \ingroup wavelet
  */
 void smbrr_wavelet_add(struct smbrr_wavelet *a, struct smbrr_wavelet *b,
-                          struct smbrr_wavelet *c);
+					   struct smbrr_wavelet *c);
 
 /**
  * \brief Perform element-wise subtraction recursively across all corresponding
@@ -746,7 +758,7 @@ void smbrr_wavelet_add(struct smbrr_wavelet *a, struct smbrr_wavelet *b,
  * \ingroup wavelet
  */
 void smbrr_wavelet_subtract(struct smbrr_wavelet *a, struct smbrr_wavelet *b,
-                               struct smbrr_wavelet *c);
+							struct smbrr_wavelet *c);
 
 /**
  * \brief Subtract coefficients of wavelet C from B across all scales, strictly
@@ -754,8 +766,8 @@ void smbrr_wavelet_subtract(struct smbrr_wavelet *a, struct smbrr_wavelet *b,
  * \ingroup wavelet
  */
 void smbrr_wavelet_significant_subtract(struct smbrr_wavelet *a,
-                                           struct smbrr_wavelet *b,
-                                           struct smbrr_wavelet *c);
+										struct smbrr_wavelet *b,
+										struct smbrr_wavelet *c);
 
 /**
  * \brief Add coefficients of wavelet C to B across all scales, strictly masked
@@ -763,8 +775,8 @@ void smbrr_wavelet_significant_subtract(struct smbrr_wavelet *a,
  * \ingroup wavelet
  */
 void smbrr_wavelet_significant_add(struct smbrr_wavelet *a,
-                                      struct smbrr_wavelet *b,
-                                      struct smbrr_wavelet *c);
+								   struct smbrr_wavelet *b,
+								   struct smbrr_wavelet *c);
 
 /**
  * \brief Apply K-sigma thresholding across all wavelet scales to dynamically
@@ -772,7 +784,7 @@ void smbrr_wavelet_significant_add(struct smbrr_wavelet *a,
  * \ingroup noise
  */
 int smbrr_wavelet_new_significant(struct smbrr_wavelet *w,
-                                     enum smbrr_clip sigma_clip);
+								  enum smbrr_clip sigma_clip);
 
 /**
  * \brief Iteratively threshold each wavelet scale using standard pre-calculated
@@ -780,7 +792,7 @@ int smbrr_wavelet_new_significant(struct smbrr_wavelet *w,
  * \ingroup noise
  */
 int smbrr_wavelet_ksigma_clip(struct smbrr_wavelet *w, enum smbrr_clip clip,
-                                 float sig_delta);
+							  float sig_delta);
 
 /**
  * \brief Iteratively threshold each wavelet scale using user-supplied deviation
@@ -792,16 +804,15 @@ int smbrr_wavelet_ksigma_clip(struct smbrr_wavelet *w, enum smbrr_clip clip,
  * \ingroup noise
  */
 int smbrr_wavelet_ksigma_clip_custom(struct smbrr_wavelet *w,
-                                        struct smbrr_clip_coeff *coeff,
-                                        float sig_delta);
+									 struct smbrr_clip_coeff *coeff,
+									 float sig_delta);
 
 /**
  * \brief Perform a connected-component analysis on the significance map at a
  * specific scale to logically group contiguous structural pixels.
  * \ingroup object
  */
-int smbrr_wavelet_structure_find(struct smbrr_wavelet *w,
-                                    unsigned int scale);
+int smbrr_wavelet_structure_find(struct smbrr_wavelet *w, unsigned int scale);
 
 /**
  * \brief Build a relational tree matching overlapping structures between
@@ -809,8 +820,8 @@ int smbrr_wavelet_structure_find(struct smbrr_wavelet *w,
  * \ingroup object
  */
 int smbrr_wavelet_structure_connect(struct smbrr_wavelet *w,
-                                       unsigned int start_scale,
-                                       unsigned int end_scale);
+									unsigned int start_scale,
+									unsigned int end_scale);
 
 /**
  * \brief Access the classification and boundary parameter data for a globally
@@ -818,7 +829,7 @@ int smbrr_wavelet_structure_connect(struct smbrr_wavelet *w,
  * \ingroup object
  */
 struct smbrr_object *smbrr_wavelet_object_get(struct smbrr_wavelet *w,
-                                                 unsigned int object_id);
+											  unsigned int object_id);
 
 /**
  * \brief Recursively deallocate memory assigned to structural clusters and
@@ -833,16 +844,16 @@ void smbrr_wavelet_object_free_all(struct smbrr_wavelet *w);
  * \ingroup object
  */
 int smbrr_wavelet_object_get_data(struct smbrr_wavelet *w,
-                                     struct smbrr_object *object,
-                                     struct smbrr **data);
+								  struct smbrr_object *object,
+								  struct smbrr **data);
 
 /**
  * \brief Identify and return the highest-priority object whose bounding
  * constraints overlap the given 2D coordinates.
  * \ingroup object
  */
-struct smbrr_object *
-    smbrr_wavelet_get_object_at_posn(struct smbrr_wavelet *w, int x, int y);
+struct smbrr_object *smbrr_wavelet_get_object_at_posn(struct smbrr_wavelet *w,
+													  int x, int y);
 
 /**
  * 	float dark);
@@ -858,7 +869,7 @@ int smbrr_wavelet_set_dark_mean(struct smbrr_wavelet *w, float dark);
  * \ingroup noise
  */
 void smbrr_wavelet_set_ccd(struct smbrr_wavelet *w, float gain, float bias,
-                              float readout);
+						   float readout);
 
 /**
  * \brief Seed the foundational layer (Scale 0) of the wavelet hierarchy with

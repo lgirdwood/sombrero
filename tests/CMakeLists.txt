@@ -28,6 +28,15 @@ target_link_libraries(test_reconstruct PRIVATE sombrero ${CFITSIO_LIBRARIES})
 target_include_directories(test_reconstruct PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 add_test(NAME test_reconstruct COMMAND test_reconstruct -i wiz-ha-x.bmp -o test_out_reconstruct.bmp)
 
+# test_performance
+add_executable(test_performance test_performance.c $<TARGET_OBJECTS:test_utils>)
+target_link_libraries(test_performance PRIVATE sombrero ${CFITSIO_LIBRARIES})
+target_include_directories(test_performance PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
+if(ENABLE_OPENCL)
+    target_compile_definitions(test_performance PRIVATE HAVE_OPENCL)
+endif()
+add_test(NAME test_performance COMMAND test_performance -i wiz-ha-x.bmp -o test_out_performance)
+
 # Copy test images and script to the build directory
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../examples/images/wiz-ha-x.bmp
                ${CMAKE_CURRENT_BINARY_DIR}/wiz-ha-x.bmp COPYONLY)

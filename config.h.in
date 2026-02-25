@@ -40,6 +40,9 @@
 /* Define to enable OpenMP */
 #cmakedefine HAVE_OPENMP 1
 
+/* Define to enable OpenCL */
+#cmakedefine HAVE_OPENCL 1
+
 /* Define to 1 if you have the `posix_memalign' function. */
 #cmakedefine HAVE_POSIX_MEMALIGN 1
 

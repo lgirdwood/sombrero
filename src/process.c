@@ -28,60 +28,70 @@
 #include "ops.h"
 #include "sombrero.h"
 
-static const struct data_ops *get_1d_ops(void) {
-  unsigned int cpu_flags = cpu_get_flags();
+static const struct data_ops *get_1d_ops(void)
+{
+#ifdef HAVE_OPENCL
+	if (g_cl_ctx)
+		return &data_ops_1d_opencl;
+#endif
+	unsigned int cpu_flags = cpu_get_flags();
 
 #if defined HAVE_AVX512
-  if (cpu_flags & CPU_X86_AVX512)
-    return &data_ops_1d_avx512;
+	if (cpu_flags & CPU_X86_AVX512)
+		return &data_ops_1d_avx512;
 #endif
 #if defined HAVE_FMA
-  if (cpu_flags & CPU_X86_FMA)
-    return &data_ops_1d_fma;
+	if (cpu_flags & CPU_X86_FMA)
+		return &data_ops_1d_fma;
 #endif
 #if defined HAVE_AVX2
-  if (cpu_flags & CPU_X86_AVX2)
-    return &data_ops_1d_avx2;
+	if (cpu_flags & CPU_X86_AVX2)
+		return &data_ops_1d_avx2;
 #endif
 #if defined HAVE_AVX
-  if (cpu_flags & CPU_X86_AVX)
-    return &data_ops_1d_avx;
+	if (cpu_flags & CPU_X86_AVX)
+		return &data_ops_1d_avx;
 #endif
 #if defined HAVE_SSE42
-  if (cpu_flags & CPU_X86_SSE4_2)
-    return &data_ops_1d_sse42;
+	if (cpu_flags & CPU_X86_SSE4_2)
+		return &data_ops_1d_sse42;
 #endif
 
-  /* default C implementation */
-  return &data_ops_1d;
+	/* default C implementation */
+	return &data_ops_1d;
 }
 
-static const struct data_ops *get_2d_ops(void) {
-  unsigned int cpu_flags = cpu_get_flags();
+static const struct data_ops *get_2d_ops(void)
+{
+#ifdef HAVE_OPENCL
+	if (g_cl_ctx)
+		return &data_ops_2d_opencl;
+#endif
+	unsigned int cpu_flags = cpu_get_flags();
 
 #if defined HAVE_AVX512
-  if (cpu_flags & CPU_X86_AVX512)
-    return &data_ops_2d_avx512;
+	if (cpu_flags & CPU_X86_AVX512)
+		return &data_ops_2d_avx512;
 #endif
 #if defined HAVE_FMA
-  if (cpu_flags & CPU_X86_FMA)
-    return &data_ops_2d_fma;
+	if (cpu_flags & CPU_X86_FMA)
+		return &data_ops_2d_fma;
 #endif
 #if defined HAVE_AVX2
-  if (cpu_flags & CPU_X86_AVX2)
-    return &data_ops_2d_avx2;
+	if (cpu_flags & CPU_X86_AVX2)
+		return &data_ops_2d_avx2;
 #endif
 #if defined HAVE_AVX
-  if (cpu_flags & CPU_X86_AVX)
-    return &data_ops_2d_avx;
+	if (cpu_flags & CPU_X86_AVX)
+		return &data_ops_2d_avx;
 #endif
 #if defined HAVE_SSE42
-  if (cpu_flags & CPU_X86_SSE4_2)
-    return &data_ops_2d_sse42;
+	if (cpu_flags & CPU_X86_SSE4_2)
+		return &data_ops_2d_sse42;
 #endif
 
-  /* default C implementation */
-  return &data_ops_2d;
+	/* default C implementation */
+	return &data_ops_2d;
 }
 
 /*
@@ -97,138 +107,154 @@ static const struct data_ops *get_2d_ops(void) {
  * source is provided.
  */
 struct smbrr *smbrr_new(enum smbrr_data_type type, unsigned int width,
-                        unsigned int height, unsigned int stride,
-                        enum smbrr_source_type adu, const void *src_data) {
-  struct smbrr *s;
-  const struct data_ops *ops;
-  size_t size;
-  int bytes, err, elems, height_;
+						unsigned int height, unsigned int stride,
+						enum smbrr_source_type adu, const void *src_data)
+{
+	struct smbrr *s;
+	const struct data_ops *ops;
+	size_t size;
+	int bytes, err, elems, height_;
 
-  if (width == 0)
-    return NULL;
+	if (width == 0)
+		return NULL;
 
-  switch (type) {
-  case SMBRR_DATA_1D_UINT32:
-    bytes = sizeof(uint32_t);
-    size = width * bytes;
-    ops = get_1d_ops();
-    elems = width;
-    height_ = 1;
-    break;
-  case SMBRR_DATA_2D_UINT32:
-    bytes = sizeof(uint32_t);
-    size = width * height * bytes;
-    ops = get_2d_ops();
-    elems = width * height;
-    height_ = height;
-    break;
-  case SMBRR_DATA_1D_FLOAT:
-    bytes = sizeof(float);
-    size = width * bytes;
-    ops = get_1d_ops();
-    elems = width;
-    height_ = 1;
-    break;
-  case SMBRR_DATA_2D_FLOAT:
-    bytes = sizeof(float);
-    size = width * height * bytes;
-    ops = get_2d_ops();
-    elems = width * height;
-    height_ = height;
-    break;
-  default:
-    return NULL;
-  }
+	switch (type) {
+	case SMBRR_DATA_1D_UINT32:
+		bytes = sizeof(uint32_t);
+		size = width * bytes;
+		ops = get_1d_ops();
+		elems = width;
+		height_ = 1;
+		break;
+	case SMBRR_DATA_2D_UINT32:
+		bytes = sizeof(uint32_t);
+		size = width * height * bytes;
+		ops = get_2d_ops();
+		elems = width * height;
+		height_ = height;
+		break;
+	case SMBRR_DATA_1D_FLOAT:
+		bytes = sizeof(float);
+		size = width * bytes;
+		ops = get_1d_ops();
+		elems = width;
+		height_ = 1;
+		break;
+	case SMBRR_DATA_2D_FLOAT:
+		bytes = sizeof(float);
+		size = width * height * bytes;
+		ops = get_2d_ops();
+		elems = width * height;
+		height_ = height;
+		break;
+	default:
+		return NULL;
+	}
 
-  s = calloc(1, sizeof(*s));
-  if (s == NULL)
-    return NULL;
+	s = calloc(1, sizeof(*s));
+	if (s == NULL)
+		return NULL;
 
-  err = posix_memalign((void **)&s->adu, 32, size);
-  if (err < 0) {
-    free(s);
-    return NULL;
-  }
-  bzero(s->adu, size);
+	err = posix_memalign((void **)&s->adu, 32, size);
+	if (err < 0) {
+		free(s);
+		return NULL;
+	}
+	bzero(s->adu, size);
 
-  s->type = type;
-  s->ops = ops;
-  s->elems = elems;
-  s->width = width;
-  s->height = height_;
+	s->type = type;
+	s->ops = ops;
+	s->elems = elems;
+	s->width = width;
+	s->height = height_;
 
-  if (stride == 0) {
-    if (s->width % 4)
-      s->stride = s->width + 4 - (s->width % 4);
-    else
-      s->stride = s->width;
-  } else
-    s->stride = stride;
+	if (stride == 0) {
+		if (s->width % 4)
+			s->stride = s->width + 4 - (s->width % 4);
+		else
+			s->stride = s->width;
+	} else
+		s->stride = stride;
 
-  if (src_data == NULL)
-    return s;
+#ifdef HAVE_OPENCL
+	if (g_cl_ctx) {
+		cl_int err;
+		s->cl_adu = clCreateBuffer(g_cl_ctx->context, CL_MEM_READ_WRITE, size,
+								   NULL, &err);
+		s->cl_state = 2;
+	}
+#endif
 
-  switch (adu) {
+	if (src_data == NULL)
+		return s;
 
-  case SMBRR_SOURCE_UINT8:
-    switch (type) {
-    case SMBRR_DATA_1D_UINT32:
-    case SMBRR_DATA_2D_UINT32:
-      s->ops->uchar_to_uint(s, src_data);
-      break;
-    case SMBRR_DATA_1D_FLOAT:
-    case SMBRR_DATA_2D_FLOAT:
-      s->ops->uchar_to_float(s, src_data);
-      break;
-    }
-    break;
+	switch (adu) {
+	case SMBRR_SOURCE_UINT8:
+		switch (type) {
+		case SMBRR_DATA_1D_UINT32:
+		case SMBRR_DATA_2D_UINT32:
+			s->ops->uchar_to_uint(s, src_data);
+			break;
+		case SMBRR_DATA_1D_FLOAT:
+		case SMBRR_DATA_2D_FLOAT:
+			s->ops->uchar_to_float(s, src_data);
+			break;
+		}
+		break;
 
-  case SMBRR_SOURCE_UINT16:
-    switch (type) {
-    case SMBRR_DATA_1D_UINT32:
-    case SMBRR_DATA_2D_UINT32:
-      s->ops->ushort_to_uint(s, src_data);
-      break;
-    case SMBRR_DATA_1D_FLOAT:
-    case SMBRR_DATA_2D_FLOAT:
-      s->ops->ushort_to_float(s, src_data);
-      break;
-    }
-    break;
+	case SMBRR_SOURCE_UINT16:
+		switch (type) {
+		case SMBRR_DATA_1D_UINT32:
+		case SMBRR_DATA_2D_UINT32:
+			s->ops->ushort_to_uint(s, src_data);
+			break;
+		case SMBRR_DATA_1D_FLOAT:
+		case SMBRR_DATA_2D_FLOAT:
+			s->ops->ushort_to_float(s, src_data);
+			break;
+		}
+		break;
 
-  case SMBRR_SOURCE_UINT32:
-    switch (type) {
-    case SMBRR_DATA_1D_UINT32:
-    case SMBRR_DATA_2D_UINT32:
-      s->ops->uint_to_uint(s, src_data);
-      break;
-    case SMBRR_DATA_1D_FLOAT:
-    case SMBRR_DATA_2D_FLOAT:
-      s->ops->uint_to_float(s, src_data);
-      break;
-    }
-    break;
+	case SMBRR_SOURCE_UINT32:
+		switch (type) {
+		case SMBRR_DATA_1D_UINT32:
+		case SMBRR_DATA_2D_UINT32:
+			s->ops->uint_to_uint(s, src_data);
+			break;
+		case SMBRR_DATA_1D_FLOAT:
+		case SMBRR_DATA_2D_FLOAT:
+			s->ops->uint_to_float(s, src_data);
+			break;
+		}
+		break;
 
-  case SMBRR_SOURCE_FLOAT:
-    switch (type) {
-    case SMBRR_DATA_1D_UINT32:
-    case SMBRR_DATA_2D_UINT32:
-      s->ops->float_to_uint(s, src_data);
-      break;
-    case SMBRR_DATA_1D_FLOAT:
-    case SMBRR_DATA_2D_FLOAT:
-      s->ops->float_to_float(s, src_data);
-      break;
-    }
-    break;
+	case SMBRR_SOURCE_FLOAT:
+		switch (type) {
+		case SMBRR_DATA_1D_UINT32:
+		case SMBRR_DATA_2D_UINT32:
+			s->ops->float_to_uint(s, src_data);
+			break;
+		case SMBRR_DATA_1D_FLOAT:
+		case SMBRR_DATA_2D_FLOAT:
+			s->ops->float_to_float(s, src_data);
+			break;
+		}
+		break;
 
-  default:
-    free(s->adu);
-    free(s);
-    return NULL;
-  }
+	default:
+		free(s->adu);
+		free(s);
+		return NULL;
+	}
 
-  return s;
+#ifdef HAVE_OPENCL
+	if (g_cl_ctx) {
+		clEnqueueWriteBuffer(g_cl_ctx->command_queue, s->cl_adu, CL_TRUE, 0,
+							 size, s->adu, 0, NULL, NULL);
+	}
+#endif
+
+	return s;
 }
 
 /**
@@ -243,60 +269,75 @@ struct smbrr *smbrr_new(enum smbrr_data_type type, unsigned int width,
  * for faster 2D processing and reconstructing smaller regions of interest.
  */
 struct smbrr *smbrr_new_from_area(struct smbrr *src, unsigned int x_start,
-                                  unsigned int y_start, unsigned int x_end,
-                                  unsigned int y_end) {
-  struct smbrr *s;
-  int bytes, width, height, i, err;
-  size_t size;
+								  unsigned int y_start, unsigned int x_end,
+								  unsigned int y_end)
+{
+	struct smbrr *s;
+	int bytes, width, height, i, err;
+	size_t size;
 
-  width = x_end - x_start;
-  height = y_end - y_start;
+	width = x_end - x_start;
+	height = y_end - y_start;
 
-  if (width <= 0 || height <= 0)
-    return NULL;
+	if (width <= 0 || height <= 0)
+		return NULL;
 
-  switch (src->type) {
-  case SMBRR_DATA_2D_UINT32:
-    bytes = sizeof(uint32_t);
-    break;
-  case SMBRR_DATA_2D_FLOAT:
-    bytes = sizeof(float);
-    break;
-  default:
-    return NULL;
-  }
+	switch (src->type) {
+	case SMBRR_DATA_2D_UINT32:
+		bytes = sizeof(uint32_t);
+		break;
+	case SMBRR_DATA_2D_FLOAT:
+		bytes = sizeof(float);
+		break;
+	default:
+		return NULL;
+	}
 
-  s = calloc(1, sizeof(*s));
-  if (s == NULL)
-    return NULL;
+	s = calloc(1, sizeof(*s));
+	if (s == NULL)
+		return NULL;
 
-  /* make ADU memory aligned on 32 bytes for SIMD */
-  size = width * height * bytes;
-  err = posix_memalign((void **)&s->adu, 32, size);
-  if (err < 0) {
-    free(s);
-    return NULL;
-  }
-  bzero(s->adu, size);
+	/* make ADU memory aligned on 32 bytes for SIMD */
+	size = width * height * bytes;
+	err = posix_memalign((void **)&s->adu, 32, size);
+	if (err < 0) {
+		free(s);
+		return NULL;
+	}
+	bzero(s->adu, size);
 
-  s->ops = get_2d_ops();
-  s->elems = width * height;
-  s->width = width;
-  s->height = height;
-  if (s->width % 4)
-    s->stride = s->width + 4 - (s->width % 4);
-  else
-    s->stride = s->width;
+	s->ops = get_2d_ops();
+	s->elems = width * height;
+	s->width = width;
+	s->height = height;
+	if (s->width % 4)
+		s->stride = s->width + 4 - (s->width % 4);
+	else
+		s->stride = s->width;
 
-  s->type = src->type;
+	s->type = src->type;
 
-  /* copy each row from src data to new data */
-  for (i = y_start; i < y_end; i++) {
-    unsigned int offset = i * s->width + x_start;
-    memcpy(s->adu + i * width, src->adu + offset, width * sizeof(float));
-  }
+#ifdef HAVE_OPENCL
+	if (g_cl_ctx) {
+		if (src->cl_state == 1) {
+			clEnqueueReadBuffer(g_cl_ctx->command_queue, src->cl_adu, CL_TRUE,
+								0, src->elems * bytes, src->adu, 0, NULL, NULL);
+			src->cl_state = 2;
+		}
+		cl_int err;
+		s->cl_adu = clCreateBuffer(g_cl_ctx->context, CL_MEM_READ_WRITE, size,
+								   NULL, &err);
+		s->cl_state = 2;
+	}
+#endif
 
-  return s;
+	/* copy each row from src data to new data */
+	for (i = y_start; i < y_end; i++) {
+		unsigned int offset = i * s->width + x_start;
+		memcpy(s->adu + i * width, src->adu + offset, width * sizeof(float));
+	}
+
+	return s;
 }
 
 /**
@@ -309,55 +350,70 @@ struct smbrr *smbrr_new_from_area(struct smbrr *src, unsigned int x_start,
  * for faster 1D processing and reconstructing smaller regions of interest.
  */
 struct smbrr *smbrr_new_from_section(struct smbrr *src, unsigned int start,
-                                     unsigned int end) {
-  struct smbrr *s;
-  int bytes, width, err;
-  size_t size;
+									 unsigned int end)
+{
+	struct smbrr *s;
+	int bytes, width, err;
+	size_t size;
 
-  width = end - start;
+	width = end - start;
 
-  if (width <= 0 || width + start > src->width)
-    return NULL;
+	if (width <= 0 || width + start > src->width)
+		return NULL;
 
-  switch (src->type) {
-  case SMBRR_DATA_1D_UINT32:
-    bytes = sizeof(uint32_t);
-    break;
-  case SMBRR_DATA_1D_FLOAT:
-    bytes = sizeof(float);
-    break;
-  default:
-    return NULL;
-  }
+	switch (src->type) {
+	case SMBRR_DATA_1D_UINT32:
+		bytes = sizeof(uint32_t);
+		break;
+	case SMBRR_DATA_1D_FLOAT:
+		bytes = sizeof(float);
+		break;
+	default:
+		return NULL;
+	}
 
-  s = calloc(1, sizeof(*s));
-  if (s == NULL)
-    return NULL;
+	s = calloc(1, sizeof(*s));
+	if (s == NULL)
+		return NULL;
 
-  /* make ADU memory aligned on 32 bytes for SIMD */
-  size = width * bytes;
-  err = posix_memalign((void **)&s->adu, 32, size);
-  if (err < 0) {
-    free(s);
-    return NULL;
-  }
-  bzero(s->adu, size);
+	/* make ADU memory aligned on 32 bytes for SIMD */
+	size = width * bytes;
+	err = posix_memalign((void **)&s->adu, 32, size);
+	if (err < 0) {
+		free(s);
+		return NULL;
+	}
+	bzero(s->adu, size);
 
-  s->ops = get_1d_ops();
-  s->elems = width;
-  s->width = width;
-  s->height = 1;
-  s->type = src->type;
+	s->ops = get_1d_ops();
+	s->elems = width;
+	s->width = width;
+	s->height = 1;
+	s->type = src->type;
 
-  if (s->width % 4)
-    s->stride = s->width + 4 - (s->width % 4);
-  else
-    s->stride = s->width;
+	if (s->width % 4)
+		s->stride = s->width + 4 - (s->width % 4);
+	else
+		s->stride = s->width;
 
-  /* copy from src data to new data */
-  memcpy(s->adu, src->adu + start, width * sizeof(float));
+#ifdef HAVE_OPENCL
+	if (g_cl_ctx) {
+		if (src->cl_state == 1) {
+			clEnqueueReadBuffer(g_cl_ctx->command_queue, src->cl_adu, CL_TRUE,
+								0, src->elems * bytes, src->adu, 0, NULL, NULL);
+			src->cl_state = 2;
+		}
+		cl_int err;
+		s->cl_adu = clCreateBuffer(g_cl_ctx->context, CL_MEM_READ_WRITE, size,
+								   NULL, &err);
+		s->cl_state = 2;
+	}
+#endif
 
-  return s;
+	/* copy from src data to new data */
+	memcpy(s->adu, src->adu + start, width * sizeof(float));
+
+	return s;
 }
 
 /*
@@ -366,17 +422,18 @@ struct smbrr *smbrr_new_from_section(struct smbrr *src, unsigned int start,
  *
  * Create a new smbrr data from source data.
  */
-struct smbrr *smbrr_new_copy(struct smbrr *src) {
-  switch (src->type) {
-  case SMBRR_DATA_1D_UINT32:
-  case SMBRR_DATA_1D_FLOAT:
-    return smbrr_new_from_section(src, 0, src->width);
-  case SMBRR_DATA_2D_UINT32:
-  case SMBRR_DATA_2D_FLOAT:
-    return smbrr_new_from_area(src, 0, 0, src->width, src->height);
-  default:
-    return NULL;
-  }
+struct smbrr *smbrr_new_copy(struct smbrr *src)
+{
+	switch (src->type) {
+	case SMBRR_DATA_1D_UINT32:
+	case SMBRR_DATA_1D_FLOAT:
+		return smbrr_new_from_section(src, 0, src->width);
+	case SMBRR_DATA_2D_UINT32:
+	case SMBRR_DATA_2D_FLOAT:
+		return smbrr_new_from_area(src, 0, 0, src->width, src->height);
+	default:
+		return NULL;
+	}
 }
 
 /**
@@ -384,12 +441,19 @@ struct smbrr *smbrr_new_copy(struct smbrr *src) {
  *
  * Free data resources.
  */
-void smbrr_free(struct smbrr *s) {
-  if (s == NULL)
-    return;
+void smbrr_free(struct smbrr *s)
+{
+	if (s == NULL)
+		return;
 
-  free(s->adu);
-  free(s);
+#ifdef HAVE_OPENCL
+	if (s->cl_adu) {
+		clReleaseMemObject(s->cl_adu);
+	}
+#endif
+
+	free(s->adu);
+	free(s);
 }
 
 /*
@@ -400,8 +464,37 @@ void smbrr_free(struct smbrr *s) {
  *
  * Copy data pixel data to buffer buf and convert it to adu format.
  */
-int smbrr_get_data(struct smbrr *s, enum smbrr_source_type adu, void **buf) {
-  return s->ops->get(s, adu, buf);
+int smbrr_get_data(struct smbrr *s, enum smbrr_source_type adu, void **buf)
+{
+#ifdef HAVE_OPENCL
+	if (g_cl_ctx && s->cl_state == 1) {
+		cl_int err;
+		size_t el_size;
+		if (s->type == SMBRR_DATA_1D_UINT32 || s->type == SMBRR_DATA_2D_UINT32)
+			el_size = sizeof(uint32_t);
+		else
+			el_size = sizeof(float);
+		clEnqueueReadBuffer(g_cl_ctx->command_queue, s->cl_adu, CL_TRUE, 0,
+							s->elems * el_size, s->adu, 0, NULL, NULL);
+		s->cl_state = 2; /* Synced to CPU */
+	}
+#endif
+	return s->ops->get(s, adu, buf);
+}
+
+void smbrr_cl_sync(struct smbrr *s)
+{
+#ifdef HAVE_OPENCL
+	if (g_cl_ctx && s->cl_state == 1) {
+		size_t el_size = (s->type == SMBRR_DATA_1D_UINT32 ||
+						  s->type == SMBRR_DATA_2D_UINT32) ?
+							 sizeof(uint32_t) :
+							 sizeof(float);
+		clEnqueueReadBuffer(g_cl_ctx->command_queue, s->cl_adu, CL_TRUE, 0,
+							s->elems * el_size, s->adu, 0, NULL, NULL);
+		s->cl_state = 2;
+	}
+#endif
 }
 
 /**
@@ -411,14 +504,15 @@ int smbrr_get_data(struct smbrr *s, enum smbrr_source_type adu, void **buf) {
  *
  * Copy the source data to destination
  */
-int smbrr_copy(struct smbrr *dest, struct smbrr *src) {
-  if (dest->width != src->width)
-    return -EINVAL;
-  if (dest->height != src->height)
-    return -EINVAL;
+int smbrr_copy(struct smbrr *dest, struct smbrr *src)
+{
+	if (dest->width != src->width)
+		return -EINVAL;
+	if (dest->height != src->height)
+		return -EINVAL;
 
-  memcpy(dest->adu, src->adu, sizeof(float) * dest->elems);
-  return 0;
+	memcpy(dest->adu, src->adu, sizeof(float) * dest->elems);
+	return 0;
 }
 
 /**
@@ -432,14 +526,15 @@ int smbrr_copy(struct smbrr *dest, struct smbrr *src) {
  * Otherwise set element to 0.
  */
 int smbrr_significant_copy(struct smbrr *dest, struct smbrr *src,
-                           struct smbrr *sig) {
-  if (dest->width != src->width && dest->width != sig->width)
-    return -EINVAL;
-  if (dest->height != src->height && dest->width != sig->width)
-    return -EINVAL;
+						   struct smbrr *sig)
+{
+	if (dest->width != src->width && dest->width != sig->width)
+		return -EINVAL;
+	if (dest->height != src->height && dest->width != sig->width)
+		return -EINVAL;
 
-  dest->ops->copy_sig(dest, src, sig);
-  return 0;
+	dest->ops->copy_sig(dest, src, sig);
+	return 0;
 }
 
 /*
@@ -449,8 +544,9 @@ int smbrr_significant_copy(struct smbrr *dest, struct smbrr *src,
  *
  * Convert an data from one type to another.
  */
-int smbrr_convert(struct smbrr *s, enum smbrr_data_type type) {
-  return s->ops->convert(s, type);
+int smbrr_convert(struct smbrr *s, enum smbrr_data_type type)
+{
+	return s->ops->convert(s, type);
 }
 
 /**
@@ -460,8 +556,9 @@ int smbrr_convert(struct smbrr *s, enum smbrr_data_type type) {
  *
  * Find min and max pixel value limits for data.
  */
-void smbrr_find_limits(struct smbrr *s, float *min, float *max) {
-  s->ops->find_limits(s, min, max);
+void smbrr_find_limits(struct smbrr *s, float *min, float *max)
+{
+	s->ops->find_limits(s, min, max);
 }
 
 /**
@@ -472,8 +569,9 @@ void smbrr_find_limits(struct smbrr *s, float *min, float *max) {
  * Normalise data within a defined minimum value and range factor. This
  * subtracts minimum from value and then multiplies by factor.
  */
-void smbrr_normalise(struct smbrr *s, float min, float max) {
-  s->ops->normalise(s, min, max);
+void smbrr_normalise(struct smbrr *s, float min, float max)
+{
+	s->ops->normalise(s, min, max);
 }
 
 /**
@@ -483,8 +581,9 @@ void smbrr_normalise(struct smbrr *s, float min, float max) {
  *
  * Add pixels in data C from data B and store in data A.
  */
-void smbrr_add(struct smbrr *a, struct smbrr *b, struct smbrr *c) {
-  a->ops->add(a, b, c);
+void smbrr_add(struct smbrr *a, struct smbrr *b, struct smbrr *c)
+{
+	a->ops->add(a, b, c);
 }
 
 /**
@@ -496,8 +595,9 @@ void smbrr_add(struct smbrr *a, struct smbrr *b, struct smbrr *c) {
  * Add significant pixels in data C to data B and store in data A.
  */
 void smbrr_significant_add(struct smbrr *a, struct smbrr *b, struct smbrr *c,
-                           struct smbrr *s) {
-  a->ops->add_sig(a, b, c, s);
+						   struct smbrr *s)
+{
+	a->ops->add_sig(a, b, c, s);
 }
 
 /**
@@ -510,8 +610,9 @@ void smbrr_significant_add(struct smbrr *a, struct smbrr *b, struct smbrr *c,
  * destination data.
  */
 void smbrr_mult_add(struct smbrr *dest, struct smbrr *a, struct smbrr *b,
-                    float c) {
-  a->ops->mult_add(dest, a, b, c);
+					float c)
+{
+	a->ops->mult_add(dest, a, b, c);
 }
 
 /**
@@ -524,8 +625,9 @@ void smbrr_mult_add(struct smbrr *dest, struct smbrr *a, struct smbrr *b,
  * destination data.
  */
 void smbrr_mult_subtract(struct smbrr *dest, struct smbrr *a, struct smbrr *b,
-                         float c) {
-  dest->ops->mult_subtract(dest, a, b, c);
+						 float c)
+{
+	dest->ops->mult_subtract(dest, a, b, c);
 }
 
 /**
@@ -535,8 +637,9 @@ void smbrr_mult_subtract(struct smbrr *dest, struct smbrr *a, struct smbrr *b,
  *
  * Subtract pixels in data C from data B and store in data A.
  */
-void smbrr_subtract(struct smbrr *a, struct smbrr *b, struct smbrr *c) {
-  a->ops->subtract(a, b, c);
+void smbrr_subtract(struct smbrr *a, struct smbrr *b, struct smbrr *c)
+{
+	a->ops->subtract(a, b, c);
 }
 
 /**
@@ -548,8 +651,9 @@ void smbrr_subtract(struct smbrr *a, struct smbrr *b, struct smbrr *c) {
  * Subtract significant pixels in data C from data B and store in data A.
  */
 void smbrr_significant_subtract(struct smbrr *a, struct smbrr *b,
-                                struct smbrr *c, struct smbrr *s) {
-  a->ops->subtract_sig(a, b, c, s);
+								struct smbrr *c, struct smbrr *s)
+{
+	a->ops->subtract_sig(a, b, c, s);
 }
 
 /**
@@ -558,8 +662,9 @@ void smbrr_significant_subtract(struct smbrr *a, struct smbrr *b,
  *
  * Add value to all data pixels.
  */
-void smbrr_add_value(struct smbrr *s, float value) {
-  s->ops->add_value(s, value);
+void smbrr_add_value(struct smbrr *s, float value)
+{
+	s->ops->add_value(s, value);
 }
 
 /**
@@ -569,9 +674,9 @@ void smbrr_add_value(struct smbrr *s, float value) {
  *
  * Add value to all significant data pixels.
  */
-void smbrr_significant_add_value(struct smbrr *s, struct smbrr *ss,
-                                 float value) {
-  s->ops->add_value_sig(s, ss, value);
+void smbrr_significant_add_value(struct smbrr *s, struct smbrr *ss, float value)
+{
+	s->ops->add_value_sig(s, ss, value);
 }
 
 /**
@@ -580,8 +685,9 @@ void smbrr_significant_add_value(struct smbrr *s, struct smbrr *ss,
  *
  * Subtract value from all data pixels.
  */
-void smbrr_subtract_value(struct smbrr *s, float value) {
-  s->ops->subtract_value(s, value);
+void smbrr_subtract_value(struct smbrr *s, float value)
+{
+	s->ops->subtract_value(s, value);
 }
 
 /**
@@ -590,8 +696,9 @@ void smbrr_subtract_value(struct smbrr *s, float value) {
  *
  * Multiply all data pixels by value.
  */
-void smbrr_mult_value(struct smbrr *s, float value) {
-  s->ops->mult_value(s, value);
+void smbrr_mult_value(struct smbrr *s, float value)
+{
+	s->ops->mult_value(s, value);
 }
 
 /**
@@ -600,8 +707,9 @@ void smbrr_mult_value(struct smbrr *s, float value) {
  *
  * Reset all values in data to value
  */
-void smbrr_set_value(struct smbrr *s, float value) {
-  s->ops->reset_value(s, value);
+void smbrr_set_value(struct smbrr *s, float value)
+{
+	s->ops->reset_value(s, value);
 }
 
 /**
@@ -610,8 +718,9 @@ void smbrr_set_value(struct smbrr *s, float value) {
  *
  * Reset all values in significant data to value
  */
-void smbrr_significant_set_svalue(struct smbrr *s, uint32_t value) {
-  s->ops->set_sig_value(s, value);
+void smbrr_significant_set_svalue(struct smbrr *s, uint32_t value)
+{
+	s->ops->set_sig_value(s, value);
 }
 
 /**
@@ -622,8 +731,9 @@ void smbrr_significant_set_svalue(struct smbrr *s, uint32_t value) {
  * Set data pixels to value if pixel is significant.
  */
 void smbrr_significant_set_value(struct smbrr *s, struct smbrr *ss,
-                                 float sig_value) {
-  s->ops->set_value_sig(s, ss, sig_value);
+								 float sig_value)
+{
+	s->ops->set_value_sig(s, ss, sig_value);
 }
 
 /**
@@ -631,14 +741,20 @@ void smbrr_significant_set_value(struct smbrr *s, struct smbrr *ss,
  *
  * Clear any data pixels with negative values to zero..
  */
-void smbrr_zero_negative(struct smbrr *s) { s->ops->clear_negative(s); }
+void smbrr_zero_negative(struct smbrr *s)
+{
+	s->ops->clear_negative(s);
+}
 
 /**
  * \param s element context
  *
  * Set all elements to absolute values.
  */
-void smbrr_abs(struct smbrr *s) { s->ops->abs(s); }
+void smbrr_abs(struct smbrr *s)
+{
+	s->ops->abs(s);
+}
 
 /**
  * \param s element context
@@ -646,8 +762,9 @@ void smbrr_abs(struct smbrr *s) { s->ops->abs(s); }
  *
  * Set each element in s to the same sign as each elements in n
  */
-int smbrr_signed(struct smbrr *s, struct smbrr *n) {
-  return s->ops->sign(s, n);
+int smbrr_signed(struct smbrr *s, struct smbrr *n)
+{
+	return s->ops->sign(s, n);
 }
 
 /**
@@ -660,8 +777,9 @@ int smbrr_signed(struct smbrr *s, struct smbrr *n) {
  * using wavelet masks to blur data.
  */
 int smbrr_psf(struct smbrr *src, struct smbrr *dest,
-              enum smbrr_wavelet_mask mask) {
-  return src->ops->psf(src, dest, mask);
+			  enum smbrr_wavelet_mask mask)
+{
+	return src->ops->psf(src, dest, mask);
 }
 
 /**
@@ -670,7 +788,10 @@ int smbrr_psf(struct smbrr *src, struct smbrr *dest,
  *
  * Return the number of valid pixels used by data. i.e. width * height.
  */
-int smbrr_get_size(struct smbrr *s) { return s->width * s->height; }
+int smbrr_get_size(struct smbrr *s)
+{
+	return s->width * s->height;
+}
 
 /**
  * \param s element context
@@ -678,7 +799,10 @@ int smbrr_get_size(struct smbrr *s) { return s->width * s->height; }
  *
  * Return the number of raw pixels used by data. i.e. stride * height.
  */
-int smbrr_get_bytes(struct smbrr *s) { return s->stride * s->height; }
+int smbrr_get_bytes(struct smbrr *s)
+{
+	return s->stride * s->height;
+}
 
 /**
  * \param s element context
@@ -686,7 +810,10 @@ int smbrr_get_bytes(struct smbrr *s) { return s->stride * s->height; }
  *
  * Return the number of pixels in s stride.
  */
-int smbrr_get_stride(struct smbrr *s) { return s->stride; }
+int smbrr_get_stride(struct smbrr *s)
+{
+	return s->stride;
+}
 
 /**
  * \param s element context
@@ -694,7 +821,10 @@ int smbrr_get_stride(struct smbrr *s) { return s->stride; }
  *
  * Return the number of pixels in data width.
  */
-int smbrr_get_width(struct smbrr *s) { return s->width; }
+int smbrr_get_width(struct smbrr *s)
+{
+	return s->width;
+}
 
 /**
  * \param s element context
@@ -702,7 +832,10 @@ int smbrr_get_width(struct smbrr *s) { return s->width; }
  *
  * Return the number of pixels in s height.
  */
-int smbrr_get_height(struct smbrr *s) { return s->height; }
+int smbrr_get_height(struct smbrr *s)
+{
+	return s->height;
+}
 
 /**
  * \param s element context
@@ -712,16 +845,17 @@ int smbrr_get_height(struct smbrr *s) { return s->height; }
  *
  * Get data ADU value at (x,y)
  */
-float smbrr_get_adu_at_posn(struct smbrr *s, int x, int y) {
-  int pixel;
+float smbrr_get_adu_at_posn(struct smbrr *s, int x, int y)
+{
+	int pixel;
 
-  if (x < 0 || x >= s->width)
-    return -1.0;
-  if (y < 0 || y >= s->height)
-    return -1.0;
+	if (x < 0 || x >= s->width)
+		return -1.0;
+	if (y < 0 || y >= s->height)
+		return -1.0;
 
-  pixel = y * s->width + x;
-  return s->adu[pixel];
+	pixel = y * s->width + x;
+	return s->adu[pixel];
 }
 
 /**
@@ -731,9 +865,10 @@ float smbrr_get_adu_at_posn(struct smbrr *s, int x, int y) {
  *
  * Get data ADU value at (offset)
  */
-float smbrr_get_adu_at_offset(struct smbrr *s, int offset) {
-  if (offset < 0 || offset >= s->width)
-    return -1.0;
+float smbrr_get_adu_at_offset(struct smbrr *s, int offset)
+{
+	if (offset < 0 || offset >= s->width)
+		return -1.0;
 
-  return s->adu[offset];
+	return s->adu[offset];
 }

@@ -53,3 +53,7 @@ config ENABLE_FMA
 config ENABLE_OPENMP
     bool "Enable OpenMP"
     default y
+
+config ENABLE_OPENCL
+    bool "Enable OpenCL"
+    default y

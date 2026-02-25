@@ -96,6 +96,10 @@ target_link_libraries(sombrero PUBLIC m)
 if(HAVE_OPENMP)
     target_link_libraries(sombrero PUBLIC OpenMP::OpenMP_C)
 endif()
+if(HAVE_OPENCL)
+    target_sources(sombrero PRIVATE cl_ctx.c data_ops_opencl.c convolution_ops_opencl.c kernels.h)
+    target_link_libraries(sombrero PUBLIC OpenCL::OpenCL)
+endif()
 
 set_target_properties(sombrero PROPERTIES
     VERSION ${PROJECT_VERSION}
