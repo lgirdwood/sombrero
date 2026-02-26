@@ -44,3 +44,6 @@ examples/*.bmp
 # Documentation
 doc/man*
 doc/html*
+
+.cache/
+.config.*

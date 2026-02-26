@@ -19,7 +19,7 @@
 #ifndef _LOCAL_H
 #define _LOCAL_H
 
-#include <errno.h>
+#include "config.h"
 #include "sombrero.h"
 #include <stdint.h>
 
@@ -150,7 +150,7 @@ struct smbrr_wavelet {
 	enum smbrr_wavelet_mask mask_type; /**< Active wavelet mask matrix. */
 
 	/* data scales */
-	int num_scales; /**< Total data scales. */
+	unsigned int num_scales; /**< Total data scales. */
 	struct smbrr
 		*c[SMBRR_MAX_SCALES]; /**< Original continuous data sub-scales. */
 	struct smbrr *w[SMBRR_MAX_SCALES - 1]; /**< Wavelet sparse discrete scales. */
@@ -166,7 +166,7 @@ struct smbrr_wavelet {
 	/* objects */
 	struct object *objects; /**< Active identified objects. */
 	struct object **objects_sorted; /**< Sorted composite structures. */
-	int num_objects; /**< Number of detected elements. */
+	unsigned int num_objects; /**< Number of detected elements. */
 	struct object **object_map; /**< Component mapping matrix. */
 
 	/* dark */
@@ -211,24 +211,20 @@ static inline int wavelet_get_y(struct smbrr_wavelet *w, unsigned int pixel)
 
 static inline int y_boundary(unsigned int height, int offy)
 {
-	/* handle boundaries by mirror */
-	if (offy < 0)
-		offy = 0 - offy;
-	else if (offy >= height)
-		offy = height - (offy - height) - 1;
+	unsigned int uoffy = offy >= 0 ? offy : -offy;
+	if (uoffy >= height)
+		uoffy = height - (uoffy - height) - 1;
 
-	return offy;
+	return uoffy;
 }
 
 static inline int x_boundary(unsigned int width, int offx)
 {
-	/* handle boundaries by mirror */
-	if (offx < 0)
-		offx = 0 - offx;
-	else if (offx >= width)
-		offx = width - (offx - width) - 1;
+	unsigned int uoffx = offx >= 0 ? offx : -offx;
+	if (uoffx >= width)
+		uoffx = width - (uoffx - width) - 1;
 
-	return offx;
+	return uoffx;
 }
 
 #endif

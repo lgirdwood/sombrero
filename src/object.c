@@ -22,9 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "config.h"
 #include "local.h"
-#include "mask.h"
 #include "ops.h"
 #include "sombrero.h"
 
@@ -158,11 +156,12 @@ static int structure_detect_north(struct structure_info *info, int pixel,
 static void structure_scan_line(struct structure_info *info, int pixel)
 {
 	struct smbrr *sdata = info->sdata;
-	int x, y, start, end, line_pixel, news, newn;
+	unsigned int x, y;
+	int start, end, line_pixel, news, newn;
 
 	/* calculate line limits */
-	x = pixel % sdata->width;
-	y = pixel / sdata->width;
+	x = info->pixel % sdata->width;
+	y = info->pixel / sdata->width;
 	start = pixel - x;
 	end = start + sdata->width;
 
@@ -240,7 +239,8 @@ int smbrr_wavelet_structure_find(struct smbrr_wavelet *w, unsigned int scale)
 {
 	struct structure_info info;
 	struct stack stack;
-	int size, err;
+	unsigned int size;
+	int err;
 
 	smbrr_wavelet_cl_sync(w);
 
@@ -315,13 +315,14 @@ static struct structure *find_root_structure(struct smbrr_wavelet *w,
 static void prune_structure(struct smbrr_wavelet *w, unsigned int scale,
 							struct structure *structure)
 {
-	int x, y, pixel;
+	(void)scale;
+	unsigned int x, y, pixel;
 
 	pixel = structure->max_pixel;
 	x = pixel % w->width;
 	y = pixel / w->width;
 
-	if (x < 8 || x > w->width - 8 || y < 8 || y > w->height - 8)
+	if (x < 8 || x + 8 > w->width || y < 8 || y + 8 > w->height)
 		structure->pruned = 1;
 }
 
@@ -387,7 +388,7 @@ struct structure *structure_get_closest_branch(struct smbrr_wavelet *w,
 {
 	struct structure *s, *closest, *branch;
 	float dist = 1.0e6, new_dist;
-	int i;
+	unsigned int i;
 
 	s = w->structure[scale - 1];
 	closest = s + structure->branch[0];
@@ -452,8 +453,9 @@ static void object_get_bounds(struct smbrr_wavelet *w, struct object *object)
 {
 	struct structure *structure;
 	unsigned int minX = 2147483647, minY = 2147483647, maxX = 0, maxY = 0;
-	double x, y, x1 = minX, y1 = minY, x2 = maxX, y2 = maxY;
-	int i;
+	double x, y, x1 = (double)minX, y1 = (double)minY, x2 = (double)maxX,
+				 y2 = (double)maxY;
+	unsigned int i;
 
 	object->o.max_adu = 0.0;
 
@@ -514,7 +516,8 @@ static void object_get_position(struct smbrr_wavelet *w, struct object *object)
 
 static void object_get_sigma(struct smbrr_wavelet *w, struct object *object)
 {
-	int i;
+	(void)w;
+	unsigned int i;
 	float sigma = 0.0, t;
 
 	/* get sigma */
@@ -532,7 +535,8 @@ static void object_get_sigma(struct smbrr_wavelet *w, struct object *object)
 
 static int object_get_area(struct smbrr_wavelet *w, struct object *object)
 {
-	int err, i;
+	int err;
+	unsigned int i;
 
 	/* create data for this object */
 	err = object_create_data(w, object);
@@ -555,6 +559,7 @@ static int object_get_area(struct smbrr_wavelet *w, struct object *object)
 
 static void object_get_type(struct smbrr_wavelet *w, struct object *object)
 {
+	(void)w;
 	/* simple guess that stars mean value is usually higher than sigma */
 	/* this can be improved by using neural network */
 	if (object->o.sigma_adu > object->o.mean_adu)
@@ -602,22 +607,23 @@ static int background_cmp(const void *o1, const void *o2)
 static void object_get_annulus_background(struct smbrr_wavelet *w,
 										  struct object *object)
 {
-	int count = 0, x, y, xstart, ystart, xend, yend, pixel, size, i, bstart,
-		bend;
+	unsigned int count = 0, size, bstart, bend;
+	unsigned int x, y, xstart, ystart, xend, yend, pixel, i;
 	float total = 0.0, *background;
 
 	/* size of background checking area */
-	ystart = object->o.pos.y - object->o.object_radius;
-	if (ystart < 0)
-		ystart = 0;
+	ystart = (object->o.pos.y > object->o.object_radius) ?
+				 object->o.pos.y - object->o.object_radius :
+				 0;
 	yend = object->o.pos.y + object->o.object_radius;
 	if (yend >= w->height)
 		yend = w->height - 1;
-	xstart = object->o.pos.x - object->o.object_radius;
-	if (xstart < 0)
-		xstart = 0;
+
+	xstart = (object->o.pos.x > object->o.object_radius) ?
+				 object->o.pos.x - object->o.object_radius :
+				 0;
 	xend = object->o.pos.x + object->o.object_radius;
-	if (xend > w->width)
+	if (xend >= w->width)
 		xend = w->width - 1;
 
 	/* allocate buffer to store valid background values */
@@ -712,7 +718,8 @@ static void object_calc_snr(struct smbrr_wavelet *w, struct object *object)
 static int object_calc_data(struct smbrr_wavelet *w)
 {
 	struct object *object;
-	int err, i;
+	int err;
+	unsigned int i;
 
 	smbrr_wavelet_cl_sync(w);
 
@@ -760,7 +767,7 @@ static void object_calc_mag_delta(struct smbrr_wavelet *w,
 static void object_calc_data2(struct smbrr_wavelet *w)
 {
 	struct object *object;
-	int i;
+	unsigned int i;
 
 	for (i = 0; i < w->num_objects; i++) {
 		object = &w->objects[i];
@@ -772,13 +779,14 @@ static void object_calc_data2(struct smbrr_wavelet *w)
 static struct object *new_object(struct smbrr_wavelet *w, unsigned int scale,
 								 struct structure *structure)
 {
+	(void)structure;
 	struct object *object;
 
 	w->objects = realloc(w->objects, sizeof(*object) * ++w->num_objects);
 	if (w->objects == NULL)
 		return NULL;
 	w->objects_sorted =
-		realloc(w->objects_sorted, sizeof(object) * w->num_objects);
+		realloc(w->objects_sorted, sizeof(*w->objects_sorted) * w->num_objects);
 	if (w->objects_sorted == NULL)
 		return NULL;
 
@@ -814,7 +822,8 @@ static int create_object(struct smbrr_wavelet *w, unsigned int scale,
 {
 	struct object *object;
 	struct structure *root = NULL, *closest_branch, *branch;
-	int i, err, bscale = scale - 1, rscale = scale + 1;
+	int err;
+	unsigned int i, bscale = scale - 1, rscale = scale + 1;
 
 	/* make sure we are not part of an object already */
 	if (structure->merged)
@@ -877,7 +886,7 @@ static int create_object(struct smbrr_wavelet *w, unsigned int scale,
 static int prune_objects(struct smbrr_wavelet *w)
 {
 	struct object *object, *base, *nobject;
-	int i, count = 0;
+	unsigned int i, count = 0;
 
 	for (i = 0; i < w->num_objects; i++) {
 		object = &w->objects[i];
@@ -926,7 +935,8 @@ int smbrr_wavelet_structure_connect(struct smbrr_wavelet *w,
 									unsigned int end_scale)
 {
 	struct structure *structure;
-	int err = 0, scale, i, start = start_scale, end = end_scale, ret;
+	int err = 0, ret;
+	unsigned int scale, i, start = start_scale, end = end_scale;
 
 	/* make sure we dont check scales after last */
 	if (end_scale > w->num_scales - 1)
@@ -1018,7 +1028,7 @@ void smbrr_wavelet_object_free_all(struct smbrr_wavelet *w)
 {
 	struct object *object;
 	struct structure *structure;
-	int i, j;
+	unsigned int i, j;
 
 	for (i = 0; i < w->num_objects; i++) {
 		object = &w->objects[i];
@@ -1082,12 +1092,14 @@ struct smbrr_object *smbrr_wavelet_get_object_at_posn(struct smbrr_wavelet *w,
 {
 	int pixel;
 
-	if (x < 0 || x > w->width - 1)
-		return NULL;
-	if (y < 0 || y > w->height - 1)
+	if (x < 0 || y < 0)
 		return NULL;
 
-	pixel = y * w->width + x;
+	unsigned int ux = x, uy = y;
+	if (ux >= w->width || uy >= w->height)
+		return NULL;
+
+	pixel = uy * w->width + ux;
 
 	return &w->object_map[pixel]->o;
 }
@@ -1102,8 +1114,11 @@ struct smbrr_object *smbrr_wavelet_get_object_at_posn(struct smbrr_wavelet *w,
 struct smbrr_object *smbrr_wavelet_get_object_at_offset(struct smbrr_wavelet *w,
 														int offset)
 {
-	if (offset < 0 || offset > w->width - 1)
+	if (offset < 0)
+		return NULL;
+	unsigned int uoffset = offset;
+	if (uoffset >= w->width * w->height)
 		return NULL;
 
-	return &w->object_map[offset]->o;
+	return &w->object_map[uoffset]->o;
 }

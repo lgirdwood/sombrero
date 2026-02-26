@@ -140,7 +140,6 @@ if(ENABLE_OPENMP)
 endif()
 
 # OpenCL
-option(ENABLE_OPENCL "Enable OpenCL" ON)
 if(ENABLE_OPENCL)
     find_package(OpenCL)
     if(OpenCL_FOUND)

@@ -5,7 +5,6 @@
 #include "config.h"
 #include "local.h"
 #include "ops.h"
-#include "mask.h"
 
 #ifdef HAVE_OPENCL
 #include <CL/cl.h>
