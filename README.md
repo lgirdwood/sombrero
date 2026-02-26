@@ -22,6 +22,8 @@ Sombrero is named after the "Mexican Hat" shape of the wavelet masks used in dat
 
 Sombrero uses CMake as its build system. To build the library and example applications, ensure you have CMake installed, a C compiler supporting C99, and the CFITSIO library (`libcfitsio-dev` or equivalent) for FITS image support. OpenMP and SIMD support (SSE4.2, AVX, AVX2, AVX-512, FMA) will be automatically detected and enabled if supported by your system and compiler.
 
+If you plan to use GPU acceleration, verify that you have an OpenCL implementation installed for your hardware (e.g., `ocl-icd-opencl-dev` or `intel-opencl-icd` along with the standard `opencl-headers`).
+
 ```bash
 # Clone the repository
 git clone https://github.com/lgirdwood/sombrero.git
@@ -40,12 +42,12 @@ make -j$(nproc)
 By default, CMake will try to enable SIMD optimizations and OpenMP if they are detected. You can explicitly turn them off during CMake configuration:
 
 ```bash
-cmake .. -DENABLE_SSE42=OFF -DENABLE_AVX=OFF -DENABLE_AVX2=OFF -DENABLE_AVX512=OFF -DENABLE_FMA=OFF -DENABLE_OPENMP=OFF
+cmake .. -DENABLE_SSE42=OFF -DENABLE_AVX=OFF -DENABLE_AVX2=OFF -DENABLE_AVX512=OFF -DENABLE_FMA=OFF -DENABLE_OPENMP=OFF -DENABLE_OPENCL=OFF
 ```
 
 ### Advanced Configuration (Menuconfig)
 
-The library supports toggling specific CPU architecture optimizations (SSE, AVX, AVX2, AVX-512, OpenMP) via a Kconfig-based menu interface. You can launch this interactive configuration console before compiling:
+The library supports toggling specific CPU architecture optimizations (SSE, AVX, AVX2, AVX-512, OpenMP) and GPU acceleration backends (OpenCL) via a Kconfig-based menu interface. You can launch this interactive configuration console before compiling:
 
 ```bash
 cd build

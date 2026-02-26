@@ -11,6 +11,16 @@
 #include <CL/cl.h>
 #include "cl_ctx.h"
 
+#include "cl_ctx.h"
+
+/**
+ * \brief Synchronize data back from the OpenCL GPU buffer to the CPU RAM.
+ *
+ * \param s Pointer to the smbrr data structure.
+ *
+ * If the OpenCL buffer (cl_adu) is newer than the CPU buffer (adu),
+ * this functions reads the data back via `clEnqueueReadBuffer`.
+ */
 static inline void sync_to_cpu(struct smbrr *s)
 {
 	if (g_cl_ctx && s->cl_state == 1) {
@@ -24,11 +34,25 @@ static inline void sync_to_cpu(struct smbrr *s)
 	}
 }
 
+/**
+ * \brief Mark an OpenCL GPU buffer as the latest version of the data.
+ *
+ * \param s Pointer to the smbrr data structure.
+ *
+ * Sets `cl_state = 1` indicating that operations have modified the OpenCL
+ * buffer and `sync_to_cpu` will be required before reading changes on the CPU.
+ */
 static inline void mark_gpu_modified(struct smbrr *s)
 {
 	s->cl_state = 1;
 }
 
+/**
+ * \brief Enqueue and execute an OpenCL kernel operating on a single data buffer.
+ *
+ * \param k The OpenCL kernel to run.
+ * \param a The target data buffer.
+ */
 static inline void run_kernel_1_buffer(cl_kernel k, struct smbrr *a)
 {
 	clSetKernelArg(k, 0, sizeof(cl_mem), &a->cl_adu);
@@ -39,6 +63,13 @@ static inline void run_kernel_1_buffer(cl_kernel k, struct smbrr *a)
 	mark_gpu_modified(a);
 }
 
+/**
+ * \brief Enqueue and execute an OpenCL kernel operating on a single data buffer with a single float parameter.
+ *
+ * \param k The OpenCL kernel to run.
+ * \param a The target data buffer.
+ * \param val The generic float scalar parameter passed to the kernel.
+ */
 static inline void run_kernel_1_buffer_float(cl_kernel k, struct smbrr *a,
 											 float val)
 {
@@ -51,6 +82,13 @@ static inline void run_kernel_1_buffer_float(cl_kernel k, struct smbrr *a,
 	mark_gpu_modified(a);
 }
 
+/**
+ * \brief Enqueue and execute an OpenCL kernel operating on a single data buffer with a single unsigned integer parameter.
+ *
+ * \param k The OpenCL kernel to run.
+ * \param a The target data buffer.
+ * \param val The generic uint32_t scalar parameter passed to the kernel.
+ */
 static inline void run_kernel_1_buffer_uint(cl_kernel k, struct smbrr *a,
 											uint32_t val)
 {
@@ -63,6 +101,14 @@ static inline void run_kernel_1_buffer_uint(cl_kernel k, struct smbrr *a,
 	mark_gpu_modified(a);
 }
 
+/**
+ * \brief Enqueue and execute an OpenCL kernel operating across three data buffers.
+ *
+ * \param k The OpenCL kernel to run.
+ * \param a Target Data buffer A.
+ * \param b Source Data buffer B.
+ * \param c Source Data buffer C.
+ */
 static inline void run_kernel_3_buffers(cl_kernel k, struct smbrr *a,
 										struct smbrr *b, struct smbrr *c)
 {
@@ -76,6 +122,15 @@ static inline void run_kernel_3_buffers(cl_kernel k, struct smbrr *a,
 	mark_gpu_modified(a);
 }
 
+/**
+ * \brief Enqueue and execute an OpenCL kernel operating across four data buffers.
+ *
+ * \param k The OpenCL kernel to run.
+ * \param a Target Data buffer A.
+ * \param b Source Data buffer B.
+ * \param c Source Data buffer C.
+ * \param s Condition mask data buffer.
+ */
 static inline void run_kernel_4_buffers(cl_kernel k, struct smbrr *a,
 										struct smbrr *b, struct smbrr *c,
 										struct smbrr *s)
@@ -91,6 +146,14 @@ static inline void run_kernel_4_buffers(cl_kernel k, struct smbrr *a,
 	mark_gpu_modified(a);
 }
 
+/**
+ * \brief Enqueue and execute an OpenCL kernel across two data buffers and a single float scalar parameter.
+ *
+ * \param k The OpenCL kernel to run.
+ * \param dest Target Data buffer destination.
+ * \param src Source Data buffer.
+ * \param val Generic float scalar parameter.
+ */
 static inline void run_kernel_2_buffers_float(cl_kernel k, struct smbrr *dest,
 											  struct smbrr *src, float val)
 {
@@ -104,6 +167,15 @@ static inline void run_kernel_2_buffers_float(cl_kernel k, struct smbrr *dest,
 	mark_gpu_modified(dest);
 }
 
+/**
+ * \brief Enqueue and execute an OpenCL kernel across three data buffers and a single float scalar parameter.
+ *
+ * \param k The OpenCL kernel to run.
+ * \param dest Target Data buffer destination.
+ * \param a Source Data buffer A.
+ * \param b Source Data buffer B.
+ * \param c Generic float scalar parameter.
+ */
 static inline void run_kernel_3_buffers_float(cl_kernel k, struct smbrr *dest,
 											  struct smbrr *a, struct smbrr *b,
 											  float c)

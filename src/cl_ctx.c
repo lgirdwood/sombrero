@@ -12,6 +12,12 @@
 
 struct smbrr_cl_context *g_cl_ctx = NULL;
 
+/**
+ * \brief Print an OpenCL program build log.
+ *
+ * \param program The OpenCL program that failed to build.
+ * \param device The target device.
+ */
 static void cl_compile_error(cl_program program, cl_device_id device)
 {
 	size_t log_size;
@@ -24,6 +30,15 @@ static void cl_compile_error(cl_program program, cl_device_id device)
 	free(log);
 }
 
+/**
+ * \brief Initialize the OpenCL context and compile standard kernels.
+ * \ingroup opencl
+ *
+ * \param device_index Index of the OpenCL device to select.
+ * \return 0 on success, or -1 if OpenCL initialization failed.
+ *
+ * Automatically called when OpenCL support is enabled to set up the global GPU context.
+ */
 int smbrr_init_opencl(int device_index)
 {
 	cl_int err;
@@ -155,6 +170,12 @@ cleanup_fail:
 	return -1;
 }
 
+/**
+ * \brief Release all OpenCL contexts, kernels, queues, and memory.
+ * \ingroup opencl
+ *
+ * Should be called to clean up the OpenCL state created by `smbrr_init_opencl`.
+ */
 void smbrr_free_opencl(void)
 {
 	if (!g_cl_ctx)
