@@ -16,15 +16,13 @@
  *  Copyright (C) 2026 Liam Girdwood
  */
 
-#include <errno.h>
-#include <math.h>
+#include <errno.h> // IWYU pragma: keep
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "config.h"
 #include "local.h"
-#include "mask.h"
 #include "ops.h"
 #include "sombrero.h"
 

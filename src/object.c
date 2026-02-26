@@ -16,9 +16,8 @@
  *  Copyright (C) 2026 Liam Girdwood
  */
 
-#include <errno.h>
+#include <errno.h> // IWYU pragma: keep
 #include <math.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
