@@ -64,6 +64,21 @@ cd build
 make package
 ```
 
+## Python Wrapper
+
+Sombrero includes a comprehensive `ctypes` Python wrapper that exposes the entire C API. Once the C library is built, you can install the Python package via `pip`:
+
+```bash
+# Install from the root repository directory
+pip install ./python
+```
+
+Usage in Python:
+```python
+import sombrero as smbrr
+# The wrapper automatically loads libsombrero.so and exposes all constants, enums, structs, and functions
+```
+
 ## Running the Examples and Tests
 
 A few example programs are provided in the `build/examples` directory to demonstrate data processing and object detection algorithms:

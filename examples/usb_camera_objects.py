@@ -18,83 +18,13 @@
 
 import cv2
 import ctypes
-import os
 import sys
+import os
 
-# Define constants
-SMBRR_DATA_2D_FLOAT = 3
-SMBRR_SOURCE_UINT8 = 0
-SMBRR_CONV_ATROUS = 0
-SMBRR_WAVELET_MASK_LINEAR = 0
-SMBRR_OBJECT_POINT = 0
-SMBRR_OBJECT_EXTENDED = 1
+# Add python directory to path so we can import sombrero
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "python"))
+import sombrero as smbrr
 
-class SmbrrCoord(ctypes.Structure):
-    _fields_ = [
-        ("x", ctypes.c_uint),
-        ("y", ctypes.c_uint)
-    ]
-
-class SmbrrObject(ctypes.Structure):
-    _fields_ = [
-        ("id", ctypes.c_uint),
-        ("type", ctypes.c_int),
-        ("pos", SmbrrCoord),
-        ("minXy", SmbrrCoord),
-        ("minxY", SmbrrCoord),
-        ("maxXy", SmbrrCoord),
-        ("maxxY", SmbrrCoord),
-        ("pa", ctypes.c_float),
-        ("object_adu", ctypes.c_float),
-        ("object_radius", ctypes.c_float),
-        ("object_area", ctypes.c_uint),
-        ("snr", ctypes.c_float),
-        ("error", ctypes.c_float),
-        ("background_area", ctypes.c_uint),
-        ("background_adu", ctypes.c_float),
-        ("max_adu", ctypes.c_float),
-        ("mean_adu", ctypes.c_float),
-        ("sigma_adu", ctypes.c_float),
-        ("mag_delta", ctypes.c_float),
-        ("scale", ctypes.c_uint)
-    ]
-
-# Load libsombrero
-lib_path = os.path.join(os.path.dirname(__file__), "..", "build", "src", "libsombrero.so")
-if not os.path.exists(lib_path):
-    print(f"Error: Could not find libsombrero.so at {lib_path}")
-    print("Please build the library first.")
-    sys.exit(1)
-
-smbrr = ctypes.CDLL(lib_path)
-
-# Set up ctypes signatures
-smbrr.smbrr_new.argtypes = [ctypes.c_int, ctypes.c_uint, ctypes.c_uint, ctypes.c_uint, ctypes.c_int, ctypes.c_void_p]
-smbrr.smbrr_new.restype = ctypes.c_void_p
-
-smbrr.smbrr_free.argtypes = [ctypes.c_void_p]
-smbrr.smbrr_free.restype = None
-
-smbrr.smbrr_wavelet_new.argtypes = [ctypes.c_void_p, ctypes.c_uint]
-smbrr.smbrr_wavelet_new.restype = ctypes.c_void_p
-
-smbrr.smbrr_wavelet_free.argtypes = [ctypes.c_void_p]
-smbrr.smbrr_wavelet_free.restype = None
-
-smbrr.smbrr_wavelet_convolution.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-smbrr.smbrr_wavelet_convolution.restype = ctypes.c_int
-
-smbrr.smbrr_wavelet_ksigma_clip.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_float]
-smbrr.smbrr_wavelet_ksigma_clip.restype = ctypes.c_int
-
-smbrr.smbrr_wavelet_structure_find.argtypes = [ctypes.c_void_p, ctypes.c_uint]
-smbrr.smbrr_wavelet_structure_find.restype = ctypes.c_int
-
-smbrr.smbrr_wavelet_structure_connect.argtypes = [ctypes.c_void_p, ctypes.c_uint, ctypes.c_uint]
-smbrr.smbrr_wavelet_structure_connect.restype = ctypes.c_int
-
-smbrr.smbrr_wavelet_object_get.argtypes = [ctypes.c_void_p, ctypes.c_uint]
-smbrr.smbrr_wavelet_object_get.restype = ctypes.POINTER(SmbrrObject)
 
 def main():
     # Configuration
@@ -126,38 +56,38 @@ def main():
         data_ptr = gray.ctypes.data_as(ctypes.c_void_p)
 
         # Create smbrr image context
-        image = smbrr.smbrr_new(SMBRR_DATA_2D_FLOAT, width, height, stride, SMBRR_SOURCE_UINT8, data_ptr)
+        image = smbrr.smbrr.smbrr_new(smbrr.SMBRR_DATA_2D_FLOAT, width, height, stride, smbrr.SMBRR_SOURCE_UINT8, data_ptr)
         if not image:
             print("Error: Failed to create smbrr context")
             continue
 
         # Create wavelet context
-        w = smbrr.smbrr_wavelet_new(image, scales)
+        w = smbrr.smbrr.smbrr_wavelet_new(image, scales)
         if not w:
             print("Error: Failed to create wavelet context")
-            smbrr.smbrr_free(image)
+            smbrr.smbrr.smbrr_free(image)
             continue
 
         # Process the frame
-        res = smbrr.smbrr_wavelet_convolution(w, SMBRR_CONV_ATROUS, SMBRR_WAVELET_MASK_LINEAR)
+        res = smbrr.smbrr.smbrr_wavelet_convolution(w, smbrr.SMBRR_CONV_ATROUS, smbrr.SMBRR_WAVELET_MASK_LINEAR)
         if res < 0:
             print(f"Error: Convolution failed with code {res}")
-            smbrr.smbrr_wavelet_free(w)
-            smbrr.smbrr_free(image)
+            smbrr.smbrr.smbrr_wavelet_free(w)
+            smbrr.smbrr.smbrr_free(image)
             continue
 
-        smbrr.smbrr_wavelet_ksigma_clip(w, k_sigma, ctypes.c_float(sigma_delta))
+        smbrr.smbrr.smbrr_wavelet_ksigma_clip(w, k_sigma, ctypes.c_float(sigma_delta))
 
         # Find structures at each scale
         for i in range(scales - 1):
-            smbrr.smbrr_wavelet_structure_find(w, i)
+            smbrr.smbrr.smbrr_wavelet_structure_find(w, i)
 
         # Connect structures into objects
-        num_objects = smbrr.smbrr_wavelet_structure_connect(w, 0, scales - 2)
+        num_objects = smbrr.smbrr.smbrr_wavelet_structure_connect(w, 0, scales - 2)
 
         # Draw objects on the original RGB frame
         for i in range(num_objects):
-            obj_ptr = smbrr.smbrr_wavelet_object_get(w, i)
+            obj_ptr = smbrr.smbrr.smbrr_wavelet_object_get(w, i)
             if not obj_ptr:
                 continue
             
@@ -187,8 +117,8 @@ def main():
         cv2.imshow("Sombrero Object Detection", frame)
 
         # Free memory
-        smbrr.smbrr_wavelet_free(w)
-        smbrr.smbrr_free(image)
+        smbrr.smbrr.smbrr_wavelet_free(w)
+        smbrr.smbrr.smbrr_free(image)
 
         # Check for quit
         if cv2.waitKey(1) & 0xFF == ord('q'):

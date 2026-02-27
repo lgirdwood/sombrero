@@ -1,0 +1,44 @@
+# Sombrero Python Wrapper
+
+This directory contains the Python `ctypes` wrapper for `libsmbrr` (Sombrero), a fast wavelet data processing and object detection C library.
+
+## Installation
+
+The wrapper relies on the compiled `libsombrero.so` C library being present on your system. 
+
+1. Ensure the C library is built. It will either look for `libsombrero.so` in your system's library paths (like `/usr/local/lib` or `/usr/lib`) or fallback to `../build/src/libsombrero.so` locally for development.
+2. Install this wrapper via `pip` from within this `python/` directory:
+
+```bash
+pip install .
+```
+
+Or from the root of the repository:
+
+```bash
+pip install ./python
+```
+
+## Usage
+
+Once installed, you can import and use the entire C API directly:
+
+```python
+import sombrero as smbrr
+import ctypes
+
+# Create a Context
+width, height, stride = 100, 100, 400
+dummy_data = (ctypes.c_float * (width * height))()
+
+ctx = smbrr.smbrr_new(
+    smbrr.SMBRR_DATA_2D_FLOAT, 
+    width, height, stride, 
+    smbrr.SMBRR_SOURCE_FLOAT, 
+    ctypes.addressof(dummy_data)
+)
+
+print(f"Max Scales supported: {smbrr.SMBRR_MAX_SCALES}")
+
+smbrr.smbrr_free(ctx)
+```

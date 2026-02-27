@@ -22,43 +22,15 @@ import os
 import sys
 import numpy as np
 
-# Define constants
-SMBRR_DATA_2D_FLOAT = 3
-SMBRR_SOURCE_UINT8 = 0
-SMBRR_WAVELET_MASK_LINEAR = 0
-SMBRR_CLIP_VGENTLE = 0
-
-# Load libsombrero
-lib_path = os.path.join(os.path.dirname(__file__), "..", "build", "src", "libsombrero.so")
-if not os.path.exists(lib_path):
-    print(f"Error: Could not find libsombrero.so at {lib_path}")
-    print("Please build the library first.")
-    sys.exit(1)
-
-smbrr = ctypes.CDLL(lib_path)
-
-# Set up ctypes signatures
-smbrr.smbrr_new.argtypes = [ctypes.c_int, ctypes.c_uint, ctypes.c_uint, ctypes.c_uint, ctypes.c_int, ctypes.c_void_p]
-smbrr.smbrr_new.restype = ctypes.c_void_p
-
-smbrr.smbrr_free.argtypes = [ctypes.c_void_p]
-smbrr.smbrr_free.restype = None
-
-# int smbrr_reconstruct(struct smbrr *O, enum smbrr_wavelet_mask mask, float threshold, int scales, enum smbrr_clip sigma_clip);
-smbrr.smbrr_reconstruct.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_float, ctypes.c_int, ctypes.c_int]
-smbrr.smbrr_reconstruct.restype = ctypes.c_int
-
-smbrr.smbrr_normalise.argtypes = [ctypes.c_void_p, ctypes.c_float, ctypes.c_float]
-smbrr.smbrr_normalise.restype = None
-
-smbrr.smbrr_get_data.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_void_p]
-smbrr.smbrr_get_data.restype = ctypes.c_int
+# Add python directory to path so we can import sombrero
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "python"))
+import sombrero as smbrr
 
 def main():
     # Configuration
     scales = 8
     threshold = 1.0e-4
-    sigma_clip = SMBRR_CLIP_VGENTLE
+    sigma_clip = smbrr.SMBRR_CLIP_VGENTLE
 
     # Open the camera
     cap = cv2.VideoCapture(0)
@@ -90,24 +62,24 @@ def main():
         data_ptr = gray.ctypes.data_as(ctypes.c_void_p)
 
         # Create smbrr image context
-        image = smbrr.smbrr_new(SMBRR_DATA_2D_FLOAT, width, height, stride, SMBRR_SOURCE_UINT8, data_ptr)
+        image = smbrr.smbrr.smbrr_new(smbrr.SMBRR_DATA_2D_FLOAT, width, height, stride, smbrr.SMBRR_SOURCE_UINT8, data_ptr)
         if not image:
             print("Error: Failed to create smbrr context")
             continue
 
         # Process the frame using reconstruct
-        res = smbrr.smbrr_reconstruct(image, SMBRR_WAVELET_MASK_LINEAR, ctypes.c_float(threshold), scales, sigma_clip)
+        res = smbrr.smbrr.smbrr_reconstruct(image, smbrr.SMBRR_WAVELET_MASK_LINEAR, ctypes.c_float(threshold), scales, sigma_clip)
         if res < 0:
             print(f"Error: Reconstruct failed with code {res}")
-            smbrr.smbrr_free(image)
+            smbrr.smbrr.smbrr_free(image)
             continue
             
         # Normalize the internal float reconstructed image to 0-255 before extracting uint8 
-        smbrr.smbrr_normalise(image, ctypes.c_float(0.0), ctypes.c_float(255.0))
+        smbrr.smbrr.smbrr_normalise(image, ctypes.c_float(0.0), ctypes.c_float(255.0))
 
         # Extract the processed pixel data
         out_buf_ptr = out_buf.ctypes.data_as(ctypes.c_void_p)
-        smbrr.smbrr_get_data(image, SMBRR_SOURCE_UINT8, ctypes.byref(out_buf_ptr))
+        smbrr.smbrr.smbrr_get_data(image, smbrr.SMBRR_SOURCE_UINT8, ctypes.byref(out_buf_ptr))
 
         # Display the result side-by-side with original for comparison
         # out_buf holds the reconstructed grayscale image
@@ -123,7 +95,7 @@ def main():
         cv2.imshow("Sombrero Image Reconstruction", combined)
 
         # Free memory
-        smbrr.smbrr_free(image)
+        smbrr.smbrr.smbrr_free(image)
 
         # Check for quit
         if cv2.waitKey(1) & 0xFF == ord('q'):
