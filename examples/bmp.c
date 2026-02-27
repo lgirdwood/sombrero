@@ -121,16 +121,14 @@ int bmp_save(char *file, struct bitmap *bmp, const void *data)
 	return 0;
 }
 
-int bmp_image_save(struct smbrr *image, struct bitmap *bmp,
-	const char *file)
+int bmp_image_save(struct smbrr *image, struct bitmap *bmp, const char *file)
 {
 	struct smbrr *i;
 	char filename[128];
 	void *buf;
 	float min, max;
 
-	i = smbrr_new(SMBRR_DATA_2D_FLOAT, image->width, image->height,
-		0, 0, NULL);
+	i = smbrr_new(SMBRR_DATA_2D_FLOAT, image->width, image->height, 0, 0, NULL);
 	if (i == NULL)
 		return -ENOMEM;
 	smbrr_copy(i, image);
@@ -139,7 +137,10 @@ int bmp_image_save(struct smbrr *image, struct bitmap *bmp,
 	if (buf == NULL)
 		return -EINVAL;
 
-	sprintf(filename, "%s.bmp", file);
+	if (strstr(file, ".bmp"))
+		snprintf(filename, sizeof(filename), "%s", file);
+	else
+		snprintf(filename, sizeof(filename), "%s.bmp", file);
 	smbrr_convert(i, SMBRR_DATA_2D_FLOAT);
 	smbrr_find_limits(i, &min, &max);
 	fprintf(stdout, "limit for %s are %f to %f\n", filename, min, max);
@@ -188,7 +189,7 @@ int bmp_load(char *file, struct bitmap **bmp, const void **data)
 		free(_bmp);
 	}
 
-	*data = ((void*)_bmp) +_bmp->OffBits;
+	*data = ((void *)_bmp) + _bmp->OffBits;
 	*bmp = _bmp;
 
 out:
