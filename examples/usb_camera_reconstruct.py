@@ -55,7 +55,9 @@ def main():
         height, width = gray.shape
         stride = gray.strides[0]
 
-        if out_buf is None or out_buf.shape != (height, width):
+        if out_buf is None:
+            out_buf = np.zeros((height, width), dtype=np.uint8)
+        elif out_buf.shape != (height, width):
             out_buf = np.zeros((height, width), dtype=np.uint8)
 
         # Get C pointer to image data
