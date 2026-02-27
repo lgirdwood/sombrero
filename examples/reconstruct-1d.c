@@ -24,7 +24,7 @@
 
 #include "sombrero.h"
 
-#define	SCALES		8
+#define SCALES 8
 
 struct signal {
 	struct smbrr *signal;
@@ -87,46 +87,56 @@ int main(int argc, char *argv[])
 	int ret;
 	float mean, sigma;
 
+	/* Initialize signal state to zero */
 	memset(&s, 0, sizeof(s));
 
+	/* Parse command line arguments (expecting 1 input file) */
 	if (argc == 2)
 		s.file = argv[1];
 	else
 		fprintf(stderr, "usage: %s file.wav\n", argv[0]);
 
+	/* Read the raw 1D signal data from the specified file */
 	ret = signal_read(&s);
 	if (ret < 0)
 		exit(ret);
 
+	/* Create an internal libsmbrr 1D signal object from the loaded data */
 	s.signal_orig = smbrr_new(SMBRR_DATA_1D_FLOAT, s.width, 0, 0,
-		SMBRR_SOURCE_UINT16, s.data);
+							  SMBRR_SOURCE_UINT16, s.data);
 	if (s.signal_orig == NULL) {
 		fprintf(stderr, "cant create new signal\n");
 		return -EINVAL;
 	}
 
+	/* Create a working copy of the signal for processing */
 	s.signal = smbrr_new_copy(s.signal_orig);
 	if (s.signal == NULL) {
 		fprintf(stderr, "cant create new signal\n");
 		return -EINVAL;
 	}
 
+	/* Calculate and print original signal statistics before processing */
 	mean = smbrr_get_mean(s.signal);
 	sigma = smbrr_get_sigma(s.signal, mean);
 	fprintf(stdout, "Signal before mean %f sigma %f\n", mean, sigma);
 
+	/* Perform wavelet-based reconstruction to denoise the 1D signal */
 	smbrr_reconstruct(s.signal, SMBRR_WAVELET_MASK_LINEAR, 1.0e-4, 8,
-		SMBRR_CLIP_VGENTLE);
+					  SMBRR_CLIP_VGENTLE);
 
+	/* Calculate and print signal statistics after reconstruction */
 	mean = smbrr_get_mean(s.signal);
 	sigma = smbrr_get_sigma(s.signal, mean);
 	fprintf(stdout, "Signal after mean %f sigma %f\n", mean, sigma);
 
+	/* Retrieve the processed signal data array back from the library */
 	smbrr_get_data(s.signal, SMBRR_SOURCE_UINT16, (void **)&s.data);
 
-	/* write to file */
+	/* Write the reconstructed signal data to an output file */
 	signal_write(&s);
 
+	/* Clean up and free allocated resources */
 	smbrr_free(s.signal);
 	smbrr_free(s.signal_orig);
 

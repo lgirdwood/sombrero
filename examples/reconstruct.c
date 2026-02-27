@@ -17,7 +17,7 @@
  *
  */
 
-#include <errno.h>
+#include <errno.h> // IWYU pragma: keep
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,87 +29,98 @@
 
 #define SCALES 8
 
-static void usage(char *argv[]) {
-  fprintf(stdout, "Usage:%s -i infile.bmp -o outfile\n", argv[0]);
-  fprintf(stdout, " -i Input bitmap file - only greyscale supported\n");
-  fprintf(stdout, " -o Output file name\n");
-  exit(0);
+static void usage(char *argv[])
+{
+	fprintf(stdout, "Usage:%s -i infile.bmp -o outfile\n", argv[0]);
+	fprintf(stdout, " -i Input bitmap file - only greyscale supported\n");
+	fprintf(stdout, " -o Output file name\n");
+	exit(0);
 }
 
-int main(int argc, char *argv[]) {
-  struct smbrr *image;
-  struct bitmap *bmp;
-  const void *data;
-  int ret, width, height, stride, opt;
-  enum smbrr_source_type depth;
-  float mean, sigma;
-  char *ifile = NULL, *ofile = NULL;
-  int use_fits = 0;
+int main(int argc, char *argv[])
+{
+	struct smbrr *image;
+	struct bitmap *bmp;
+	const void *data;
+	int ret, width, height, stride, opt;
+	enum smbrr_source_type depth;
+	float mean, sigma;
+	char *ifile = NULL, *ofile = NULL;
+	int use_fits = 0;
 
-  while ((opt = getopt(argc, argv, "i:o:")) != -1) {
-    switch (opt) {
-    case 'i':
-      ifile = optarg;
-      break;
-    case 'o':
-      ofile = optarg;
-      break;
-    default: /* '?' */
-      usage(argv);
-    }
-  }
+	/* Parse command line arguments */
+	while ((opt = getopt(argc, argv, "i:o:")) != -1) {
+		switch (opt) {
+		case 'i':
+			ifile = optarg;
+			break;
+		case 'o':
+			ofile = optarg;
+			break;
+		default: /* '?' */
+			usage(argv);
+		}
+	}
 
-  if (ifile == NULL || ofile == NULL)
-    usage(argv);
+	if (ifile == NULL || ofile == NULL)
+		usage(argv);
 
-  char *ext = strrchr(ofile, '.');
-  if (ext && (strcmp(ext, ".bmp") == 0 || strcmp(ext, ".fit") == 0 ||
-              strcmp(ext, ".fits") == 0))
-    *ext = '\0';
+	/* Remove extension from output file name */
+	char *ext = strrchr(ofile, '.');
+	if (ext && (strcmp(ext, ".bmp") == 0 || strcmp(ext, ".fit") == 0 ||
+				strcmp(ext, ".fits") == 0))
+		*ext = '\0';
 
-  if (strstr(ifile, ".fit") != NULL) {
-    use_fits = 1;
-    ret = fits_load(ifile, &data, &width, &height, &depth, &stride);
-    if (ret < 0)
-      return ret;
-  } else {
-    ret = bmp_load(ifile, &bmp, &data);
-    if (ret < 0)
-      return ret;
+	/* Load input image from FITS or BMP file */
+	if (strstr(ifile, ".fit") != NULL) {
+		use_fits = 1;
+		ret = fits_load(ifile, &data, &width, &height, &depth, &stride);
+		if (ret < 0)
+			return ret;
+	} else {
+		ret = bmp_load(ifile, &bmp, &data);
+		if (ret < 0)
+			return ret;
 
-    height = bmp_height(bmp);
-    width = bmp_width(bmp);
-    depth = bmp_depth(bmp);
-    stride = bmp_stride(bmp);
-  }
-  fprintf(stdout, "Image width %d height %d stride %d\n", width, height,
-          stride);
+		height = bmp_height(bmp);
+		width = bmp_width(bmp);
+		depth = bmp_depth(bmp);
+		stride = bmp_stride(bmp);
+	}
+	fprintf(stdout, "Image width %d height %d stride %d\n", width, height,
+			stride);
 
-  image = smbrr_new(SMBRR_DATA_2D_FLOAT, width, height, stride, depth, data);
-  if (image == NULL) {
-    fprintf(stderr, "cant create new image\n");
-    return -EINVAL;
-  }
+	/* Create an internal libsmbrr 2D image object from the loaded data */
+	image = smbrr_new(SMBRR_DATA_2D_FLOAT, width, height, stride, depth, data);
+	if (image == NULL) {
+		fprintf(stderr, "cant create new image\n");
+		return -EINVAL;
+	}
 
-  mean = smbrr_get_mean(image);
-  sigma = smbrr_get_sigma(image, mean);
-  fprintf(stdout, "Image before mean %f sigma %f\n", mean, sigma);
+	/* Calculate and print original image statistics before processing */
+	mean = smbrr_get_mean(image);
+	sigma = smbrr_get_sigma(image, mean);
+	fprintf(stdout, "Image before mean %f sigma %f\n", mean, sigma);
 
-  smbrr_reconstruct(image, SMBRR_WAVELET_MASK_LINEAR, 1.0e-4, 8,
-                    SMBRR_CLIP_VGENTLE);
+	/* Perform full wavelet-based reconstruction to denoise the image */
+	smbrr_reconstruct(image, SMBRR_WAVELET_MASK_LINEAR, 1.0e-4, 8,
+					  SMBRR_CLIP_VGENTLE);
 
-  mean = smbrr_get_mean(image);
-  sigma = smbrr_get_sigma(image, mean);
-  fprintf(stdout, "Image after mean %f sigma %f\n", mean, sigma);
+	/* Calculate and print image statistics after reconstruction */
+	mean = smbrr_get_mean(image);
+	sigma = smbrr_get_sigma(image, mean);
+	fprintf(stdout, "Image after mean %f sigma %f\n", mean, sigma);
 
-  if (use_fits)
-    fits_image_save(image, ofile);
-  else
-    bmp_image_save(image, bmp, ofile);
+	/* Save the reconstructed denoised image to the output file */
+	if (use_fits)
+		fits_image_save(image, ofile);
+	else
+		bmp_image_save(image, bmp, ofile);
 
-  smbrr_free(image);
-  if (!use_fits)
-    free(bmp);
+	/* Clean up and free allocated resources */
+	smbrr_free(image);
+	if (!use_fits)
+		free(bmp);
 
-  return 0;
+	return 0;
 }
