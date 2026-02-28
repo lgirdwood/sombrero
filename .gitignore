@@ -1,37 +1,29 @@
+# Compiled Object files, Object files, Code
 *.o
 *.so.*
-*Makefile.in
-*.la
-*.lo
 *.bak
-.version
-Makefile
-configure
-autom4te*
 *~
-*.Po
-.libs*
-*.Plo
-*.project
-*.cproject
 *.swp
-config.*
-aclocal.m4
-COPYING
-INSTALL
-depcomp
-missing
-stamp-h1
-install-sh
-libtool
-ltmain.sh
 *.gz
 
-# CMake build directories
+# IDEs and configuration
+*.project
+*.cproject
+.vscode/settings.json
+.cache/
+.version
+.config.*
+
+# CMake / Build
+# (Out-of-source build is recommended, but these are ignored if in-tree build occurs)
 build/
 CMakeCache.txt
 CMakeFiles/
 compile_commands.json
+
+# Documentation
+doc/man*
+doc/html*
 
 # Examples output
 examples/smbrr-*
@@ -40,10 +32,3 @@ examples/smbrr-*
 examples/output/*.bmp
 examples/debug/*.bmp
 examples/*.bmp
-
-# Documentation
-doc/man*
-doc/html*
-
-.cache/
-.config.*
