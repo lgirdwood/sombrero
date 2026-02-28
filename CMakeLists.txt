@@ -199,3 +199,18 @@ set(CPACK_DEBIAN_PACKAGE_DEPENDS "libcfitsio-dev, libc6")
 set(CPACK_RPM_PACKAGE_REQUIRES "cfitsio-devel, glibc")
 
 include(CPack)
+
+# Python Package
+find_package(Python3 COMPONENTS Interpreter)
+if(Python3_FOUND)
+    add_custom_command(
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/python_dist
+        COMMAND ${Python3_EXECUTABLE} -m pip install --upgrade build --break-system-packages
+        COMMAND ${Python3_EXECUTABLE} -m build --outdir ${CMAKE_CURRENT_BINARY_DIR}/python_dist ${CMAKE_CURRENT_SOURCE_DIR}/python
+        COMMENT "Building Python package (wheel/sdist)"
+    )
+    add_custom_target(python-package
+        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/python_dist
+        COMMENT "Building python wheel"
+    )
+endif()

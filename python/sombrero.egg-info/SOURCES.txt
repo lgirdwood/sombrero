@@ -1,0 +1,7 @@
+README.md
+pyproject.toml
+sombrero.py
+sombrero.egg-info/PKG-INFO
+sombrero.egg-info/SOURCES.txt
+sombrero.egg-info/dependency_links.txt
+sombrero.egg-info/top_level.txt

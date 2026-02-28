@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/lgirdwood/sombrero/actions/workflows/ci.yml/badge.svg)](https://github.com/lgirdwood/sombrero/actions/workflows/ci.yml)
 
-Sombrero is a fast wavelet data processing and object detection C library for 1D and 2D data. 
+Sombrero is a fast wavelet data processing and object detection C library for 1D and 2D data.
 
 Sombrero is named after the "Mexican Hat" shape of the wavelet masks used in data convolution. It is released under the GNU LGPL library. Initially developed for astronomical work, it can also be used with any other data that can benefit from wavelet processing. Some of the algorithms in this library are derived from "Astronomical Image and Data Analysis" by Jean-Luc Starck and Fionn Murtagh.
 
@@ -29,12 +29,11 @@ If you plan to use GPU acceleration, verify that you have an OpenCL implementati
 git clone https://github.com/lgirdwood/sombrero.git
 cd sombrero
 
-# Create a build directory and configure with CMake
-mkdir build && cd build
-cmake ..
+# Configure the build directory (out-of-source build)
+cmake -B build -S .
 
-# Build using make
-make -j$(nproc)
+# Build using CMake natively
+cmake --build build -j$(nproc)
 ```
 
 ### Build Options
@@ -42,7 +41,7 @@ make -j$(nproc)
 By default, CMake will try to enable SIMD optimizations and OpenMP if they are detected. You can explicitly turn them off during CMake configuration:
 
 ```bash
-cmake .. -DENABLE_SSE42=OFF -DENABLE_AVX=OFF -DENABLE_AVX2=OFF -DENABLE_AVX512=OFF -DENABLE_FMA=OFF -DENABLE_OPENMP=OFF -DENABLE_OPENCL=OFF
+cmake -B build -S . -DENABLE_SSE42=OFF -DENABLE_AVX=OFF -DENABLE_AVX2=OFF -DENABLE_AVX512=OFF -DENABLE_FMA=OFF -DENABLE_OPENMP=OFF -DENABLE_OPENCL=OFF
 ```
 
 ### Advanced Configuration (Menuconfig)
@@ -50,9 +49,8 @@ cmake .. -DENABLE_SSE42=OFF -DENABLE_AVX=OFF -DENABLE_AVX2=OFF -DENABLE_AVX512=O
 The library supports toggling specific CPU architecture optimizations (SSE, AVX, AVX2, AVX-512, OpenMP) and GPU acceleration backends (OpenCL) via a Kconfig-based menu interface. You can launch this interactive configuration console before compiling:
 
 ```bash
-cd build
-make menuconfig
-make -j$(nproc)
+cmake --build build --target menuconfig
+cmake --build build -j$(nproc)
 ```
 
 ### Generating System Packages
@@ -60,20 +58,32 @@ make -j$(nproc)
 To automatically generate distributable system packages (`.deb` for Debian/Ubuntu and `.rpm` for Fedora/RHEL) integrating the library binaries and headers, ensure you have `rpm` and `dpkg-dev` installed locally, then invoke the CPack target:
 
 ```bash
-cd build
-make package
+cmake --build build --target package
 ```
 
 ## Python Wrapper
 
-Sombrero includes a comprehensive `ctypes` Python wrapper that exposes the entire C API. Once the C library is built, you can install the Python package via `pip`:
+Sombrero includes a comprehensive `ctypes` Python wrapper that exposes the entire C API. Once the C library is built, you can install the Python package via `pip`.
+
+You can either install directly from the source directory:
 
 ```bash
 # Install from the root repository directory
 pip install ./python
 ```
 
+Or you can generate a redistributable Python wheel or source distribution (`sdist`) using the built-in CMake target:
+
+```bash
+cmake --build build --target python-package
+
+# The generated wheels and tarballs will be located in build/python_dist/
+ls build/python_dist
+pip install build/python_dist/sombrero-0.1.0-py3-none-any.whl
+```
+
 Usage in Python:
+
 ```python
 import sombrero as smbrr
 # The wrapper automatically loads libsombrero.so and exposes all constants, enums, structs, and functions
@@ -92,11 +102,13 @@ A few example programs are provided in the `build/examples` directory to demonst
 The examples include simple Bitmap (.bmp) and FITS (.fit, .fits) data support for working with image data.
 
 Example usage for `smbrr-atrous`:
+
 ```bash
 ./examples/smbrr-atrous -i input.bmp -o output.bmp
 ```
 
 You can view available options for each command using the tool directly:
+
 ```bash
 ./examples/smbrr-atrous -h
 ```
@@ -150,13 +162,12 @@ object 4 ID 599
 A unit test suite validates execution and mathematical correctness of operations. Tests can be executed via CTest after building:
 
 ```bash
-cd build
-make test
+cmake --build build --target test
 ```
 
 Alternatively, a high-level test script runs all binaries and compares output images against verified baselines:
 ```bash
-cd build/tests
+cd tests
 ./run_tests.sh
 ```
 
@@ -165,8 +176,7 @@ cd build/tests
 If Doxygen is installed, you can generate the library API documentation:
 
 ```bash
-cd build
-make doc
+cmake --build build --target doc
 ```
 
 The output documentation will be available in HTML format within the `build/html` directory.

@@ -13,6 +13,8 @@
 .cache/
 .version
 .config.*
+Makefile
+Makefile.in
 
 # CMake / Build
 # (Out-of-source build is recommended, but these are ignored if in-tree build occurs)
