@@ -33,14 +33,21 @@ add_executable(test_performance test_performance.c $<TARGET_OBJECTS:test_utils>)
 target_link_libraries(test_performance PRIVATE sombrero ${CFITSIO_LIBRARIES})
 target_include_directories(test_performance PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 if(ENABLE_OPENCL)
+    target_compile_definitions(test_atrous PRIVATE HAVE_OPENCL)
+    target_compile_definitions(test_objects PRIVATE HAVE_OPENCL)
     target_compile_definitions(test_performance PRIVATE HAVE_OPENCL)
 endif()
 add_test(NAME test_performance COMMAND test_performance -i wiz-ha-x.bmp -o test_out_performance)
 
-# Copy test images and script to the build directory
+# Copy test images and scripts to the build directory
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../examples/images/wiz-ha-x.bmp
                ${CMAKE_CURRENT_BINARY_DIR}/wiz-ha-x.bmp COPYONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../examples/images/ngc7380.fit
                ${CMAKE_CURRENT_BINARY_DIR}/ngc7380.fit COPYONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh
                ${CMAKE_CURRENT_BINARY_DIR}/run_tests.sh COPYONLY)
+
+# Package Validation Test
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test_packages.sh
+               ${CMAKE_CURRENT_BINARY_DIR}/test_packages.sh COPYONLY)
+add_test(NAME test_packages COMMAND ./test_packages.sh)

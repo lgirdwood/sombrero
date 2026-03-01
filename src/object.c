@@ -967,17 +967,19 @@ int smbrr_wavelet_structure_connect(struct smbrr_wavelet *w,
 	}
 
 	/* create new objects and deblend connected structures */
-	for (scale = end + 1; scale > start; scale--) {
-		unsigned int s = scale - 1;
+	for (scale = end; ; scale--) {
 		/* get first structure at this scale */
-		structure = w->structure[s];
+		structure = w->structure[scale];
 
 		/* connect each structure */
-		for (i = 0; i < w->num_structures[s]; i++) {
-			err = create_object(w, s, structure + i);
+		for (i = 0; i < w->num_structures[scale]; i++) {
+			err = create_object(w, scale, structure + i);
 			if (err < 0)
 				return err;
 		}
+
+		if (scale == start)
+			break;
 	}
 
 	/* prune objects */

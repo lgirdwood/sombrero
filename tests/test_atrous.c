@@ -39,12 +39,14 @@ int main(int argc, char *argv[])
 	ifile = argv[1];
 	ofile = argv[2];
 
+#ifdef HAVE_OPENCL
 	int cl_err = smbrr_init_opencl(0);
 	if (cl_err == 0) {
 		fprintf(stdout, "OpenCL initialized successfully.\n");
 	} else {
 		fprintf(stderr, "OpenCL initialization failed, falling back to CPU.\n");
 	}
+#endif
 
 	if (strstr(ifile, ".fit") != NULL) {
 		use_fits = 1;

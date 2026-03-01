@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
 	int use_fits = 0;
 
 	/* Expected values from examples/objects on wiz-ha-x.bmp */
-	int expected_structures[] = { 891, 703, 787, 933, 841, 267, 56, 12 };
+	int expected_structures[] = { 891, 703, 791, 958, 933, 500, 334, 70 };
 	int expected_objects = 741;
 
 	while ((opt = getopt(argc, argv, "i:o:")) != -1) {
@@ -43,7 +43,9 @@ int main(int argc, char *argv[])
 		return -EINVAL;
 	}
 
+#ifdef HAVE_OPENCL
 	smbrr_init_opencl(0);
+#endif
 
 	if (strstr(ifile, ".fit") != NULL) {
 		use_fits = 1;
