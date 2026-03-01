@@ -120,11 +120,13 @@ smbrr.smbrr_new_copy.restype = smbrr_p
 smbrr.smbrr_free.argtypes = [smbrr_p]
 smbrr.smbrr_free.restype = None
 
-smbrr.smbrr_init_opencl.argtypes = [c_int]
-smbrr.smbrr_init_opencl.restype = c_int
+if hasattr(smbrr, 'smbrr_init_opencl'):
+    smbrr.smbrr_init_opencl.argtypes = [c_int]
+    smbrr.smbrr_init_opencl.restype = c_int
 
-smbrr.smbrr_free_opencl.argtypes = []
-smbrr.smbrr_free_opencl.restype = None
+if hasattr(smbrr, 'smbrr_free_opencl'):
+    smbrr.smbrr_free_opencl.argtypes = []
+    smbrr.smbrr_free_opencl.restype = None
 
 # Element Information
 smbrr.smbrr_get_data.argtypes = [smbrr_p, c_int, POINTER(c_void_p)]
