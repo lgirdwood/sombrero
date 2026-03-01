@@ -34,3 +34,36 @@ examples/smbrr-*
 examples/output/*.bmp
 examples/debug/*.bmp
 examples/*.bmp
+
+# In-source CMake artifacts and caches
+CMakeDoxyfile.in
+CMakeDoxygenDefaults.cmake
+CPackConfig.cmake
+CPackSourceConfig.cmake
+CTestTestfile.cmake
+cmake_install.cmake
+config.h
+libsombrero.pc
+libsombrero.so
+libsombrero.a
+Testing/
+
+# Test executables and copied datasets
+tests/test_atrous
+tests/test_objects
+tests/test_performance
+tests/test_reconstruct
+tests/test_structures
+tests/*.bmp
+tests/*.fit
+tests/*.fits
+
+# Python environment
+__pycache__/
+python/__pycache__/*
+*.pyc
+python_dist/
+_skbuild/
+dist/
+python/*.egg-info/
+*.pyc
