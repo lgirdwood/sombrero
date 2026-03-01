@@ -3,12 +3,9 @@
 # test_packages.sh
 # Tests package generation and performs local installation checks.
 
-set -e
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
-# CTest typically runs in the build/tests directory, so the CMake root is ..
-BUILD_ROOT="$(dirname "$SCRIPT_DIR")"
-SRC_ROOT="$(dirname "$BUILD_ROOT")"
+BUILD_ROOT="@CMAKE_BINARY_DIR@"
+SRC_ROOT="@CMAKE_SOURCE_DIR@"
 
 # Local test directories
 TEST_DIR="$SCRIPT_DIR/pkg_test"

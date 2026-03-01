@@ -47,5 +47,4 @@ print("Reconstructed min:", out_buf.min(), "max:", out_buf.max())
 # Let's also extract floats to see the real values
 out_float = np.zeros((height, width), dtype=np.float32)
 out_float_ptr = out_float.ctypes.data_as(ctypes.c_void_p)
-smbrr.smbrr_get_data(image, 1, ctypes.byref(out_float_ptr)) # wait, what is FLOAT adu?
-# In sombrero.h: SMBRR_SOURCE_FLOAT is 3? Let's check.
+smbrr.smbrr_get_data(image, 3, ctypes.byref(out_float_ptr))

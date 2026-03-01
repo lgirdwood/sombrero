@@ -41,7 +41,7 @@ smbrr.smbrr_reconstruct(image, 0, ctypes.c_float(1.0e-4), 8, 0)
 # Try getting float data
 out_float = np.zeros((height, width), dtype=np.float32)
 out_float_ptr = out_float.ctypes.data_as(ctypes.c_void_p)
-res = smbrr.smbrr_get_data(image, 6, ctypes.byref(out_float_ptr)) # 6 is FLOAT
+res = smbrr.smbrr_get_data(image, 3, ctypes.byref(out_float_ptr)) # 3 is FLOAT
 if res != 0:
     print(f"Error: {res}")
 else:

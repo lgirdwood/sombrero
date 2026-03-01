@@ -60,5 +60,5 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh
 
 # Package Validation Test
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test_packages.sh
-               ${CMAKE_CURRENT_BINARY_DIR}/test_packages.sh COPYONLY)
+               ${CMAKE_CURRENT_BINARY_DIR}/test_packages.sh @ONLY)
 add_test(NAME test_packages COMMAND ./test_packages.sh)
