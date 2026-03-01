@@ -28,8 +28,7 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 /* bitmap file header */
-struct bitmap
-{
+struct bitmap {
 	uint16_t Type;
 	uint32_t Size;
 	uint16_t Reserve1;
@@ -67,10 +66,9 @@ enum smbrr_source_type bmp_depth(struct bitmap *bmp);
 int bmp_stride(struct bitmap *bmp);
 
 void bmp_info(struct bitmap *Header);
-int bmp_save(char *file, struct bitmap *bmp, const void *data);
-int bmp_load(char *file, struct bitmap **bmp, const void **data);
-int bmp_image_save(struct smbrr *image, struct bitmap *bmp,
-	const char *file);
+int bmp_save(const char *file, struct bitmap *bmp, const void *data);
+int bmp_load(const char *file, struct bitmap **bmp, const void **data);
+int bmp_image_save(struct smbrr *image, struct bitmap *bmp, const char *file);
 
 #endif
 #endif

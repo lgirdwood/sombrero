@@ -97,7 +97,7 @@ static void bmp_cmap(uint32_t *cmap, int size)
 		cmap[i] = (i << 16) + (i << 8) + i;
 }
 
-int bmp_save(char *file, struct bitmap *bmp, const void *data)
+int bmp_save(const char *file, struct bitmap *bmp, const void *data)
 {
 	FILE *BMPFile;
 	uint32_t cmap[256];
@@ -153,7 +153,7 @@ int bmp_image_save(struct smbrr *image, struct bitmap *bmp, const char *file)
 	return 0;
 }
 
-int bmp_load(char *file, struct bitmap **bmp, const void **data)
+int bmp_load(const char *file, struct bitmap **bmp, const void **data)
 {
 	FILE *BMPFile;
 	struct bitmap *_bmp;
