@@ -26,6 +26,7 @@ compile_commands.json
 # Documentation
 doc/man*
 doc/html*
+doc/doxyfile
 
 # Examples output
 examples/smbrr-*
