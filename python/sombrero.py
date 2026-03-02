@@ -93,6 +93,16 @@ class SmbrrObject(Structure):
         ("scale", c_uint)
     ]
 
+class SmbrrStructure(Structure):
+    _fields_ = [
+        ("id", c_uint),
+        ("scale", c_uint),
+        ("size", c_uint),
+        ("object_id", c_uint),
+        ("pos", SmbrrCoord),
+        ("max_value", c_float)
+    ]
+
 class SmbrrClipCoeff(Structure):
     _fields_ = [
         ("coeff", c_float * (SMBRR_MAX_SCALES - 1))
@@ -302,6 +312,12 @@ smbrr.smbrr_wavelet_ksigma_clip_custom.restype = c_int
 # Object Finding
 smbrr.smbrr_wavelet_structure_find.argtypes = [smbrr_wavelet_p, c_uint]
 smbrr.smbrr_wavelet_structure_find.restype = c_int
+
+smbrr.smbrr_wavelet_get_num_structures.argtypes = [smbrr_wavelet_p, c_uint]
+smbrr.smbrr_wavelet_get_num_structures.restype = c_uint
+
+smbrr.smbrr_wavelet_get_structure.argtypes = [smbrr_wavelet_p, c_uint, c_uint, POINTER(SmbrrStructure)]
+smbrr.smbrr_wavelet_get_structure.restype = c_int
 
 smbrr.smbrr_wavelet_structure_connect.argtypes = [smbrr_wavelet_p, c_uint, c_uint]
 smbrr.smbrr_wavelet_structure_connect.restype = c_int

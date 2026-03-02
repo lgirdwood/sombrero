@@ -110,15 +110,38 @@ class SombreroViewer(Gtk.ApplicationWindow):
         self.process_btn.set_sensitive(False)
         header.pack_start(self.process_btn)
 
-        # Drawing Area to display image + objects
+        # Left panel: TreeView for structures
+        self.tree_store = Gtk.TreeStore(str, str, str)
+        self.tree_view = Gtk.TreeView(model=self.tree_store)
+        for i, title in enumerate(["Name", "Info", "Position"]):
+            col = Gtk.TreeViewColumn(title, Gtk.CellRendererText(), text=i)
+            self.tree_view.append_column(col)
+        self.tree_view.set_hexpand(True)
+        self.tree_view.set_vexpand(True)
+        self.tree_view.connect("cursor-changed", self.on_tree_selection_changed)
+
+        left_scrolled = Gtk.ScrolledWindow()
+        left_scrolled.set_child(self.tree_view)
+        left_scrolled.set_size_request(300, -1)
+
+        # Right panel: Drawing Area to display image + objects
         self.drawing_area = Gtk.DrawingArea()
         self.drawing_area.set_draw_func(self.on_draw)
         self.drawing_area.set_hexpand(True)
         self.drawing_area.set_vexpand(True)
 
-        scrolled = Gtk.ScrolledWindow()
-        scrolled.set_child(self.drawing_area)
-        self.box.append(scrolled)
+        right_scrolled = Gtk.ScrolledWindow()
+        right_scrolled.set_child(self.drawing_area)
+
+        # Paned layout
+        self.paned = Gtk.Paned(orientation=Gtk.Orientation.HORIZONTAL)
+        self.paned.set_start_child(left_scrolled)
+        self.paned.set_end_child(right_scrolled)
+        self.paned.set_position(300)
+        self.paned.set_hexpand(True)
+        self.paned.set_vexpand(True)
+
+        self.box.append(self.paned)
 
         # Click handling
         self.click_gesture = Gtk.GestureClick.new()
@@ -132,6 +155,11 @@ class SombreroViewer(Gtk.ApplicationWindow):
         self.image_height = 0
         self.objects = []
         self.show_objects = False
+        self.tree_root = None
+
+        self.filter_scale = None
+        self.filter_id = None
+        self.filter_sigall = False
 
         self.current_filepath = None
         self.current_raw_data = None
@@ -182,6 +210,7 @@ class SombreroViewer(Gtk.ApplicationWindow):
         print(f"Loading {filepath}...")
         self.objects = []
         self.show_objects = False
+        self.tree_store.clear()
         
         is_fits = filepath.lower().endswith(('.fit', '.fits'))
         is_bmp = filepath.lower().endswith('.bmp')
@@ -277,6 +306,9 @@ class SombreroViewer(Gtk.ApplicationWindow):
             self.drawing_area.set_size_request(self.image_width, self.image_height)
             self.drawing_area.queue_draw()
             
+            filename = os.path.basename(filepath)
+            self.tree_root = self.tree_store.append(None, [filename, f"{width}x{height}", ""])
+            
             self.process_btn.set_sensitive(True)
             self.show_processing_dialog()
 
@@ -312,6 +344,30 @@ class SombreroViewer(Gtk.ApplicationWindow):
         # 4. Perform deblending/connecting
         sombrero.smbrr.smbrr_wavelet_structure_connect(w, 0, params['scales'] - 2)
         
+        # Populate tree with structures
+        if self.tree_root:
+            iter = self.tree_store.iter_children(self.tree_root)
+            while iter:
+                self.tree_store.remove(iter)
+                iter = self.tree_store.iter_children(self.tree_root)
+            
+            # Add a 'sigall' node
+            sigall_iter = self.tree_store.append(self.tree_root, ["sigall", "All Scales", ""])
+                
+            for i in range(params['scales'] - 1):
+                num_structures = sombrero.smbrr.smbrr_wavelet_get_num_structures(w, i)
+                scale_iter = self.tree_store.append(self.tree_root, [f"Scale {i}", f"{num_structures} structs", ""])
+                for j in range(num_structures):
+                    struct_data = sombrero.SmbrrStructure()
+                    if sombrero.smbrr.smbrr_wavelet_get_structure(w, i, j, ctypes.byref(struct_data)) == 0:
+                        sy = self.current_height - int(struct_data.pos.y) if not self.current_is_fits else int(struct_data.pos.y)
+                        self.tree_store.append(scale_iter, [
+                            f"Id: {struct_data.id}",
+                            f"Max: {struct_data.max_value:.1f}, Area: {struct_data.size}",
+                            f"({struct_data.pos.x}, {sy})"
+                        ])
+            self.tree_view.expand_all()
+        
         objects_found = []
         for i in range(10000): # Hard limit guard
             obj_ptr = sombrero.smbrr.smbrr_wavelet_object_get(w, i)
@@ -324,7 +380,8 @@ class SombreroViewer(Gtk.ApplicationWindow):
                 "x": int(obj.pos.x),
                 "y": y_coord,
                 "radius": float(obj.object_radius),
-                "id": obj.id
+                "id": obj.id,
+                "scale": obj.scale
             })
             
         print(f"Found {len(objects_found)} objects.")
@@ -342,18 +399,86 @@ class SombreroViewer(Gtk.ApplicationWindow):
             self.show_objects = not self.show_objects
             self.drawing_area.queue_draw()
 
+    def on_tree_selection_changed(self, treeview):
+        selection = treeview.get_selection()
+        model, treeiter = selection.get_selected()
+        if treeiter is not None:
+            path = model.get_path(treeiter)
+            depth = path.get_depth()
+            
+            if depth == 1:
+                # Root image selected
+                self.filter_scale = None
+                self.filter_id = None
+                self.filter_sigall = False
+            elif depth == 2:
+                # Scale selected or sigall
+                scale_str = model[treeiter][0]
+                if scale_str == "sigall":
+                    self.filter_scale = None
+                    self.filter_id = None
+                    self.filter_sigall = True
+                else:
+                    self.filter_sigall = False
+                    try:
+                        self.filter_scale = int(scale_str.replace("Scale ", ""))
+                        self.filter_id = None
+                    except ValueError:
+                        pass
+            elif depth == 3:
+                # Individual structure selected
+                self.filter_sigall = False
+                id_str = model[treeiter][0]
+                try:
+                    self.filter_id = int(id_str.replace("Id: ", ""))
+                    
+                    # Also need to figure out its scale by looking at its parent
+                    parent_iter = model.iter_parent(treeiter)
+                    if parent_iter:
+                        scale_str = model[parent_iter][0]
+                        self.filter_scale = int(scale_str.replace("Scale ", ""))
+                except ValueError:
+                    pass
+            
+            # Ensure objects are shown if a selection was made
+            self.show_objects = True
+            self.drawing_area.queue_draw()
+
     def on_draw(self, area, cr, width, height):
         if self.image_surface:
+            scale_x = width / self.image_width
+            scale_y = height / self.image_height
+
+            cr.save()
+            cr.scale(scale_x, scale_y)
+
             cr.set_source_surface(self.image_surface, 0, 0)
             cr.paint()
 
             if self.show_objects:
-                cr.set_line_width(2.0)
+                line_scale = max(scale_x, scale_y)
+                if line_scale > 0:
+                    cr.set_line_width(2.0 / line_scale)
+                else:
+                    cr.set_line_width(2.0)
+
                 cr.set_source_rgba(1.0, 0.0, 0.0, 0.8) # Red circles
 
                 for obj in self.objects:
+                    if self.filter_sigall:
+                        # Draw everything if sigall is selected
+                        pass
+                    elif self.filter_id is not None:
+                        if obj["id"] != self.filter_id:
+                            continue
+                    elif self.filter_scale is not None:
+                        if obj["scale"] != self.filter_scale:
+                            continue
+                            
                     cr.arc(obj["x"], obj["y"], obj["radius"], 0, 2 * 3.14159)
                     cr.stroke()
+            
+            cr.restore()
 
 class SombreroApp(Gtk.Application):
     def __init__(self):

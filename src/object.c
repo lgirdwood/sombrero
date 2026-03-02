@@ -967,7 +967,7 @@ int smbrr_wavelet_structure_connect(struct smbrr_wavelet *w,
 	}
 
 	/* create new objects and deblend connected structures */
-	for (scale = end; ; scale--) {
+	for (scale = end;; scale--) {
 		/* get first structure at this scale */
 		structure = w->structure[scale];
 
@@ -1123,4 +1123,35 @@ struct smbrr_object *smbrr_wavelet_get_object_at_offset(struct smbrr_wavelet *w,
 		return NULL;
 
 	return &w->object_map[uoffset]->o;
+}
+
+unsigned int smbrr_wavelet_get_num_structures(struct smbrr_wavelet *w,
+											  unsigned int scale)
+{
+	if (scale >= w->num_scales - 1)
+		return 0;
+	return w->num_structures[scale];
+}
+
+int smbrr_wavelet_get_structure(struct smbrr_wavelet *w, unsigned int scale,
+								unsigned int index, struct smbrr_structure *s)
+{
+	struct structure *st;
+
+	if (scale >= w->num_scales - 1)
+		return -1;
+
+	if (index >= w->num_structures[scale])
+		return -1;
+
+	st = w->structure[scale] + index;
+	s->id = st->id;
+	s->scale = st->scale;
+	s->size = st->size;
+	s->object_id = st->merged ? st->object_id : 0;
+	/* get max_pixel as x, y coordinate */
+	s->pos.x = st->max_pixel % w->width;
+	s->pos.y = st->max_pixel / w->width;
+	s->max_value = st->max_value;
+	return 0;
 }

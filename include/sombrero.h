@@ -256,6 +256,18 @@ struct smbrr_object {
 	unsigned int scale; /**< Object wavelet scale */
 };
 
+/** \struct smbrr_structure
+ * \brief Individual structure detected at a specific scale before connection.
+ */
+struct smbrr_structure {
+	unsigned int id; /**< Structure ID */
+	unsigned int scale; /**< Wavelet scale */
+	unsigned int size; /**< Area in pixels */
+	unsigned int object_id; /**< ID of connected object, or 0 if unassigned */
+	struct smbrr_coord pos; /**< Coordinate of maximum pixel value */
+	float max_value; /**< Maximum pixel value */
+};
+
 /** \struct smbrr_clip_coeff
  * \brief Custom K-sigma cliping coefficients for each scale.
  *
@@ -813,6 +825,21 @@ int smbrr_wavelet_ksigma_clip_custom(struct smbrr_wavelet *w,
  * \ingroup object
  */
 int smbrr_wavelet_structure_find(struct smbrr_wavelet *w, unsigned int scale);
+
+/**
+ * \brief Get the number of structures found at a specific scale.
+ * \ingroup object
+ */
+unsigned int smbrr_wavelet_get_num_structures(struct smbrr_wavelet *w,
+											  unsigned int scale);
+
+/**
+ * \brief Retrieve information about a specific structure at a specific scale.
+ * \return 0 on success, <0 on invalid index or scale.
+ * \ingroup object
+ */
+int smbrr_wavelet_get_structure(struct smbrr_wavelet *w, unsigned int scale,
+								unsigned int index, struct smbrr_structure *s);
 
 /**
  * \brief Build a relational tree matching overlapping structures between
