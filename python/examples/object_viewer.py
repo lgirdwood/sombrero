@@ -11,9 +11,64 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Gdk", "4.0")
-from gi.repository import Gtk, Gdk, Gio, GLib
-
+from gi.repository import Gtk, Gdk, Gio, GObject, GLib
 import cairo
+
+class SmbrrNode(GObject.Object):
+    def __init__(self, name, info, position, depth, internal_id=None, parent_id=None):
+        super().__init__()
+        self._name = name
+        self._info = info
+        self._position = position
+        self.depth = depth
+        self.internal_id = internal_id
+        self.parent_id = parent_id
+        self.children = Gio.ListStore(item_type=SmbrrNode)
+
+    @GObject.Property(type=str)
+    def name(self): return self._name
+    @GObject.Property(type=str)
+    def info(self): return self._info
+    @GObject.Property(type=str)
+    def position(self): return self._position
+
+def create_row(item):
+    # Always return the ListStore so the TreeListModel can react to it changing.
+    # If we return None, it gets permanently marked as a leaf node.
+    return item.children
+
+def setup_name_cb(factory, list_item):
+    expander = Gtk.TreeExpander()
+    label = Gtk.Label(halign=Gtk.Align.START)
+    expander.set_child(label)
+    list_item.set_child(expander)
+
+def bind_name_cb(factory, list_item):
+    expander = list_item.get_child()
+    row_item = list_item.get_item()
+    if row_item:
+        expander.set_list_row(row_item)
+        label = expander.get_child()
+        node = row_item.get_item()
+        label.set_text(node.name)
+
+def setup_info_cb(factory, list_item):
+    label = Gtk.Label(halign=Gtk.Align.START)
+    list_item.set_child(label)
+
+def bind_info_cb(factory, list_item):
+    label = list_item.get_child()
+    row_item = list_item.get_item()
+    if row_item:
+        node = row_item.get_item() if hasattr(row_item, 'get_item') else row_item
+        label.set_text(node.info)
+
+def bind_pos_cb(factory, list_item):
+    label = list_item.get_child()
+    row_item = list_item.get_item()
+    if row_item:
+        node = row_item.get_item() if hasattr(row_item, 'get_item') else row_item
+        label.set_text(node.position)
 import numpy as np
 try:
     from astropy.io import fits
@@ -110,28 +165,46 @@ class SombreroViewer(Gtk.ApplicationWindow):
         self.process_btn.set_sensitive(False)
         header.pack_start(self.process_btn)
 
-        # Left panel: TreeView for structures
-        self.tree_store = Gtk.TreeStore(str, str, str)
-        self.tree_view = Gtk.TreeView(model=self.tree_store)
-        for i, title in enumerate(["Name", "Info", "Position"]):
-            col = Gtk.TreeViewColumn(title, Gtk.CellRendererText(), text=i)
-            self.tree_view.append_column(col)
-        self.tree_view.set_hexpand(True)
-        self.tree_view.set_vexpand(True)
-        self.tree_view.connect("cursor-changed", self.on_tree_selection_changed)
+        # Left panel: ColumnView for structures
+        self.tree_store = Gio.ListStore(item_type=SmbrrNode)
+        self.tree_model = Gtk.TreeListModel.new(self.tree_store, False, True, create_row)
+        self.selection_model = Gtk.SingleSelection.new(self.tree_model)
+        self.tree_view = Gtk.ColumnView(model=self.selection_model)
+
+        factory_name = Gtk.SignalListItemFactory()
+        factory_name.connect("setup", setup_name_cb)
+        factory_name.connect("bind", bind_name_cb)
+        col_name = Gtk.ColumnViewColumn(title="Name", factory=factory_name)
+        col_name.set_expand(True)
+        self.tree_view.append_column(col_name)
+
+        factory_info = Gtk.SignalListItemFactory()
+        factory_info.connect("setup", setup_info_cb)
+        factory_info.connect("bind", bind_info_cb)
+        col_info = Gtk.ColumnViewColumn(title="Info", factory=factory_info)
+        self.tree_view.append_column(col_info)
+
+        factory_pos = Gtk.SignalListItemFactory()
+        factory_pos.connect("setup", setup_info_cb)
+        factory_pos.connect("bind", bind_pos_cb)
+        col_pos = Gtk.ColumnViewColumn(title="Position", factory=factory_pos)
+        self.tree_view.append_column(col_pos)
+        
+        self.selection_model.connect("selection-changed", self.on_tree_selection_changed)
 
         left_scrolled = Gtk.ScrolledWindow()
         left_scrolled.set_child(self.tree_view)
+        left_scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         left_scrolled.set_size_request(300, -1)
 
         # Right panel: Drawing Area to display image + objects
         self.drawing_area = Gtk.DrawingArea()
         self.drawing_area.set_draw_func(self.on_draw)
-        self.drawing_area.set_hexpand(True)
-        self.drawing_area.set_vexpand(True)
+        self.drawing_area.set_size_request(500, 500)
 
         right_scrolled = Gtk.ScrolledWindow()
         right_scrolled.set_child(self.drawing_area)
+        right_scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
 
         # Paned layout
         self.paned = Gtk.Paned(orientation=Gtk.Orientation.HORIZONTAL)
@@ -154,12 +227,16 @@ class SombreroViewer(Gtk.ApplicationWindow):
         self.image_width = 0
         self.image_height = 0
         self.objects = []
+        self.structures = []
         self.show_objects = False
         self.tree_root = None
 
         self.filter_scale = None
         self.filter_id = None
         self.filter_sigall = False
+
+        self.scale_surfaces = {}
+        self.sigall_surface = None
 
         self.current_filepath = None
         self.current_raw_data = None
@@ -209,8 +286,13 @@ class SombreroViewer(Gtk.ApplicationWindow):
     def load_image(self, filepath):
         print(f"Loading {filepath}...")
         self.objects = []
+        self.structures = []
         self.show_objects = False
-        self.tree_store.clear()
+        self.scale_surfaces = {}
+        self.surface_buffers = []
+        self.sigall_surface = None
+        if hasattr(self, 'tree_store'):
+            self.tree_store.remove_all()
         
         is_fits = filepath.lower().endswith(('.fit', '.fits'))
         is_bmp = filepath.lower().endswith('.bmp')
@@ -307,7 +389,9 @@ class SombreroViewer(Gtk.ApplicationWindow):
             self.drawing_area.queue_draw()
             
             filename = os.path.basename(filepath)
-            self.tree_root = self.tree_store.append(None, [filename, f"{width}x{height}", ""])
+            self.tree_root = SmbrrNode(filename, f"{width}x{height}", "", 1)
+            
+            self.tree_store.append(self.tree_root)
             
             self.process_btn.set_sensitive(True)
             self.show_processing_dialog()
@@ -343,30 +427,119 @@ class SombreroViewer(Gtk.ApplicationWindow):
         
         # 4. Perform deblending/connecting
         sombrero.smbrr.smbrr_wavelet_structure_connect(w, 0, params['scales'] - 2)
-        
-        # Populate tree with structures
-        if self.tree_root:
-            iter = self.tree_store.iter_children(self.tree_root)
-            while iter:
-                self.tree_store.remove(iter)
-                iter = self.tree_store.iter_children(self.tree_root)
+
+        # 5. Extract images for rendering
+        def create_surface_from_smbrr(s_ptr, width, height):
+            if not s_ptr:
+                return None
             
-            # Add a 'sigall' node
-            sigall_iter = self.tree_store.append(self.tree_root, ["sigall", "All Scales", ""])
+            # Find min and max for normalization
+            data_min = ctypes.c_float()
+            data_max = ctypes.c_float()
+            sombrero.smbrr.smbrr_find_limits(s_ptr, ctypes.byref(data_min), ctypes.byref(data_max))
+            
+            # Float data ptr
+            data_p = ctypes.cast(sombrero.smbrr.smbrr_get_data(s_ptr, 3, None), ctypes.POINTER(ctypes.c_float))
+            
+            # We must use ctypes to allocate the buffer first! The C code does memcpy(*buf, ...)
+            # so *buf must point to valid memory of size (width * height * sizeof(float)).
+            buffer_size = width * height * ctypes.sizeof(ctypes.c_float)
+            data_buffer = ctypes.create_string_buffer(buffer_size)
+            
+            data_out = ctypes.cast(data_buffer, ctypes.c_void_p)
+            sombrero.smbrr.smbrr_get_data(s_ptr, 3, ctypes.byref(data_out))
+            
+            float_ptr = ctypes.cast(data_out, ctypes.POINTER(ctypes.c_float))
+            
+            # We copy data manually into numpy, normally we'd want to avoid copies if possible
+            arr = np.ctypeslib.as_array(float_ptr, shape=(height, width))
+            
+            d_min = data_min.value
+            d_max = data_max.value
+            
+            if d_max > d_min:
+                norm_data = (arr - d_min) / (d_max - d_min) * 255.0
+            else:
+                norm_data = np.zeros_like(arr)
                 
-            for i in range(params['scales'] - 1):
-                num_structures = sombrero.smbrr.smbrr_wavelet_get_num_structures(w, i)
-                scale_iter = self.tree_store.append(self.tree_root, [f"Scale {i}", f"{num_structures} structs", ""])
-                for j in range(num_structures):
-                    struct_data = sombrero.SmbrrStructure()
-                    if sombrero.smbrr.smbrr_wavelet_get_structure(w, i, j, ctypes.byref(struct_data)) == 0:
-                        sy = self.current_height - int(struct_data.pos.y) if not self.current_is_fits else int(struct_data.pos.y)
-                        self.tree_store.append(scale_iter, [
-                            f"Id: {struct_data.id}",
-                            f"Max: {struct_data.max_value:.1f}, Area: {struct_data.size}",
-                            f"({struct_data.pos.x}, {sy})"
-                        ])
-            self.tree_view.expand_all()
+            vis_data = norm_data.astype(np.uint8)
+            
+            cairo_data = np.zeros((height, width, 4), dtype=np.uint8)
+            cairo_data[:, :, 0] = vis_data
+            cairo_data[:, :, 1] = vis_data
+            cairo_data[:, :, 2] = vis_data
+            cairo_data[:, :, 3] = 255
+            
+            format_val = cairo.FORMAT_ARGB32
+            stride = cairo.ImageSurface.format_stride_for_width(format_val, width)
+            surface_data = cairo_data.tobytes()
+            # Store buffer to prevent garbage collection
+            surface_buffer = bytearray(surface_data)
+            surface = cairo.ImageSurface.create_for_data(surface_buffer, format_val, width, height, stride)
+            
+            return surface, surface_buffer
+
+        self.scale_surfaces = {}
+        self.surface_buffers = []
+        for i in range(params['scales']):
+            s_ptr = sombrero.smbrr.smbrr_wavelet_get_scale(w, i)
+            s_res = create_surface_from_smbrr(s_ptr, self.current_width, self.current_height)
+            if s_res:
+                self.scale_surfaces[i] = s_res[0]
+                self.surface_buffers.append(s_res[1])
+
+        # For sigall we need to merge the significant maps or create a presentation map
+        # But we don't have a direct smbrr func for the full composite sigall image, 
+        # so we will create a surface directly from 'img' context which should be reconstructable or just show the last scale for now. 
+        # Since libsombrero reconstruct actually does this:
+        reconstructed = sombrero.smbrr.smbrr_new(3, self.current_width, self.current_height, 0, self.current_adu_type, None)
+        sombrero.smbrr.smbrr_copy(reconstructed, img)
+        sombrero.smbrr.smbrr_reconstruct(reconstructed, sombrero.SMBRR_WAVELET_MASK_LINEAR, params['s'], params['scales'], params['k'])
+        s_res = create_surface_from_smbrr(reconstructed, self.current_width, self.current_height)
+        if s_res:
+            self.sigall_surface = s_res[0]
+            self.surface_buffers.append(s_res[1])
+        sombrero.smbrr.smbrr_free(reconstructed)
+
+        # Populate tree with structures
+        self.tree_store.remove_all()
+        basename = os.path.basename(self.current_filepath) if self.current_filepath else "Image"
+        self.tree_root = SmbrrNode(basename, "", "", 1)
+        
+        # Add a 'sigall' node
+        sigall_iter = SmbrrNode("sigall", "All Scales", "", 2)
+        self.tree_root.children.append(sigall_iter)
+                
+        for i in range(params['scales'] - 1):
+            num_structures = sombrero.smbrr.smbrr_wavelet_get_num_structures(w, i)
+            print(f"Scale {i} found {num_structures} structures.")
+            scale_iter = SmbrrNode(f"Scale {i}", f"{num_structures} structs", "", 2)
+            for j in range(num_structures):
+                struct_data = sombrero.SmbrrStructure()
+                if sombrero.smbrr.smbrr_wavelet_get_structure(w, i, j, ctypes.byref(struct_data)) == 0:
+                    sy = self.current_height - int(struct_data.pos.y) if not self.current_is_fits else int(struct_data.pos.y)
+                    struct_node = SmbrrNode(
+                        f"Id: {struct_data.id}",
+                        f"Max: {struct_data.max_value:.1f}, Area: {struct_data.size}",
+                        f"({struct_data.pos.x}, {sy})",
+                        3,
+                        struct_data.id,
+                        i
+                    )
+                    scale_iter.children.append(struct_node)
+                    self.structures.append({
+                        "x": int(struct_data.pos.x),
+                        "y": sy,
+                        "radius": max(1.0, (struct_data.size / 3.14159) ** 0.5 * 2.0),
+                        "id": struct_data.id,
+                        "scale": i
+                    })
+            self.tree_root.children.append(scale_iter)
+            print(f"Appended scale {i} to root with {scale_iter.children.get_n_items()} child structs.")
+            
+        print(f"Adding tree_root ({self.tree_root.name}) to tree_store with {self.tree_root.children.get_n_items()} children")
+        self.tree_store.append(self.tree_root)
+        self.tree_view.queue_draw()
         
         objects_found = []
         for i in range(10000): # Hard limit guard
@@ -399,83 +572,92 @@ class SombreroViewer(Gtk.ApplicationWindow):
             self.show_objects = not self.show_objects
             self.drawing_area.queue_draw()
 
-    def on_tree_selection_changed(self, treeview):
-        selection = treeview.get_selection()
-        model, treeiter = selection.get_selected()
-        if treeiter is not None:
-            path = model.get_path(treeiter)
-            depth = path.get_depth()
+    def on_tree_selection_changed(self, selection, position, n_items):
+        item = selection.get_selected_item()
+        if not item:
+            return
             
-            if depth == 1:
-                # Root image selected
+        node = item.get_item()
+        if not node:
+            return
+            
+        depth = node.depth
+        
+        if depth == 1:
+            # Root image selected
+            self.filter_scale = None
+            self.filter_id = None
+            self.filter_sigall = False
+        elif depth == 2:
+            # Scale selected or sigall
+            scale_str = node.name
+            if scale_str == "sigall":
                 self.filter_scale = None
                 self.filter_id = None
+                self.filter_sigall = True
+            else:
                 self.filter_sigall = False
-            elif depth == 2:
-                # Scale selected or sigall
-                scale_str = model[treeiter][0]
-                if scale_str == "sigall":
-                    self.filter_scale = None
-                    self.filter_id = None
-                    self.filter_sigall = True
-                else:
-                    self.filter_sigall = False
-                    try:
-                        self.filter_scale = int(scale_str.replace("Scale ", ""))
-                        self.filter_id = None
-                    except ValueError:
-                        pass
-            elif depth == 3:
-                # Individual structure selected
-                self.filter_sigall = False
-                id_str = model[treeiter][0]
                 try:
-                    self.filter_id = int(id_str.replace("Id: ", ""))
-                    
-                    # Also need to figure out its scale by looking at its parent
-                    parent_iter = model.iter_parent(treeiter)
-                    if parent_iter:
-                        scale_str = model[parent_iter][0]
-                        self.filter_scale = int(scale_str.replace("Scale ", ""))
+                    self.filter_scale = int(scale_str.replace("Scale ", ""))
+                    self.filter_id = None
                 except ValueError:
                     pass
-            
-            # Ensure objects are shown if a selection was made
-            self.show_objects = True
-            self.drawing_area.queue_draw()
+        elif depth == 3:
+            # Individual structure selected
+            self.filter_sigall = False
+            self.filter_id = node.internal_id
+            self.filter_scale = node.parent_id
+        
+        # Ensure objects are shown if a selection was made
+        self.show_objects = True
+        self.drawing_area.queue_draw()
 
     def on_draw(self, area, cr, width, height):
+        print(f"on_draw: {width}x{height}, filters={self.filter_scale}/{self.filter_id}, objects={len(self.objects)} structs={len(self.structures)}")
         if self.image_surface:
             scale_x = width / self.image_width
             scale_y = height / self.image_height
 
             cr.save()
-            cr.scale(scale_x, scale_y)
+            # cr.scale(scale_x, scale_y) # Removed because GTK4 snapshot clips scaled cairo contexts unpredictably
+            
+            surface_to_draw = self.image_surface
+            if self.filter_sigall and self.sigall_surface:
+                surface_to_draw = self.sigall_surface
+            elif self.filter_scale is not None and self.filter_scale in self.scale_surfaces:
+                surface_to_draw = self.scale_surfaces[self.filter_scale]
 
-            cr.set_source_surface(self.image_surface, 0, 0)
+            # Scale the surface matrix before painting
+            matrix = cairo.Matrix()
+            matrix.scale(1.0 / scale_x, 1.0 / scale_y)
+            surface_to_draw.set_device_offset(0, 0)
+            
+            cr.set_source_surface(surface_to_draw, 0, 0)
+            cr.get_source().set_matrix(matrix)
             cr.paint()
 
             if self.show_objects:
                 line_scale = max(scale_x, scale_y)
                 if line_scale > 0:
-                    cr.set_line_width(2.0 / line_scale)
-                else:
                     cr.set_line_width(2.0)
 
                 cr.set_source_rgba(1.0, 0.0, 0.0, 0.8) # Red circles
 
-                for obj in self.objects:
+                items_to_draw = self.objects if self.filter_scale is None else self.structures
+                
+                for item in items_to_draw:
                     if self.filter_sigall:
                         # Draw everything if sigall is selected
                         pass
                     elif self.filter_id is not None:
-                        if obj["id"] != self.filter_id:
+                        if item["id"] != self.filter_id:
                             continue
                     elif self.filter_scale is not None:
-                        if obj["scale"] != self.filter_scale:
+                        if item["scale"] != self.filter_scale:
                             continue
                             
-                    cr.arc(obj["x"], obj["y"], obj["radius"], 0, 2 * 3.14159)
+                    cr.new_path()
+                    cr.arc(item["x"] * scale_x, item["y"] * scale_y, item["radius"] * line_scale, 0, 2 * 3.14159)
                     cr.stroke()
             
             cr.restore()

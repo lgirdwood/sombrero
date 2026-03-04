@@ -248,6 +248,9 @@ smbrr.smbrr_psf.restype = c_int
 smbrr.smbrr_get_adu_at_posn.argtypes = [smbrr_p, c_int, c_int]
 smbrr.smbrr_get_adu_at_posn.restype = c_float
 
+smbrr.smbrr_reconstruct.argtypes = [smbrr_p, c_int, c_float, c_int, c_int]
+smbrr.smbrr_reconstruct.restype = c_int
+
 smbrr.smbrr_get_adu_at_offset.argtypes = [smbrr_p, c_int]
 smbrr.smbrr_get_adu_at_offset.restype = c_float
 
