@@ -489,17 +489,23 @@ class SombreroViewer(Gtk.ApplicationWindow):
                 self.surface_buffers.append(s_res[1])
 
         # For sigall we need to merge the significant maps or create a presentation map
-        # But we don't have a direct smbrr func for the full composite sigall image, 
-        # so we will create a surface directly from 'img' context which should be reconstructable or just show the last scale for now. 
-        # Since libsombrero reconstruct actually does this:
-        reconstructed = sombrero.smbrr.smbrr_new(3, self.current_width, self.current_height, 0, self.current_adu_type, None)
-        sombrero.smbrr.smbrr_copy(reconstructed, img)
-        sombrero.smbrr.smbrr_reconstruct(reconstructed, sombrero.SMBRR_WAVELET_MASK_LINEAR, params['s'], params['scales'], params['k'])
-        s_res = create_surface_from_smbrr(reconstructed, self.current_width, self.current_height)
+        # Build the composite sigall image by accumulating the significant maps with weightings,
+        # identical to how usb_camera_sigall.py and structures.c do it.
+        sigall_img = sombrero.smbrr.smbrr_new(3, self.current_width, self.current_height, 0, self.current_adu_type, None)
+        
+        for i in range(params['scales'] - 1):
+            simage = sombrero.smbrr.smbrr_wavelet_get_significant(w, ctypes.c_uint(i))
+            if simage:
+                val = 16.0 + (1 << ((params['scales'] - 1) - i))
+                sombrero.smbrr.smbrr_significant_add_value(sigall_img, simage, ctypes.c_float(val))
+
+        sombrero.smbrr.smbrr_normalise(sigall_img, ctypes.c_float(0.0), ctypes.c_float(250.0))
+        
+        s_res = create_surface_from_smbrr(sigall_img, self.current_width, self.current_height)
         if s_res:
             self.sigall_surface = s_res[0]
             self.surface_buffers.append(s_res[1])
-        sombrero.smbrr.smbrr_free(reconstructed)
+        sombrero.smbrr.smbrr_free(sigall_img)
 
         # Populate tree with structures
         self.tree_store.remove_all()
