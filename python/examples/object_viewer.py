@@ -266,6 +266,7 @@ class SombreroViewer(Gtk.ApplicationWindow):
         self.filter_scale = None
         self.filter_id = None
         self.filter_object_id = None
+        self.filter_is_object = False
         self.filter_sigall = False
         self.filter_reconstruct = False
 
@@ -613,10 +614,6 @@ class SombreroViewer(Gtk.ApplicationWindow):
             self.tree_root.children.append(scale_iter)
             print(f"Appended scale {i} to root with {scale_iter.children.get_n_items()} child structs.")
             
-        print(f"Adding tree_root ({self.tree_root.name}) to tree_store with {self.tree_root.children.get_n_items()} children")
-        self.tree_store.append(self.tree_root)
-        self.tree_view.queue_draw()
-        
         objects_found = []
         for i in range(10000): # Hard limit guard
             obj_ptr = sombrero.smbrr.smbrr_wavelet_object_get(w, i)
@@ -635,6 +632,24 @@ class SombreroViewer(Gtk.ApplicationWindow):
             
         print(f"Found {len(objects_found)} objects.")
         self.objects = objects_found
+        
+        objects_iter = SmbrrNode("Objects", f"{len(self.objects)} objects", "", 2)
+        for obj_item in self.objects:
+            obj_node = SmbrrNode(
+                f"Object {obj_item['id']}",
+                f"Radius: {obj_item['radius']:.1f}",
+                f"({obj_item['x']}, {obj_item['y']})",
+                3,
+                None,
+                "objects",
+                obj_item['id']
+            )
+            objects_iter.children.append(obj_node)
+        self.tree_root.children.append(objects_iter)
+
+        print(f"Adding tree_root ({self.tree_root.name}) to tree_store with {self.tree_root.children.get_n_items()} children")
+        self.tree_store.append(self.tree_root)
+        self.tree_view.queue_draw()
         
         self.show_structures = True
         self.show_circles_btn.set_active(True)
@@ -725,36 +740,58 @@ class SombreroViewer(Gtk.ApplicationWindow):
             # Root image selected
             self.filter_scale = None
             self.filter_id = None
+            self.filter_object_id = None
+            self.filter_is_object = False
             self.filter_sigall = False
             self.filter_reconstruct = False
         elif depth == 2:
             # Scale selected or sigall
             scale_str = node.name
+            self.filter_is_object = False
             if scale_str == "sigall":
                 self.filter_scale = None
                 self.filter_id = None
+                self.filter_object_id = None
                 self.filter_sigall = True
                 self.filter_reconstruct = False
             elif scale_str == "reconstruct":
                 self.filter_scale = None
                 self.filter_id = None
+                self.filter_object_id = None
                 self.filter_sigall = False
                 self.filter_reconstruct = True
+            elif scale_str == "Objects":
+                self.filter_scale = None
+                self.filter_id = None
+                self.filter_object_id = None
+                self.filter_sigall = False
+                self.filter_reconstruct = False
             else:
                 self.filter_sigall = False
                 self.filter_reconstruct = False
+                self.filter_object_id = None
                 try:
                     self.filter_scale = int(scale_str.replace("Scale ", ""))
                     self.filter_id = None
                 except ValueError:
                     pass
         elif depth == 3:
-            # Individual structure selected
-            self.filter_sigall = False
-            self.filter_reconstruct = False
-            self.filter_id = node.internal_id
-            self.filter_scale = node.parent_id
-            self.filter_object_id = getattr(node, 'object_id', None)
+            if getattr(node, 'parent_id', None) == 'objects':
+                # Object node
+                self.filter_sigall = False
+                self.filter_reconstruct = False
+                self.filter_id = None
+                self.filter_scale = None
+                self.filter_object_id = getattr(node, 'object_id', None)
+                self.filter_is_object = True
+            else:
+                # Individual structure selected
+                self.filter_sigall = False
+                self.filter_reconstruct = False
+                self.filter_id = getattr(node, 'internal_id', None)
+                self.filter_scale = getattr(node, 'parent_id', None)
+                self.filter_object_id = getattr(node, 'object_id', None)
+                self.filter_is_object = False
         
         # The user requested checkboxes not to change state when the list view selection changes.
         # So we just request a redraw to respect the existing toggle states.
@@ -810,6 +847,9 @@ class SombreroViewer(Gtk.ApplicationWindow):
                     if self.filter_sigall:
                         # Draw everything if sigall is selected
                         pass
+                    elif getattr(self, "filter_is_object", False):
+                        if item.get("object_id") != getattr(self, "filter_object_id", None):
+                            continue
                     elif getattr(self, "filter_id", None) is not None:
                         # If a single structure is selected, check if it forms a united object
                         obj_id = getattr(self, "filter_object_id", 0)
@@ -837,14 +877,32 @@ class SombreroViewer(Gtk.ApplicationWindow):
                 if line_scale > 0:
                     cr.set_line_width(2.0)
                 
-                # Dashed blue circles for true extracted objects
-                cr.set_source_rgba(0.0, 0.0, 1.0, 0.8) # Blue
-                cr.set_dash([5.0, 5.0])
-                
                 for item in self.objects:
-                    # Filter logic if you want to apply tree filtering to detected objects as well
-                    if self.filter_scale is not None and item["scale"] != self.filter_scale:
-                        continue
+                    is_highlighted = False
+                    if getattr(self, "filter_is_object", False):
+                        if item["id"] == getattr(self, "filter_object_id", None):
+                            is_highlighted = True
+                        else:
+                            continue # Hide unselected objects
+                    elif getattr(self, "filter_id", None) is not None:
+                        # A structure is selected, check if it belongs to this object
+                        obj_id = getattr(self, "filter_object_id", 0)
+                        if obj_id is not None and obj_id > 0 and item["id"] == obj_id:
+                            is_highlighted = True
+                        else:
+                            continue
+                    elif getattr(self, "filter_scale", None) is not None:
+                        if item["scale"] != self.filter_scale:
+                            continue
+
+                    if is_highlighted:
+                        cr.set_source_rgba(1.0, 0.0, 1.0, 0.9) # Magenta solid
+                        cr.set_dash([])
+                        cr.set_line_width(3.0)
+                    else:
+                        cr.set_source_rgba(0.0, 0.0, 1.0, 0.8) # Blue dashed
+                        cr.set_dash([5.0, 5.0])
+                        cr.set_line_width(2.0)
                         
                     cr.new_path()
                     cr.arc(item["x"] * scale_x, item["y"] * scale_y, item["radius"] * line_scale, 0, 2 * 3.14159)
