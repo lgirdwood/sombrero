@@ -165,6 +165,16 @@ class SombreroViewer(Gtk.ApplicationWindow):
         self.process_btn.set_sensitive(False)
         header.pack_start(self.process_btn)
 
+        self.show_circles_btn = Gtk.CheckButton(label="Show Structures")
+        self.show_circles_btn.set_active(False)
+        self.show_circles_btn.connect("toggled", self.on_show_circles_toggled)
+        header.pack_start(self.show_circles_btn)
+
+        self.show_objects_btn = Gtk.CheckButton(label="Show Objects")
+        self.show_objects_btn.set_active(False)
+        self.show_objects_btn.connect("toggled", self.on_show_objects_toggled)
+        header.pack_start(self.show_objects_btn)
+
         # Left panel: ColumnView for structures
         self.tree_store = Gio.ListStore(item_type=SmbrrNode)
         self.tree_model = Gtk.TreeListModel.new(self.tree_store, False, True, create_row)
@@ -216,11 +226,31 @@ class SombreroViewer(Gtk.ApplicationWindow):
 
         self.box.append(self.paned)
 
+        # Status bar
+        self.status_bar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        self.status_bar.set_margin_start(5)
+        self.status_bar.set_margin_end(5)
+        self.status_bar.set_margin_top(2)
+        self.status_bar.set_margin_bottom(2)
+        
+        self.status_label = Gtk.Label(label="Ready")
+        self.status_label.set_halign(Gtk.Align.START)
+        self.status_bar.append(self.status_label)
+        
+        self.box.append(self.status_bar)
+
         # Click handling
         self.click_gesture = Gtk.GestureClick.new()
         self.click_gesture.set_button(0) # All buttons
         self.click_gesture.connect("pressed", self.on_click)
         self.drawing_area.add_controller(self.click_gesture)
+
+        # Motion handling
+        self.motion_ctrl = Gtk.EventControllerMotion.new()
+        self.motion_ctrl.connect("motion", self.on_motion)
+        self.motion_ctrl.connect("enter", self.on_enter)
+        self.motion_ctrl.connect("leave", self.on_leave)
+        self.drawing_area.add_controller(self.motion_ctrl)
 
         # Application state
         self.image_surface = None
@@ -228,15 +258,18 @@ class SombreroViewer(Gtk.ApplicationWindow):
         self.image_height = 0
         self.objects = []
         self.structures = []
+        self.show_structures = False
         self.show_objects = False
         self.tree_root = None
 
         self.filter_scale = None
         self.filter_id = None
         self.filter_sigall = False
+        self.filter_reconstruct = False
 
         self.scale_surfaces = {}
         self.sigall_surface = None
+        self.reconstruct_surface = None
 
         self.current_filepath = None
         self.current_raw_data = None
@@ -283,14 +316,24 @@ class SombreroViewer(Gtk.ApplicationWindow):
         else:
             dialog.destroy()
 
+    def on_show_circles_toggled(self, button):
+        self.show_structures = button.get_active()
+        self.drawing_area.queue_draw()
+
+    def on_show_objects_toggled(self, button):
+        self.show_objects = button.get_active()
+        self.drawing_area.queue_draw()
+
     def load_image(self, filepath):
         print(f"Loading {filepath}...")
         self.objects = []
         self.structures = []
+        self.show_structures = False
         self.show_objects = False
         self.scale_surfaces = {}
         self.surface_buffers = []
         self.sigall_surface = None
+        self.reconstruct_surface = None
         if hasattr(self, 'tree_store'):
             self.tree_store.remove_all()
         
@@ -429,7 +472,7 @@ class SombreroViewer(Gtk.ApplicationWindow):
         sombrero.smbrr.smbrr_wavelet_structure_connect(w, 0, params['scales'] - 2)
 
         # 5. Extract images for rendering
-        def create_surface_from_smbrr(s_ptr, width, height):
+        def create_surface_from_smbrr(s_ptr, width, height, name):
             if not s_ptr:
                 return None
             
@@ -454,8 +497,14 @@ class SombreroViewer(Gtk.ApplicationWindow):
             # We copy data manually into numpy, normally we'd want to avoid copies if possible
             arr = np.ctypeslib.as_array(float_ptr, shape=(height, width))
             
+            # libsombrero copies data in a way that renders upside-down when converted
+            # back to Cairo/GTK coordinates (which are top-left origin).
+            arr = np.flipud(arr)
+            
             d_min = data_min.value
             d_max = data_max.value
+            
+            print(f"create_surface_from_smbrr limits for {name}: {d_min} to {d_max}")
             
             if d_max > d_min:
                 norm_data = (arr - d_min) / (d_max - d_min) * 255.0
@@ -483,7 +532,7 @@ class SombreroViewer(Gtk.ApplicationWindow):
         self.surface_buffers = []
         for i in range(params['scales']):
             s_ptr = sombrero.smbrr.smbrr_wavelet_get_scale(w, i)
-            s_res = create_surface_from_smbrr(s_ptr, self.current_width, self.current_height)
+            s_res = create_surface_from_smbrr(s_ptr, self.current_width, self.current_height, f"scale {i}")
             if s_res:
                 self.scale_surfaces[i] = s_res[0]
                 self.surface_buffers.append(s_res[1])
@@ -501,11 +550,24 @@ class SombreroViewer(Gtk.ApplicationWindow):
 
         sombrero.smbrr.smbrr_normalise(sigall_img, ctypes.c_float(0.0), ctypes.c_float(250.0))
         
-        s_res = create_surface_from_smbrr(sigall_img, self.current_width, self.current_height)
+        s_res = create_surface_from_smbrr(sigall_img, self.current_width, self.current_height, "sigall")
         if s_res:
             self.sigall_surface = s_res[0]
             self.surface_buffers.append(s_res[1])
         sombrero.smbrr.smbrr_free(sigall_img)
+
+        # Build reconstructed image
+        reconstructed = sombrero.smbrr.smbrr_new(3, self.current_width, self.current_height, 0, self.current_adu_type, None)
+        sombrero.smbrr.smbrr_copy(reconstructed, img)
+        sombrero.smbrr.smbrr_reconstruct(reconstructed, sombrero.SMBRR_WAVELET_MASK_LINEAR, ctypes.c_float(1.0e-4), params['scales'], params['k'])
+        
+        sombrero.smbrr.smbrr_normalise(reconstructed, ctypes.c_float(0.0), ctypes.c_float(255.0))
+        
+        s_res = create_surface_from_smbrr(reconstructed, self.current_width, self.current_height, "reconstruct")
+        if s_res:
+            self.reconstruct_surface = s_res[0]
+            self.surface_buffers.append(s_res[1])
+        sombrero.smbrr.smbrr_free(reconstructed)
 
         # Populate tree with structures
         self.tree_store.remove_all()
@@ -515,6 +577,10 @@ class SombreroViewer(Gtk.ApplicationWindow):
         # Add a 'sigall' node
         sigall_iter = SmbrrNode("sigall", "All Scales", "", 2)
         self.tree_root.children.append(sigall_iter)
+        
+        # Add 'reconstruct' node
+        reconstruct_iter = SmbrrNode("reconstruct", "Reconstructed Image", "", 2)
+        self.tree_root.children.append(reconstruct_iter)
                 
         for i in range(params['scales'] - 1):
             num_structures = sombrero.smbrr.smbrr_wavelet_get_num_structures(w, i)
@@ -565,7 +631,12 @@ class SombreroViewer(Gtk.ApplicationWindow):
             
         print(f"Found {len(objects_found)} objects.")
         self.objects = objects_found
-        self.show_objects = True # Auto-show them after process
+        
+        self.show_structures = True
+        self.show_circles_btn.set_active(True)
+        self.show_objects = True
+        self.show_objects_btn.set_active(True)
+        
         self.drawing_area.queue_draw()
         
         # Cleanup
@@ -575,8 +646,65 @@ class SombreroViewer(Gtk.ApplicationWindow):
     def on_click(self, gesture, n_press, x, y):
         if self.image_surface:
             print(f"Clicked at {x}, {y}")
-            self.show_objects = not self.show_objects
-            self.drawing_area.queue_draw()
+            # Toggle structures on click
+            self.show_circles_btn.set_active(not self.show_structures)
+
+    def on_motion(self, controller, x, y):
+        if not self.image_surface:
+            return
+            
+        widget_width = self.drawing_area.get_width()
+        widget_height = self.drawing_area.get_height()
+        
+        if widget_width == 0 or widget_height == 0:
+            return
+            
+        scale_x = widget_width / self.image_width
+        scale_y = widget_height / self.image_height
+        
+        img_x = int(x / scale_x)
+        img_y = int(y / scale_y)
+        
+        val_str = ""
+        if 0 <= img_x < self.current_width and 0 <= img_y < self.current_height:
+            if self.current_is_fits and self.current_raw_data:
+                import struct
+                offset = (img_y * self.current_width + img_x) * 4
+                if offset + 4 <= len(self.current_raw_data):
+                    val = struct.unpack('f', self.current_raw_data[offset:offset+4])[0]
+                    val_str = f" | Pixel Value: {val:.4f}"
+            else:
+                # For BMPs or any other format, read directly from the Cairo surface data we created
+                # when loading the texture/surface.
+                if self.image_surface:
+                    try:
+                        surface_data = self.image_surface.get_data()
+                        stride = self.image_surface.get_stride()
+                        offset = img_y * stride + img_x * 4
+                        if offset + 4 <= len(surface_data):
+                            b = surface_data[offset]
+                            g = surface_data[offset+1]
+                            r = surface_data[offset+2]
+                            val_str = f" | RGB: ({r}, {g}, {b})"
+                    except Exception:
+                        pass
+                elif hasattr(self, 'cairo_buffer') and self.cairo_buffer:
+                    stride = self.image_surface.get_stride()
+                    offset = img_y * stride + img_x * 4
+                    if offset + 4 <= len(self.cairo_buffer):
+                        b = self.cairo_buffer[offset]
+                        g = self.cairo_buffer[offset+1]
+                        r = self.cairo_buffer[offset+2]
+                        val_str = f" | RGB: ({r}, {g}, {b})"
+                
+        self.status_label.set_text(f"X: {img_x}, Y: {img_y}{val_str}")
+        
+    def on_enter(self, controller, x, y):
+        self.drawing_area.set_cursor(Gdk.Cursor.new_from_name("crosshair"))
+        
+    def on_leave(self, controller):
+        self.drawing_area.set_cursor(None)
+        self.status_label.set_text("Ready")
 
     def on_tree_selection_changed(self, selection, position, n_items):
         item = selection.get_selected_item()
@@ -594,6 +722,7 @@ class SombreroViewer(Gtk.ApplicationWindow):
             self.filter_scale = None
             self.filter_id = None
             self.filter_sigall = False
+            self.filter_reconstruct = False
         elif depth == 2:
             # Scale selected or sigall
             scale_str = node.name
@@ -601,8 +730,15 @@ class SombreroViewer(Gtk.ApplicationWindow):
                 self.filter_scale = None
                 self.filter_id = None
                 self.filter_sigall = True
+                self.filter_reconstruct = False
+            elif scale_str == "reconstruct":
+                self.filter_scale = None
+                self.filter_id = None
+                self.filter_sigall = False
+                self.filter_reconstruct = True
             else:
                 self.filter_sigall = False
+                self.filter_reconstruct = False
                 try:
                     self.filter_scale = int(scale_str.replace("Scale ", ""))
                     self.filter_id = None
@@ -611,11 +747,12 @@ class SombreroViewer(Gtk.ApplicationWindow):
         elif depth == 3:
             # Individual structure selected
             self.filter_sigall = False
+            self.filter_reconstruct = False
             self.filter_id = node.internal_id
             self.filter_scale = node.parent_id
         
-        # Ensure objects are shown if a selection was made
-        self.show_objects = True
+        # The user requested checkboxes not to change state when the list view selection changes.
+        # So we just request a redraw to respect the existing toggle states.
         self.drawing_area.queue_draw()
 
     def on_draw(self, area, cr, width, height):
@@ -630,6 +767,8 @@ class SombreroViewer(Gtk.ApplicationWindow):
             surface_to_draw = self.image_surface
             if self.filter_sigall and self.sigall_surface:
                 surface_to_draw = self.sigall_surface
+            elif self.filter_reconstruct and self.reconstruct_surface:
+                surface_to_draw = self.reconstruct_surface
             elif self.filter_scale is not None and self.filter_scale in self.scale_surfaces:
                 surface_to_draw = self.scale_surfaces[self.filter_scale]
 
@@ -642,14 +781,25 @@ class SombreroViewer(Gtk.ApplicationWindow):
             cr.get_source().set_matrix(matrix)
             cr.paint()
 
-            if self.show_objects:
+            if self.show_structures:
                 line_scale = max(scale_x, scale_y)
                 if line_scale > 0:
                     cr.set_line_width(2.0)
 
-                cr.set_source_rgba(1.0, 0.0, 0.0, 0.8) # Red circles
+                colors = [
+                    (1.0, 0.0, 0.0, 0.8), # Red
+                    (0.0, 1.0, 0.0, 0.8), # Green
+                    (0.3, 0.3, 1.0, 0.8), # Blue
+                    (1.0, 1.0, 0.0, 0.8), # Yellow
+                    (1.0, 0.0, 1.0, 0.8), # Magenta
+                    (0.0, 1.0, 1.0, 0.8), # Cyan
+                    (1.0, 0.5, 0.0, 0.8), # Orange
+                    (0.5, 0.0, 1.0, 0.8), # Purple
+                    (0.0, 1.0, 0.5, 0.8), # Spring Green
+                    (1.0, 0.0, 0.5, 0.8), # Pink
+                ]
 
-                items_to_draw = self.objects if self.filter_scale is None else self.structures
+                items_to_draw = self.structures
                 
                 for item in items_to_draw:
                     if self.filter_sigall:
@@ -662,9 +812,34 @@ class SombreroViewer(Gtk.ApplicationWindow):
                         if item["scale"] != self.filter_scale:
                             continue
                             
+                    scale = int(item.get("scale", 0))
+                    r, g, b, a = colors[scale % len(colors)]
+                    cr.set_source_rgba(r, g, b, a)
+
                     cr.new_path()
                     cr.arc(item["x"] * scale_x, item["y"] * scale_y, item["radius"] * line_scale, 0, 2 * 3.14159)
                     cr.stroke()
+
+            if self.show_objects:
+                line_scale = max(scale_x, scale_y)
+                if line_scale > 0:
+                    cr.set_line_width(2.0)
+                
+                # Dashed blue circles for true extracted objects
+                cr.set_source_rgba(0.0, 0.0, 1.0, 0.8) # Blue
+                cr.set_dash([5.0, 5.0])
+                
+                for item in self.objects:
+                    # Filter logic if you want to apply tree filtering to detected objects as well
+                    if self.filter_scale is not None and item["scale"] != self.filter_scale:
+                        continue
+                        
+                    cr.new_path()
+                    cr.arc(item["x"] * scale_x, item["y"] * scale_y, item["radius"] * line_scale, 0, 2 * 3.14159)
+                    cr.stroke()
+                
+                # Reset dash for subsequent drawing operations
+                cr.set_dash([])
             
             cr.restore()
 
