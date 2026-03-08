@@ -366,7 +366,7 @@ class SombreroViewer(Gtk.ApplicationWindow):
                         else:
                             norm_data = img_data
                         
-                        vis_data = norm_data.astype(np.uint8)
+                        vis_data = np.flipud(norm_data.astype(np.uint8))
                         
                         float_data = img_data.astype(np.float32)
                         raw_data = float_data.tobytes()
