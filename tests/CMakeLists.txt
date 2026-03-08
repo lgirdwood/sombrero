@@ -28,6 +28,11 @@ target_include_directories(test_reconstruct PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/
 add_executable(test_performance test_performance.c $<TARGET_OBJECTS:test_utils>)
 target_link_libraries(test_performance PRIVATE sombrero ${CFITSIO_LIBRARIES})
 target_include_directories(test_performance PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
+
+# test_image_equivalence
+add_executable(test_image_equivalence test_image_equivalence.c $<TARGET_OBJECTS:test_utils>)
+target_link_libraries(test_image_equivalence PRIVATE sombrero ${CFITSIO_LIBRARIES})
+target_include_directories(test_image_equivalence PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 if(ENABLE_OPENCL)
     target_compile_definitions(test_atrous PRIVATE HAVE_OPENCL)
     target_compile_definitions(test_objects PRIVATE HAVE_OPENCL)
@@ -39,21 +44,24 @@ set(TEST_IMAGES
     wiz-ha-x.bmp 
     ngc7380.fit 
     skv1427378808925.fits 
+    skv1427378808925.bmp
     skv2320143407510.fits)
 
 foreach(IMG IN LISTS TEST_IMAGES)
-    get_filename_component(IMG_NAME ${IMG} NAME_WE)
+    string(REPLACE "." "_" IMG_NAME_SAFE ${IMG})
     
     # Copy test images to the build directory
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../examples/images/${IMG}
                    ${CMAKE_CURRENT_BINARY_DIR}/${IMG} COPYONLY)
 
-    add_test(NAME test_atrous_${IMG_NAME} COMMAND test_atrous ${IMG} test_out_atrous_${IMG_NAME})
-    add_test(NAME test_structures_${IMG_NAME} COMMAND test_structures ${IMG} test_out_structures_${IMG_NAME})
-    add_test(NAME test_objects_${IMG_NAME} COMMAND test_objects -i ${IMG} -o test_out_objects_${IMG_NAME})
-    add_test(NAME test_reconstruct_${IMG_NAME} COMMAND test_reconstruct -i ${IMG} -o test_out_reconstruct_${IMG_NAME}.bmp)
-    add_test(NAME test_performance_${IMG_NAME} COMMAND test_performance -i ${IMG} -o test_out_performance_${IMG_NAME})
+    add_test(NAME test_atrous_${IMG_NAME_SAFE} COMMAND test_atrous ${IMG} test_out_atrous_${IMG_NAME_SAFE})
+    add_test(NAME test_structures_${IMG_NAME_SAFE} COMMAND test_structures ${IMG} test_out_structures_${IMG_NAME_SAFE})
+    add_test(NAME test_objects_${IMG_NAME_SAFE} COMMAND test_objects -i ${IMG} -o test_out_objects_${IMG_NAME_SAFE})
+    add_test(NAME test_reconstruct_${IMG_NAME_SAFE} COMMAND test_reconstruct -i ${IMG} -o test_out_reconstruct_${IMG_NAME_SAFE}.bmp)
+    add_test(NAME test_performance_${IMG_NAME_SAFE} COMMAND test_performance -i ${IMG} -o test_out_performance_${IMG_NAME_SAFE})
 endforeach()
+
+add_test(NAME test_image_equivalence COMMAND test_image_equivalence skv1427378808925.fits skv1427378808925.bmp)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh
                ${CMAKE_CURRENT_BINARY_DIR}/run_tests.sh COPYONLY)
