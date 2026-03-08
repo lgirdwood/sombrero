@@ -57,7 +57,7 @@ foreach(IMG IN LISTS TEST_IMAGES)
     add_test(NAME test_atrous_${IMG_NAME_SAFE} COMMAND test_atrous ${IMG} test_out_atrous_${IMG_NAME_SAFE})
     add_test(NAME test_structures_${IMG_NAME_SAFE} COMMAND test_structures ${IMG} test_out_structures_${IMG_NAME_SAFE})
     add_test(NAME test_objects_${IMG_NAME_SAFE} COMMAND test_objects -i ${IMG} -o test_out_objects_${IMG_NAME_SAFE})
-    add_test(NAME test_reconstruct_${IMG_NAME_SAFE} COMMAND test_reconstruct -i ${IMG} -o test_out_reconstruct_${IMG_NAME_SAFE}.bmp)
+    add_test(NAME test_reconstruct_${IMG_NAME_SAFE} COMMAND test_reconstruct -i ${IMG} -o test_out_reconstruct_${IMG_NAME_SAFE}_reconstructed.bmp)
     add_test(NAME test_performance_${IMG_NAME_SAFE} COMMAND test_performance -i ${IMG} -o test_out_performance_${IMG_NAME_SAFE})
 endforeach()
 

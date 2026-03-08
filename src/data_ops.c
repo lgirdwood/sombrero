@@ -581,6 +581,8 @@ static void subtract_sig(struct smbrr *a, struct smbrr *b, struct smbrr *c,
 	for (offset = 0; offset < a->elems; offset++) {
 		if (S[offset])
 			A[offset] = B[offset] - C[offset];
+		else
+			A[offset] = 0.0f;
 	}
 }
 

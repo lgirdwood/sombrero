@@ -20,7 +20,7 @@ const char *opencl_source_string =
 	"}\n"
 	"__kernel void subtract_sig(__global float *a, __global const float *b, __global const float *c, __global const uint *s, int elems) {\n"
 	"    int i = get_global_id(0);\n"
-	"    if (i < elems && s[i]) a[i] = b[i] - c[i];\n"
+	"    if (i < elems) { if (s[i]) a[i] = b[i] - c[i]; else a[i] = 0.0f; }\n"
 	"}\n"
 	"__kernel void add_value(__global float *a, float value, int elems) {\n"
 	"    int i = get_global_id(0);\n"

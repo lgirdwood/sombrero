@@ -86,7 +86,7 @@ echo ""
 run_test "test_atrous" "test_at-" "$IMAGE" "test_at"
 run_test "test_structures" "test_st-" "$IMAGE" "test_st"
 run_test "test_objects" "test_ob-" "-i" "$IMAGE" "-o" "test_ob"
-run_test "test_reconstruct" "test_re" "-i" "$IMAGE" "-o" "test_re.bmp"
+run_test "test_reconstruct" "test_re_reconstructed" "-i" "$IMAGE" "-o" "test_re_reconstructed.bmp"
 run_test "test_packages.sh" "none"
 
 echo "============================================================"

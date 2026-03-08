@@ -42,7 +42,7 @@ Demonstrates full automated image noise reduction. It performs wavelet decomposi
 
 **Usage:**
 ```bash
-./smbrr-reconstruct -i infile.bmp -o outfile.bmp
+./smbrr-reconstruct -i infile.bmp -o outfile_reconstructed.bmp
 ```
 
 ### 5. `smbrr-reconstruct-1d`
