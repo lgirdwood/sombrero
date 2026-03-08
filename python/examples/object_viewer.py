@@ -663,10 +663,88 @@ class SombreroViewer(Gtk.ApplicationWindow):
         sombrero.smbrr.smbrr_free(img)
 
     def on_click(self, gesture, n_press, x, y):
-        if self.image_surface:
-            print(f"Clicked at {x}, {y}")
-            # Toggle structures on click
+        if not self.image_surface:
+            return
+            
+        widget_width = self.drawing_area.get_width()
+        widget_height = self.drawing_area.get_height()
+        if widget_width == 0 or widget_height == 0:
+            return
+            
+        scale_x = widget_width / self.image_width
+        scale_y = widget_height / self.image_height
+        
+        img_x = x / scale_x
+        img_y = y / scale_y
+        
+        # Find nearest object within interaction radius
+        closest_obj = None
+        min_dist_sq = float('inf')
+        
+        for obj in self.objects:
+            dx = img_x - obj['x']
+            dy = img_y - obj['y']
+            dist_sq = dx*dx + dy*dy
+            # Simple threshold - either inside radius, or just generally close
+            if dist_sq < min_dist_sq:
+                min_dist_sq = dist_sq
+                closest_obj = obj
+                
+        # If we clicked somewhat near it (e.g within 10px buffer of its radius)
+        if closest_obj and min_dist_sq <= ((closest_obj['radius'] + 10) ** 2):
+            target_id = closest_obj['id']
+            # Find it in the tree
+            self._select_node_by_object_id(target_id)
+        else:
+            # Clicked empty space - toggle structures as before
             self.show_circles_btn.set_active(not self.show_structures)
+            
+    def _select_node_by_object_id(self, target_obj_id):
+        # We need to iterate the TreeListModel rows to find the matching node.
+        # TreeListModel flattens the hierarchy into rows.
+        n_items = self.tree_model.get_n_items()
+        
+        # Helper to conditionally expand the parent 'Objects' node if required
+        objects_row_idx = -1
+        target_row_idx = -1
+        
+        for i in range(n_items):
+            row = self.tree_model.get_item(i)
+            if not row:
+                continue
+            item = row.get_item()
+            if not item:
+                continue
+                
+            if item.name == "Objects":
+                objects_row_idx = i
+                # Ensure the 'Objects' node itself is expanded so children are instantiated
+                row.set_expanded(True)
+                break
+                
+        # Now re-evaluate n_items since expanding might have changed row count!
+        n_items = self.tree_model.get_n_items()
+        for i in range(n_items):
+            row = self.tree_model.get_item(i)
+            if not row:
+                continue
+            item = row.get_item()
+            if item and item.parent_id == "objects" and getattr(item, 'object_id', None) == target_obj_id:
+                target_row_idx = i
+                break
+                
+        if target_row_idx >= 0:
+            self.selection_model.select_item(target_row_idx, True)
+            try:
+                # GTK 4.4+ signature
+                self.tree_view.scroll_to(target_row_idx, None, Gtk.ListScrollFlags.FOCUS, None)
+            except Exception:
+                try:
+                    # Fallback for some wrappers
+                    self.tree_view.scroll_to(target_row_idx)
+                except Exception:
+                    pass
+            print(f"Selected object {target_obj_id} at row {target_row_idx}")
 
     def on_motion(self, controller, x, y):
         if not self.image_surface:
