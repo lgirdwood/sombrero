@@ -15,7 +15,7 @@ from gi.repository import Gtk, Gdk, Gio, GObject, GLib
 import cairo
 
 class SmbrrNode(GObject.Object):
-    def __init__(self, name, info, position, depth, internal_id=None, parent_id=None):
+    def __init__(self, name, info, position, depth, internal_id=None, parent_id=None, object_id=None):
         super().__init__()
         self._name = name
         self._info = info
@@ -23,6 +23,7 @@ class SmbrrNode(GObject.Object):
         self.depth = depth
         self.internal_id = internal_id
         self.parent_id = parent_id
+        self.object_id = object_id
         self.children = Gio.ListStore(item_type=SmbrrNode)
 
     @GObject.Property(type=str)
@@ -264,6 +265,7 @@ class SombreroViewer(Gtk.ApplicationWindow):
 
         self.filter_scale = None
         self.filter_id = None
+        self.filter_object_id = None
         self.filter_sigall = False
         self.filter_reconstruct = False
 
@@ -596,7 +598,8 @@ class SombreroViewer(Gtk.ApplicationWindow):
                         f"({struct_data.pos.x}, {sy})",
                         3,
                         struct_data.id,
-                        i
+                        i,
+                        struct_data.object_id
                     )
                     scale_iter.children.append(struct_node)
                     self.structures.append({
@@ -604,7 +607,8 @@ class SombreroViewer(Gtk.ApplicationWindow):
                         "y": sy,
                         "radius": max(1.0, (struct_data.size / 3.14159) ** 0.5 * 2.0),
                         "id": struct_data.id,
-                        "scale": i
+                        "scale": i,
+                        "object_id": struct_data.object_id
                     })
             self.tree_root.children.append(scale_iter)
             print(f"Appended scale {i} to root with {scale_iter.children.get_n_items()} child structs.")
@@ -750,6 +754,7 @@ class SombreroViewer(Gtk.ApplicationWindow):
             self.filter_reconstruct = False
             self.filter_id = node.internal_id
             self.filter_scale = node.parent_id
+            self.filter_object_id = getattr(node, 'object_id', None)
         
         # The user requested checkboxes not to change state when the list view selection changes.
         # So we just request a redraw to respect the existing toggle states.
@@ -805,11 +810,18 @@ class SombreroViewer(Gtk.ApplicationWindow):
                     if self.filter_sigall:
                         # Draw everything if sigall is selected
                         pass
-                    elif self.filter_id is not None:
-                        if item["id"] != self.filter_id:
-                            continue
-                    elif self.filter_scale is not None:
-                        if item["scale"] != self.filter_scale:
+                    elif getattr(self, "filter_id", None) is not None:
+                        # If a single structure is selected, check if it forms a united object
+                        obj_id = getattr(self, "filter_object_id", 0)
+                        if obj_id is not None and obj_id > 0:
+                            if item.get("object_id") != obj_id:
+                                continue
+                        else:
+                            # It is an orphan structure; don't match cross-scale random IDs
+                            if item.get("id") != self.filter_id or item.get("scale") != getattr(self, "filter_scale", None):
+                                continue
+                    elif getattr(self, "filter_scale", None) is not None:
+                        if item.get("scale") != self.filter_scale:
                             continue
                             
                     scale = int(item.get("scale", 0))
