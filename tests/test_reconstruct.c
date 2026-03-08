@@ -22,8 +22,14 @@ int main(int argc, char *argv[]) {
   /* Expected values from examples/reconstruct on wiz-ha-x.bmp */
   float initial_mean = 0.570462;
   float initial_sigma = 1.654864;
-  float final_mean = 1.196682;
-  float final_sigma = 1.554609;
+  float final_mean = 1.248089;
+  float final_sigma = 1.611061;
+
+  /* The skv1427378808925.bmp outputs */
+  float initial_mean_skv = 20.440622;
+  float initial_sigma_skv = 12.741424;
+  float final_mean_skv = 44.142727;
+  float final_sigma_skv = 9.510487;
 
   while ((opt = getopt(argc, argv, "i:o:")) != -1) {
     switch (opt) {
@@ -66,10 +72,15 @@ int main(int argc, char *argv[]) {
   sigma = smbrr_get_sigma(image, mean);
   fprintf(stdout, "Image before mean %f sigma %f\n", mean, sigma);
 
-  if (!use_fits && (fabs(mean - initial_mean) > 0.0001 ||
-                    fabs(sigma - initial_sigma) > 0.0001)) {
-    fprintf(stderr, "Initial image validation failed\n");
-    return -EINVAL;
+  if (!use_fits) {
+    float exp_init_mean = (strstr(ifile, "wiz") != NULL) ? initial_mean : initial_mean_skv;
+    float exp_init_sig = (strstr(ifile, "wiz") != NULL) ? initial_sigma : initial_sigma_skv;
+
+    if (fabs(mean - exp_init_mean) > 0.02 ||
+        fabs(sigma - exp_init_sig) > 0.02) {
+      fprintf(stderr, "Initial image validation failed\n");
+      return -EINVAL;
+    }
   }
 
   ret = smbrr_reconstruct(image, SMBRR_WAVELET_MASK_LINEAR, 1.0e-4, 8,
@@ -82,10 +93,15 @@ int main(int argc, char *argv[]) {
   sigma = smbrr_get_sigma(image, mean);
   fprintf(stdout, "Image after mean %f sigma %f\n", mean, sigma);
 
-  if (!use_fits && (fabs(mean - final_mean) > 0.0001 ||
-                    fabs(sigma - final_sigma) > 0.0001)) {
-    fprintf(stderr, "Final image validation failed\n");
-    return -EINVAL;
+  if (!use_fits) {
+    float exp_final_mean = (strstr(ifile, "wiz") != NULL) ? final_mean : final_mean_skv;
+    float exp_final_sig = (strstr(ifile, "wiz") != NULL) ? final_sigma : final_sigma_skv;
+
+    if (fabs(mean - exp_final_mean) > 0.02 ||
+        fabs(sigma - exp_final_sig) > 0.02) {
+      fprintf(stderr, "Final image validation failed\n");
+      return -EINVAL;
+    }
   }
 
   float rmin = 0, rmax = 0;

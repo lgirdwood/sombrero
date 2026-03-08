@@ -31,6 +31,16 @@ int main(int argc, char *argv[])
 	float expected_wavelet_sigma[] = { 0.488, 0.581, 0.551, 0.363,
 									   0.197, 0.120, 0.077, 0.069 };
 
+	/* Expected values from skv1427378808925.bmp outputs */
+	float expected_scale_mean_skv[] = { 20.441, 20.441, 20.440, 20.438, 20.438, 
+	                                    20.438, 20.438, 20.438, 20.438 };
+	float expected_scale_sigma_skv[] = { 12.741, 10.116, 6.857, 3.906, 2.030, 
+	                                     1.048, 0.510, 0.208, 0.066 };
+	float expected_wavelet_mean_skv[] = { -0.000, 0.000, 0.002, 0.000, 0.000, 
+	                                      0.000, -0.000, 0.000 };
+	float expected_wavelet_sigma_skv[] = { 4.501, 4.815, 4.130, 2.600, 1.358, 
+	                                       0.717, 0.374, 0.170 };
+
 	if (argc != 3) {
 		fprintf(stderr, "Usage: %s <input.bmp> <output_prefix>\n", argv[0]);
 		return -EINVAL;
@@ -110,13 +120,17 @@ int main(int argc, char *argv[])
 		fprintf(stdout, "scale %d mean %3.3f sigma %3.3f\n", i, mean, sigma);
 
 		/* Validate scale values within a reasonable tolerance */
-		if (!use_fits && (fabs(mean - expected_scale_mean[i]) > 0.002 ||
-						  fabs(sigma - expected_scale_sigma[i]) > 0.002)) {
-			fprintf(stderr, "Scale %d validation failed!\n", i);
-			smbrr_wavelet_free(w);
-			smbrr_free(image);
-			smbrr_free(oimage); // Free oimage on error
-			return -EINVAL;
+		if (!use_fits) {
+			float exp_mean = (strstr(ifile, "wiz") != NULL) ? expected_scale_mean[i] : expected_scale_mean_skv[i];
+			float exp_sigma = (strstr(ifile, "wiz") != NULL) ? expected_scale_sigma[i] : expected_scale_sigma_skv[i];
+			
+			if (fabs(mean - exp_mean) > 0.002 || fabs(sigma - exp_sigma) > 0.002) {
+				fprintf(stderr, "Scale %d validation failed!\n", i);
+				smbrr_wavelet_free(w);
+				smbrr_free(image);
+				smbrr_free(oimage); // Free oimage on error
+				return -EINVAL;
+			}
 		}
 
 		if (i < scales - 1) {
@@ -137,11 +151,13 @@ int main(int argc, char *argv[])
 					sigma);
 
 			/* Validate wavelet values */
-			if (!use_fits &&
-				(fabs(mean - expected_wavelet_mean[i]) > 0.002 ||
-				 fabs(sigma - expected_wavelet_sigma[i]) > 0.002)) {
-				fprintf(stderr, "Wavelet %d validation failed!\n", i);
-				return -EINVAL;
+			if (!use_fits) {
+				float exp_w_mean = (strstr(ifile, "wiz") != NULL) ? expected_wavelet_mean[i] : expected_wavelet_mean_skv[i];
+				float exp_w_sigma = (strstr(ifile, "wiz") != NULL) ? expected_wavelet_sigma[i] : expected_wavelet_sigma_skv[i];
+				if (fabs(mean - exp_w_mean) > 0.002 || fabs(sigma - exp_w_sigma) > 0.002) {
+					fprintf(stderr, "Wavelet %d validation failed!\n", i);
+					return -EINVAL;
+				}
 			}
 		}
 	}
