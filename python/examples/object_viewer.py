@@ -178,7 +178,7 @@ class SombreroViewer(Gtk.ApplicationWindow):
 
         # Left panel: ColumnView for structures
         self.tree_store = Gio.ListStore(item_type=SmbrrNode)
-        self.tree_model = Gtk.TreeListModel.new(self.tree_store, False, True, create_row)
+        self.tree_model = Gtk.TreeListModel.new(self.tree_store, False, False, create_row)
         self.selection_model = Gtk.SingleSelection.new(self.tree_model)
         self.tree_view = Gtk.ColumnView(model=self.selection_model)
 
