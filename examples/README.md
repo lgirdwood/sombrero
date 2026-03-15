@@ -66,6 +66,14 @@ cd ../python
 python3 -m pip install -e .
 ```
 
+The `sombrero` Python package will automatically try to locate the compiled C library (`libsombrero.so`) in the standard development build directories (e.g., `../build/src/` or `../../build/src/` relative to the wrapper).
+
+If your build directory is located elsewhere, or if you encounter errors finding the library, you can explicitly set its path using the `SMBRR_LIB_PATH` environment variable:
+
+```bash
+export SMBRR_LIB_PATH=/path/to/your/build/src/libsombrero.so
+```
+
 ### `usb_camera_reconstruct.py`
 Captures live frames from an external USB camera via OpenCV, processes the frames using the `smbrr_reconstruct` pipeline to remove noise in real-time, and renders a side-by-side comparison window.
 

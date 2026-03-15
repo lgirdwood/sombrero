@@ -5,16 +5,28 @@ from ctypes import POINTER, c_int, c_uint, c_float, c_void_p, Structure, byref
 
 # Helper to find and load the library
 def _load_libsombrero():
-    # Try looking in the build directory relative to this script first (for development)
-    local_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "build", "src", "libsombrero.so")
-    if os.path.exists(local_path):
-        return ctypes.CDLL(local_path)
+    # Check for an explicit environment variable override
+    env_path = os.environ.get("SMBRR_LIB_PATH")
+    if env_path and os.path.exists(env_path):
+        return ctypes.CDLL(env_path)
+
+    base_dir = os.path.dirname(os.path.abspath(__file__))
     
+    # Try looking in the in-source build directory
+    in_source_path = os.path.join(base_dir, "..", "build", "src", "libsombrero.so")
+    if os.path.exists(in_source_path):
+        return ctypes.CDLL(in_source_path)
+
+    # Try looking in the out-of-source build directory (standard based on AGENTS.md)
+    out_source_path = os.path.join(base_dir, "..", "..", "build", "src", "libsombrero.so")
+    if os.path.exists(out_source_path):
+        return ctypes.CDLL(out_source_path)
+
     # Otherwise try system paths
     try:
         return ctypes.CDLL("libsombrero.so")
     except OSError:
-        print(f"Error: Could not find libsombrero.so. Make sure it's installed or in {local_path}.")
+        print(f"Error: Could not find libsombrero.so. Make sure it's installed, located in the build directory, or set via SMBRR_LIB_PATH.")
         sys.exit(1)
 
 smbrr = _load_libsombrero()
