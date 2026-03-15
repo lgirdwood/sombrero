@@ -57,6 +57,15 @@ An example of processing 1-dimensional signals (like audio) rather than 2D pixel
 
 Python scripts utilizing the `sombrero` ctypes bindings to demonstrate interactive video processing capabilities.
 
+### Local Development Installation
+
+To run the Python examples using your local development version of `libsmbrr`, you should install the `sombrero` Python package from the `python` directory in editable mode:
+
+```bash
+cd ../python
+python3 -m pip install -e .
+```
+
 ### `usb_camera_reconstruct.py`
 Captures live frames from an external USB camera via OpenCV, processes the frames using the `smbrr_reconstruct` pipeline to remove noise in real-time, and renders a side-by-side comparison window.
 
