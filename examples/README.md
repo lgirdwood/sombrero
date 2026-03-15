@@ -66,8 +66,14 @@ Captures live frames from an external USB camera via OpenCV, processes the frame
 ### `usb_camera_sigall.py`
 Captures USB camera frames, extracts all structure significance layers in real-time, and visualizes the aggregated components.
 
+**Requirements:** `python3 -m pip install opencv-python numpy sombrero`
+**Usage:** `python3 usb_camera_sigall.py`
+
 ### `usb_camera_objects.py`
 Live object tracking and detection via the USB camera frame feed.
+
+**Requirements:** `python3 -m pip install opencv-python numpy sombrero`
+**Usage:** `python3 usb_camera_objects.py`
 
 ---
 
