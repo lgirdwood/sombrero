@@ -4,7 +4,7 @@ This directory contains the Python `ctypes` wrapper for `libsmbrr` (Sombrero), a
 
 ## Installation
 
-The wrapper relies on the compiled `libsombrero.so` C library being present on your system. 
+The wrapper relies on the compiled `libsombrero.so` C library being present on your system.
 
 1. Ensure the C library is built. It will either look for `libsombrero.so` in your system's library paths (like `/usr/local/lib` or `/usr/lib`) or fallback to `../build/src/libsombrero.so` locally for development.
 2. Install this wrapper via `pip` from within this `python/` directory:
