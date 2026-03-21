@@ -163,7 +163,8 @@ configure_file(
 )
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libsombrero.pc
-        DESTINATION lib/pkgconfig)
+        DESTINATION lib/pkgconfig
+        COMPONENT main)
 
 # Output config.h
 configure_file(
@@ -188,6 +189,14 @@ set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Sombrero is a fast wavelet data processin
 set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
 set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
+
+set(CPACK_COMPONENTS_ALL main python)
+set(CPACK_DEB_COMPONENT_INSTALL ON)
+set(CPACK_RPM_COMPONENT_INSTALL ON)
+
+set(CPACK_COMPONENT_PYTHON_DEPENDS main)
+set(CPACK_DEBIAN_PYTHON_PACKAGE_NAME "python3-sombrero")
+set(CPACK_RPM_PYTHON_PACKAGE_NAME "python3-sombrero")
 
 find_program(RPMBUILD_EXECUTABLE rpmbuild)
 if(RPMBUILD_EXECUTABLE)
@@ -218,4 +227,17 @@ if(Python3_FOUND)
         DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/python_dist
         COMMENT "Building python wheel"
     )
+
+    execute_process(
+        COMMAND ${Python3_EXECUTABLE} -c "import sysconfig; p = sysconfig.get_path('purelib'); print(p[p.find('/lib/')+1:])"
+        OUTPUT_VARIABLE PYTHON_SITELIB
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    if(NOT PYTHON_SITELIB)
+        set(PYTHON_SITELIB "lib/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages")
+    endif()
+
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/python/sombrero.py
+            DESTINATION ${PYTHON_SITELIB}
+            COMPONENT python)
 endif()
