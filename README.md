@@ -128,6 +128,7 @@ Here is a visual demonstration running `smbrr-structures` to isolate significant
 The `smbrr-objects` example performs structure discovery across wavelet scales and then connects overlapping structures into concrete objects containing aggregated statistics.
 
 **Console Output:**
+
 ```text
 Found 891 structures at scale 0
 Found 703 structures at scale 1
@@ -166,6 +167,7 @@ cmake --build build --target test
 ```
 
 Alternatively, a high-level test script runs all binaries and compares output images against verified baselines:
+
 ```bash
 cd tests
 ./run_tests.sh

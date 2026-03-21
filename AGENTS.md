@@ -18,11 +18,13 @@ cmake --build ../build -j$(nproc)
 Unit tests are executed using CTest or the provided test script.
 
 Using CTest:
+
 ```bash
 cmake --build ../build --target test
 ```
 
 Using the test script (for image output validation):
+
 ```bash
 cd ../build/tests
 ./run_tests.sh
@@ -34,12 +36,14 @@ Sombrero includes a ctypes Python wrapper for the C library.
 
 **Building the Python Package:**
 To build the Python package (wheel/sdist):
+
 ```bash
 cmake --build ../build --target python-package
 ```
 
 **Testing:**
 To test the Python bindings, run the test script:
+
 ```bash
 python3 test_wrapper.py
 ```

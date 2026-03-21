@@ -74,7 +74,9 @@ graph LR
 The wavelet detail arrays representing only the significant structures and structures-derived objects can be layered back together to recover a pristine, noise-suppressed view of the original data segment.
 
 ### Direct Reconstruction
+
 The specific object components and significance map coefficients on each scale array (usually excluding the raw high-frequency/low-scale layers where noise dominated) are sequentially combined into a new context using `smbrr_significant_add_value`.
 
 ### Dedicated Reconstruct Pipeline
+
 The `smbrr_reconstruct` function encapsulates this entire workflow (convolution, iterative clipping thresholds, and scale component reunification) into a single optimized pass, actively regenerating the initial target data array entirely cleansed of non-significant values.
