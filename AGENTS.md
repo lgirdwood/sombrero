@@ -44,10 +44,19 @@ To test the Python bindings, run the test script:
 python3 test_wrapper.py
 ```
 
+## Task Completion Guidelines
+
+Before completing any task, an agent MUST:
+
+1. **Run All Tests**: Execute all related unit tests (both C and Python) as described in the sections above.
+2. **Verify Tests Pass**: Ensure that 100% of the tests pass successfully. Do not finish the task or consider it accepted if there are any failing tests. You must debug and fix the implementation or test until they pass.
+3. **Clean Temporary Files**: Check `git status` and delete any temporary or generated files from the workspace (such as `egg-info`, `__pycache__`, or `build` folders) before committing your final changes.
+
 ## Commit Message Guidelines
 
 When making commits, ensure you strictly follow these rules:
 
+- **Permission**: You must ALWAYS ask for the user's permission before executing any `git commit` commands.
 - **Line Length**: The overall commit message must be at most 80 characters per line.
 - **Subject**: The subject line must follow the format `feature: description`.
 - **Body**: The commit message body must properly describe the change and why it was made.
